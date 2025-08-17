@@ -3,10 +3,7 @@
 
 int main() {
     Engine engine;
-    if (!engine_init(&engine)) {
-        fprintf(stderr, "Engine init failed.\n");
-        return -1;
-    }
+    init(&engine, 1200, 720); 
 
     while (!glfwWindowShouldClose(engine.window)) {
         engine_draw_frame(&engine);

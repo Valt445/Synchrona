@@ -44,19 +44,19 @@ cmake_force:
 SHELL = /bin/sh
 
 # The CMake executable.
-CMAKE_COMMAND = /opt/homebrew/bin/cmake
+CMAKE_COMMAND = /home/valker/.local/lib/python3.10/site-packages/cmake/data/bin/cmake
 
 # The command to remove a file.
-RM = /opt/homebrew/bin/cmake -E rm -f
+RM = /home/valker/.local/lib/python3.10/site-packages/cmake/data/bin/cmake -E rm -f
 
 # Escaping for special characters.
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /Users/mukesh/malike
+CMAKE_SOURCE_DIR = /home/valker/Malike
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /Users/mukesh/malike/build
+CMAKE_BINARY_DIR = /home/valker/Malike/build
 
 # Include any dependencies generated for this target.
 include CMakeFiles/my_vulkan_engine.dir/depend.make
@@ -73,48 +73,63 @@ CMakeFiles/my_vulkan_engine.dir/codegen:
 .PHONY : CMakeFiles/my_vulkan_engine.dir/codegen
 
 CMakeFiles/my_vulkan_engine.dir/src/main.cpp.o: CMakeFiles/my_vulkan_engine.dir/flags.make
-CMakeFiles/my_vulkan_engine.dir/src/main.cpp.o: /Users/mukesh/malike/src/main.cpp
+CMakeFiles/my_vulkan_engine.dir/src/main.cpp.o: /home/valker/Malike/src/main.cpp
 CMakeFiles/my_vulkan_engine.dir/src/main.cpp.o: CMakeFiles/my_vulkan_engine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/mukesh/malike/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/my_vulkan_engine.dir/src/main.cpp.o"
-	/opt/homebrew/opt/llvm/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/my_vulkan_engine.dir/src/main.cpp.o -MF CMakeFiles/my_vulkan_engine.dir/src/main.cpp.o.d -o CMakeFiles/my_vulkan_engine.dir/src/main.cpp.o -c /Users/mukesh/malike/src/main.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/valker/Malike/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/my_vulkan_engine.dir/src/main.cpp.o"
+	/usr/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/my_vulkan_engine.dir/src/main.cpp.o -MF CMakeFiles/my_vulkan_engine.dir/src/main.cpp.o.d -o CMakeFiles/my_vulkan_engine.dir/src/main.cpp.o -c /home/valker/Malike/src/main.cpp
 
 CMakeFiles/my_vulkan_engine.dir/src/main.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/my_vulkan_engine.dir/src/main.cpp.i"
-	/opt/homebrew/opt/llvm/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/mukesh/malike/src/main.cpp > CMakeFiles/my_vulkan_engine.dir/src/main.cpp.i
+	/usr/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/valker/Malike/src/main.cpp > CMakeFiles/my_vulkan_engine.dir/src/main.cpp.i
 
 CMakeFiles/my_vulkan_engine.dir/src/main.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/my_vulkan_engine.dir/src/main.cpp.s"
-	/opt/homebrew/opt/llvm/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/mukesh/malike/src/main.cpp -o CMakeFiles/my_vulkan_engine.dir/src/main.cpp.s
+	/usr/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/valker/Malike/src/main.cpp -o CMakeFiles/my_vulkan_engine.dir/src/main.cpp.s
 
 CMakeFiles/my_vulkan_engine.dir/src/engine.cpp.o: CMakeFiles/my_vulkan_engine.dir/flags.make
-CMakeFiles/my_vulkan_engine.dir/src/engine.cpp.o: /Users/mukesh/malike/src/engine.cpp
+CMakeFiles/my_vulkan_engine.dir/src/engine.cpp.o: /home/valker/Malike/src/engine.cpp
 CMakeFiles/my_vulkan_engine.dir/src/engine.cpp.o: CMakeFiles/my_vulkan_engine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/mukesh/malike/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/my_vulkan_engine.dir/src/engine.cpp.o"
-	/opt/homebrew/opt/llvm/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/my_vulkan_engine.dir/src/engine.cpp.o -MF CMakeFiles/my_vulkan_engine.dir/src/engine.cpp.o.d -o CMakeFiles/my_vulkan_engine.dir/src/engine.cpp.o -c /Users/mukesh/malike/src/engine.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/valker/Malike/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/my_vulkan_engine.dir/src/engine.cpp.o"
+	/usr/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/my_vulkan_engine.dir/src/engine.cpp.o -MF CMakeFiles/my_vulkan_engine.dir/src/engine.cpp.o.d -o CMakeFiles/my_vulkan_engine.dir/src/engine.cpp.o -c /home/valker/Malike/src/engine.cpp
 
 CMakeFiles/my_vulkan_engine.dir/src/engine.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/my_vulkan_engine.dir/src/engine.cpp.i"
-	/opt/homebrew/opt/llvm/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/mukesh/malike/src/engine.cpp > CMakeFiles/my_vulkan_engine.dir/src/engine.cpp.i
+	/usr/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/valker/Malike/src/engine.cpp > CMakeFiles/my_vulkan_engine.dir/src/engine.cpp.i
 
 CMakeFiles/my_vulkan_engine.dir/src/engine.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/my_vulkan_engine.dir/src/engine.cpp.s"
-	/opt/homebrew/opt/llvm/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/mukesh/malike/src/engine.cpp -o CMakeFiles/my_vulkan_engine.dir/src/engine.cpp.s
+	/usr/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/valker/Malike/src/engine.cpp -o CMakeFiles/my_vulkan_engine.dir/src/engine.cpp.s
+
+CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.o: CMakeFiles/my_vulkan_engine.dir/flags.make
+CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.o: /home/valker/Malike/external/vk-bootstrap/src/VkBootstrap.cpp
+CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.o: CMakeFiles/my_vulkan_engine.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/valker/Malike/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.o"
+	/usr/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.o -MF CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.o.d -o CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.o -c /home/valker/Malike/external/vk-bootstrap/src/VkBootstrap.cpp
+
+CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.i"
+	/usr/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/valker/Malike/external/vk-bootstrap/src/VkBootstrap.cpp > CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.i
+
+CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.s"
+	/usr/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/valker/Malike/external/vk-bootstrap/src/VkBootstrap.cpp -o CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.s
 
 # Object files for target my_vulkan_engine
 my_vulkan_engine_OBJECTS = \
 "CMakeFiles/my_vulkan_engine.dir/src/main.cpp.o" \
-"CMakeFiles/my_vulkan_engine.dir/src/engine.cpp.o"
+"CMakeFiles/my_vulkan_engine.dir/src/engine.cpp.o" \
+"CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.o"
 
 # External object files for target my_vulkan_engine
 my_vulkan_engine_EXTERNAL_OBJECTS =
 
 my_vulkan_engine: CMakeFiles/my_vulkan_engine.dir/src/main.cpp.o
 my_vulkan_engine: CMakeFiles/my_vulkan_engine.dir/src/engine.cpp.o
+my_vulkan_engine: CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.o
 my_vulkan_engine: CMakeFiles/my_vulkan_engine.dir/build.make
-my_vulkan_engine: /Users/mukesh/VulkanSDK/1.3.296.0/macOS/lib/libvulkan.dylib
-my_vulkan_engine: /opt/homebrew/lib/libglfw.3.dylib
+my_vulkan_engine: /home/valker/Downloads/1.4.321.1/x86_64/lib/libvulkan.so
 my_vulkan_engine: CMakeFiles/my_vulkan_engine.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/mukesh/malike/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking CXX executable my_vulkan_engine"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/valker/Malike/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Linking CXX executable my_vulkan_engine"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/my_vulkan_engine.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -126,6 +141,6 @@ CMakeFiles/my_vulkan_engine.dir/clean:
 .PHONY : CMakeFiles/my_vulkan_engine.dir/clean
 
 CMakeFiles/my_vulkan_engine.dir/depend:
-	cd /Users/mukesh/malike/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /Users/mukesh/malike /Users/mukesh/malike /Users/mukesh/malike/build /Users/mukesh/malike/build /Users/mukesh/malike/build/CMakeFiles/my_vulkan_engine.dir/DependInfo.cmake "--color=$(COLOR)"
+	cd /home/valker/Malike/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/valker/Malike /home/valker/Malike /home/valker/Malike/build /home/valker/Malike/build /home/valker/Malike/build/CMakeFiles/my_vulkan_engine.dir/DependInfo.cmake "--color=$(COLOR)"
 .PHONY : CMakeFiles/my_vulkan_engine.dir/depend
 

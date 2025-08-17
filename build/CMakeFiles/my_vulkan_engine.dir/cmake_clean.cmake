@@ -1,4 +1,6 @@
 file(REMOVE_RECURSE
+  "CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.o"
+  "CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.o.d"
   "CMakeFiles/my_vulkan_engine.dir/src/engine.cpp.o"
   "CMakeFiles/my_vulkan_engine.dir/src/engine.cpp.o.d"
   "CMakeFiles/my_vulkan_engine.dir/src/main.cpp.o"

@@ -48,27 +48,27 @@ cmake_force:
 SHELL = /bin/sh
 
 # The CMake executable.
-CMAKE_COMMAND = /opt/homebrew/bin/cmake
+CMAKE_COMMAND = /home/valker/.local/lib/python3.10/site-packages/cmake/data/bin/cmake
 
 # The command to remove a file.
-RM = /opt/homebrew/bin/cmake -E rm -f
+RM = /home/valker/.local/lib/python3.10/site-packages/cmake/data/bin/cmake -E rm -f
 
 # Escaping for special characters.
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /Users/mukesh/malike
+CMAKE_SOURCE_DIR = /home/valker/Malike
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /Users/mukesh/malike/build
+CMAKE_BINARY_DIR = /home/valker/Malike/build
 
 #=============================================================================
 # Targets provided globally by CMake.
 
 # Special rule for the target edit_cache
 edit_cache:
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Running CMake cache editor..."
-	/opt/homebrew/bin/ccmake -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "No interactive CMake dialog available..."
+	/home/valker/.local/lib/python3.10/site-packages/cmake/data/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
 .PHONY : edit_cache
 
 # Special rule for the target edit_cache
@@ -78,7 +78,7 @@ edit_cache/fast: edit_cache
 # Special rule for the target rebuild_cache
 rebuild_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Running CMake to regenerate build system..."
-	/opt/homebrew/bin/cmake --regenerate-during-build -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+	/home/valker/.local/lib/python3.10/site-packages/cmake/data/bin/cmake --regenerate-during-build -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
 .PHONY : rebuild_cache
 
 # Special rule for the target rebuild_cache
@@ -87,9 +87,9 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/mukesh/malike/build/CMakeFiles /Users/mukesh/malike/build//CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/valker/Malike/build/CMakeFiles /home/valker/Malike/build//CMakeFiles/progress.marks
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/mukesh/malike/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/valker/Malike/build/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
@@ -128,6 +128,30 @@ my_vulkan_engine: cmake_check_build_system
 my_vulkan_engine/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/build
 .PHONY : my_vulkan_engine/fast
+
+external/vk-bootstrap/src/VkBootstrap.o: external/vk-bootstrap/src/VkBootstrap.cpp.o
+.PHONY : external/vk-bootstrap/src/VkBootstrap.o
+
+# target to build an object file
+external/vk-bootstrap/src/VkBootstrap.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.o
+.PHONY : external/vk-bootstrap/src/VkBootstrap.cpp.o
+
+external/vk-bootstrap/src/VkBootstrap.i: external/vk-bootstrap/src/VkBootstrap.cpp.i
+.PHONY : external/vk-bootstrap/src/VkBootstrap.i
+
+# target to preprocess a source file
+external/vk-bootstrap/src/VkBootstrap.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.i
+.PHONY : external/vk-bootstrap/src/VkBootstrap.cpp.i
+
+external/vk-bootstrap/src/VkBootstrap.s: external/vk-bootstrap/src/VkBootstrap.cpp.s
+.PHONY : external/vk-bootstrap/src/VkBootstrap.s
+
+# target to generate assembly for a file
+external/vk-bootstrap/src/VkBootstrap.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.s
+.PHONY : external/vk-bootstrap/src/VkBootstrap.cpp.s
 
 src/engine.o: src/engine.cpp.o
 .PHONY : src/engine.o
@@ -186,6 +210,9 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... my_vulkan_engine"
+	@echo "... external/vk-bootstrap/src/VkBootstrap.o"
+	@echo "... external/vk-bootstrap/src/VkBootstrap.i"
+	@echo "... external/vk-bootstrap/src/VkBootstrap.s"
 	@echo "... src/engine.o"
 	@echo "... src/engine.i"
 	@echo "... src/engine.s"

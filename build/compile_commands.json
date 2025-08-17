@@ -1,14 +1,20 @@
 [
 {
-  "directory": "/Users/mukesh/malike/build",
-  "command": "/opt/homebrew/opt/llvm/bin/clang++ -DVKB_FORCE_KHR -I/Users/mukesh/malike/include -I/opt/homebrew/include -I/Users/mukesh/malike/external/vk-bootstrap/src -isystem /Users/mukesh/VulkanSDK/1.3.296.0/macOS/include -std=gnu++17 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.2.sdk -o CMakeFiles/my_vulkan_engine.dir/src/main.cpp.o -c /Users/mukesh/malike/src/main.cpp",
-  "file": "/Users/mukesh/malike/src/main.cpp",
+  "directory": "/home/valker/Malike/build",
+  "command": "/usr/bin/clang++ -DVKB_FORCE_KHR -I/home/valker/Malike/include -I/home/valker/Malike/external/vk-bootstrap/src -isystem /home/valker/Downloads/1.4.321.1/x86_64/include -std=gnu++17 -o CMakeFiles/my_vulkan_engine.dir/src/main.cpp.o -c /home/valker/Malike/src/main.cpp",
+  "file": "/home/valker/Malike/src/main.cpp",
   "output": "CMakeFiles/my_vulkan_engine.dir/src/main.cpp.o"
 },
 {
-  "directory": "/Users/mukesh/malike/build",
-  "command": "/opt/homebrew/opt/llvm/bin/clang++ -DVKB_FORCE_KHR -I/Users/mukesh/malike/include -I/opt/homebrew/include -I/Users/mukesh/malike/external/vk-bootstrap/src -isystem /Users/mukesh/VulkanSDK/1.3.296.0/macOS/include -std=gnu++17 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.2.sdk -o CMakeFiles/my_vulkan_engine.dir/src/engine.cpp.o -c /Users/mukesh/malike/src/engine.cpp",
-  "file": "/Users/mukesh/malike/src/engine.cpp",
+  "directory": "/home/valker/Malike/build",
+  "command": "/usr/bin/clang++ -DVKB_FORCE_KHR -I/home/valker/Malike/include -I/home/valker/Malike/external/vk-bootstrap/src -isystem /home/valker/Downloads/1.4.321.1/x86_64/include -std=gnu++17 -o CMakeFiles/my_vulkan_engine.dir/src/engine.cpp.o -c /home/valker/Malike/src/engine.cpp",
+  "file": "/home/valker/Malike/src/engine.cpp",
   "output": "CMakeFiles/my_vulkan_engine.dir/src/engine.cpp.o"
+},
+{
+  "directory": "/home/valker/Malike/build",
+  "command": "/usr/bin/clang++ -DVKB_FORCE_KHR -I/home/valker/Malike/include -I/home/valker/Malike/external/vk-bootstrap/src -isystem /home/valker/Downloads/1.4.321.1/x86_64/include -std=gnu++17 -o CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.o -c /home/valker/Malike/external/vk-bootstrap/src/VkBootstrap.cpp",
+  "file": "/home/valker/Malike/external/vk-bootstrap/src/VkBootstrap.cpp",
+  "output": "CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.o"
 }
 ]
