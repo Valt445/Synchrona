@@ -1,0 +1,3 @@
+/Users/mukesh/malike/CMakeFiles/my_vulkan_engine.dir
+/Users/mukesh/malike/CMakeFiles/edit_cache.dir
+/Users/mukesh/malike/CMakeFiles/rebuild_cache.dir
