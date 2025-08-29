@@ -1,0 +1,48 @@
+# Build directories
+/build/
+/CMakeFiles/
+
+# CMake generated files
+CMakeCache.txt
+CMakeFiles
+cmake_install.cmake
+CMakeConfigureLog.yaml
+Makefile
+Makefile2
+*.cmake
+*.marks
+
+# Compile commands (keep if you want for tooling)
+compile_commands.json
+
+# Binaries
+/my_vulkan_engine
+/build/my_vulkan_engine
+
+# Object files and intermediate build files
+*.o
+*.obj
+*.a
+*.lib
+*.lo
+*.la
+
+# Shared/Static libraries
+*.so
+*.so.*
+*.dylib
+*.dll
+*.pdb
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+

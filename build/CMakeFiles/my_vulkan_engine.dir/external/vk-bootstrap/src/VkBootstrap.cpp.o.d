@@ -48,21 +48,25 @@ CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.o: \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/type_traits \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/move.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/utility.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/compare \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/concepts \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/stl_iterator_base_types.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/iterator_concepts.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/ptr_traits.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/ranges_cmp.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/stl_iterator_base_funcs.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/concept_check.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/debug/assertions.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/stl_iterator.h \
-  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/ptr_traits.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/new \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/exception.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/stl_construct.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/debug/debug.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/predefined_ops.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/allocator.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/x86_64-linux-gnu/c++/12/bits/c++allocator.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/new_allocator.h \
-  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/new \
-  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/exception.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/memoryfwd.h \
-  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/stl_construct.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/stl_uninitialized.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/ext/alloc_traits.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/alloc_traits.h \
@@ -101,6 +105,9 @@ CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.o: \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/cxxabi_forced.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/basic_string.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/string_view \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/ranges_base.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/max_size_type.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/numbers \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/string_view.tcc \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/ext/string_conversions.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/cstdlib \
@@ -144,20 +151,20 @@ CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.o: \
   /usr/lib/llvm-14/lib/clang/14.0.0/include/__stddef_max_align_t.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/typeinfo \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/nested_exception.h \
-  /home/valker/Downloads/1.4.321.1/x86_64/include/vulkan/vulkan_core.h \
-  /home/valker/Downloads/1.4.321.1/x86_64/include/vulkan/vk_platform.h \
-  /home/valker/Downloads/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_h264std.h \
-  /home/valker/Downloads/1.4.321.1/x86_64/include/vk_video/vulkan_video_codecs_common.h \
-  /home/valker/Downloads/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_h264std_encode.h \
-  /home/valker/Downloads/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_h265std.h \
-  /home/valker/Downloads/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_h265std_encode.h \
-  /home/valker/Downloads/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_h264std_decode.h \
-  /home/valker/Downloads/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_h265std_decode.h \
-  /home/valker/Downloads/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_av1std.h \
-  /home/valker/Downloads/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_av1std_decode.h \
-  /home/valker/Downloads/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_av1std_encode.h \
-  /home/valker/Downloads/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_vp9std.h \
-  /home/valker/Downloads/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_vp9std_decode.h \
+  /home/valker/VulkanSDK/1.4.321.1/x86_64/include/vulkan/vulkan_core.h \
+  /home/valker/VulkanSDK/1.4.321.1/x86_64/include/vulkan/vk_platform.h \
+  /home/valker/VulkanSDK/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_h264std.h \
+  /home/valker/VulkanSDK/1.4.321.1/x86_64/include/vk_video/vulkan_video_codecs_common.h \
+  /home/valker/VulkanSDK/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_h264std_encode.h \
+  /home/valker/VulkanSDK/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_h265std.h \
+  /home/valker/VulkanSDK/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_h265std_encode.h \
+  /home/valker/VulkanSDK/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_h264std_decode.h \
+  /home/valker/VulkanSDK/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_h265std_decode.h \
+  /home/valker/VulkanSDK/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_av1std.h \
+  /home/valker/VulkanSDK/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_av1std_decode.h \
+  /home/valker/VulkanSDK/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_av1std_encode.h \
+  /home/valker/VulkanSDK/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_vp9std.h \
+  /home/valker/VulkanSDK/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_vp9std_decode.h \
   /home/valker/Malike/external/vk-bootstrap/src/VkBootstrapDispatch.h \
   /usr/include/dlfcn.h /usr/include/x86_64-linux-gnu/bits/dlfcn.h \
   /usr/include/x86_64-linux-gnu/bits/dl_find_object.h \
@@ -193,5 +200,8 @@ CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.o: \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/stl_heap.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/stl_tempbuf.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/uniform_int_dist.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/ranges_algo.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/ranges_algobase.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/ranges_util.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/pstl/glue_algorithm_defs.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/pstl/execution_defs.h

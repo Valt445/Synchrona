@@ -1,0 +1,98 @@
+#version 450
+// A shader for a shadow-forged knight's relic with polyhedral grids, obsidian glyphs, and shadowy refractions.
+layout (local_size_x = 16, local_size_y = 16) in;
+
+// Image binding for the output.
+layout(rgba16f, set = 0, binding = 0) uniform image2D imgOutput;
+
+// Push constants for time and resolution.
+layout(push_constant) uniform PushConstants {
+    float time;
+    vec2  resolution;
+    float pulse;
+} pc;
+
+void main()
+{
+    // The texel coordinate for the current pixel.
+    ivec2 texelCoord = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 size = imageSize(imgOutput);
+
+    // Guard against out-of-bounds access.
+    if (texelCoord.x >= size.x || texelCoord.y >= size.y) {
+        return;
+    }
+
+    // Normalized UV coordinates from 0.0 to 1.0.
+    vec2 uv = vec2(texelCoord) / vec2(size);
+    vec3 finalColor = vec3(0.0);
+
+    // --- Polyhedral Grid Background ---
+    vec2 gridUV = uv * 12.0 + vec2(sin(pc.time * 0.03), cos(pc.time * 0.04));
+    vec2 grid = fract(gridUV) - 0.5;
+    float polyDist = max(abs(grid.x), max(abs(grid.y), abs(grid.x * 0.5 + grid.y * 0.866)));
+    float poly = smoothstep(0.47, 0.43, polyDist); // Sharp hexagonal grid
+    float gridNoise = fract(sin(dot(gridUV, vec2(12.345, 78.901))) * 34567.8901);
+    vec3 gridColor = vec3(
+        0.08 + 0.07 * sin(pc.time * 0.08 + gridNoise),
+        0.06 + 0.05 * cos(pc.time * 0.09 + gridNoise * 1.1),
+        0.1 + 0.06 * sin(pc.time * 0.1 + gridNoise * 0.9)
+    );
+    finalColor += gridColor * poly * 0.5;
+
+    // --- Subtle Geometric Echoes ---
+    vec2 echoUV = uv * 10.0 + vec2(cos(pc.time * 0.06), sin(pc.time * 0.07));
+    vec2 echoGrid = fract(echoUV) - 0.5;
+    float echoDist = max(abs(echoGrid.x + echoGrid.y), abs(echoGrid.x - echoGrid.y));
+    float echo = smoothstep(0.49, 0.46, echoDist); // Diamond-shaped echoes
+    vec3 echoColor = vec3(
+        0.1 + 0.05 * cos(pc.time * 0.12 + echoDist * 4.0),
+        0.08 + 0.04 * sin(pc.time * 0.14 + echoDist * 3.5),
+        0.12 + 0.06 * cos(pc.time * 0.16)
+    );
+    finalColor += echoColor * echo * 0.4;
+
+    // --- Central Obsidian Glyph ---
+    vec2 center = vec2(0.5);
+    vec2 p = uv - center;
+    float d = length(p);
+    float angle = atan(p.y, p.x);
+
+    // Sharp, angular glyph with layered geometric patterns
+    float glyph = 0.1 / (d * d + 0.0025);
+    float pattern1 = sin(angle * 8.0 + d * 25.0 - pc.time * 0.4) * 0.5 + 0.5;
+    float pattern2 = cos(angle * 12.0 + d * 18.0 + pc.time * 0.5) * 0.5 + 0.5;
+    glyph *= (0.8 + 0.6 * (pattern1 * pattern2) * smoothstep(0.015, 0.08, d));
+
+    // Dark, muted glyph color
+    vec3 glyphColor = vec3(
+        0.15 + 0.08 * sin(pc.time * 0.3 + d * 8.0),
+        0.05 + 0.06 * cos(pc.time * 0.35 + d * 7.0),
+        0.2 + 0.1 * sin(pc.time * 0.4)
+    );
+    finalColor += glyph * glyphColor * (0.7 + 0.3 * pc.pulse);
+
+    // --- Pulsating Lattice Rings ---
+    float ringDist = abs(d - 0.2 + 0.03 * sin(angle * 6.0 + pc.time * 0.3));
+    float ring = 0.06 / (ringDist * ringDist + 0.0015);
+    float ringPattern = sin(angle * 9.0 + pc.time * 0.6 + d * 15.0) * 0.5 + 0.5;
+    ring *= (0.65 + 0.35 * ringPattern);
+    vec3 ringColor = vec3(0.1, 0.07, 0.15);
+    finalColor += ring * ringColor * (0.7 + 0.2 * pc.pulse);
+
+    // --- Subtle Shadow Refraction ---
+    vec2 refractUV = uv + 0.01 * vec2(sin(pc.time * 0.2 + uv.x * 15.0), cos(pc.time * 0.25 + uv.y * 15.0));
+    float refractNoise = fract(sin(dot(refractUV, vec2(14.567, 69.123))) * 67890.1234);
+    finalColor += refractNoise * vec3(0.03, 0.02, 0.04) * 0.15;
+
+    // --- Final Adjustments ---
+    // Gentle vignette for immersion
+    float vignette = smoothstep(0.85, 0.35, d);
+    finalColor *= vignette * 0.85;
+
+    // Subtle modulation for dynamic depth
+    finalColor *= (0.8 + 0.1 * sin(pc.time * 0.5 + d * 9.0));
+
+    // Store the final color with proper alpha.
+    imageStore(imgOutput, texelCoord, vec4(finalColor, 1.0));
+}

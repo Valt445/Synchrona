@@ -64,10 +64,12 @@ CMAKE_BINARY_DIR = /home/valker/Malike/build
 
 # The main recursive "all" target.
 all: CMakeFiles/my_vulkan_engine.dir/all
+all: CMakeFiles/Shaders.dir/all
 .PHONY : all
 
 # The main recursive "codegen" target.
 codegen: CMakeFiles/my_vulkan_engine.dir/codegen
+codegen: CMakeFiles/Shaders.dir/codegen
 .PHONY : codegen
 
 # The main recursive "preinstall" target.
@@ -76,21 +78,22 @@ preinstall:
 
 # The main recursive "clean" target.
 clean: CMakeFiles/my_vulkan_engine.dir/clean
+clean: CMakeFiles/Shaders.dir/clean
 .PHONY : clean
 
 #=============================================================================
 # Target rules for target CMakeFiles/my_vulkan_engine.dir
 
 # All Build rule for target.
-CMakeFiles/my_vulkan_engine.dir/all:
+CMakeFiles/my_vulkan_engine.dir/all: CMakeFiles/Shaders.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/valker/Malike/build/CMakeFiles --progress-num=1,2,3,4 "Built target my_vulkan_engine"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/valker/Malike/build/CMakeFiles --progress-num=2,3,4,5,6,7,8,9 "Built target my_vulkan_engine"
 .PHONY : CMakeFiles/my_vulkan_engine.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/my_vulkan_engine.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/valker/Malike/build/CMakeFiles 4
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/valker/Malike/build/CMakeFiles 9
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/my_vulkan_engine.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/valker/Malike/build/CMakeFiles 0
 .PHONY : CMakeFiles/my_vulkan_engine.dir/rule
@@ -100,7 +103,7 @@ my_vulkan_engine: CMakeFiles/my_vulkan_engine.dir/rule
 .PHONY : my_vulkan_engine
 
 # codegen rule for target.
-CMakeFiles/my_vulkan_engine.dir/codegen:
+CMakeFiles/my_vulkan_engine.dir/codegen: CMakeFiles/Shaders.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/codegen
 .PHONY : CMakeFiles/my_vulkan_engine.dir/codegen
 
@@ -108,6 +111,37 @@ CMakeFiles/my_vulkan_engine.dir/codegen:
 CMakeFiles/my_vulkan_engine.dir/clean:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/clean
 .PHONY : CMakeFiles/my_vulkan_engine.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/Shaders.dir
+
+# All Build rule for target.
+CMakeFiles/Shaders.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Shaders.dir/build.make CMakeFiles/Shaders.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Shaders.dir/build.make CMakeFiles/Shaders.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/valker/Malike/build/CMakeFiles --progress-num=1 "Built target Shaders"
+.PHONY : CMakeFiles/Shaders.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/Shaders.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/valker/Malike/build/CMakeFiles 1
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/Shaders.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/valker/Malike/build/CMakeFiles 0
+.PHONY : CMakeFiles/Shaders.dir/rule
+
+# Convenience name for target.
+Shaders: CMakeFiles/Shaders.dir/rule
+.PHONY : Shaders
+
+# codegen rule for target.
+CMakeFiles/Shaders.dir/codegen:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Shaders.dir/build.make CMakeFiles/Shaders.dir/codegen
+.PHONY : CMakeFiles/Shaders.dir/codegen
+
+# clean rule for target.
+CMakeFiles/Shaders.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Shaders.dir/build.make CMakeFiles/Shaders.dir/clean
+.PHONY : CMakeFiles/Shaders.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.

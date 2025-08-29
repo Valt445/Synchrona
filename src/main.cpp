@@ -3,7 +3,7 @@
 
 int main() {
     Engine engine;
-    init(&engine, 1200, 720); 
+    init(&engine,1234, 1234); 
 
     while (!glfwWindowShouldClose(engine.window)) {
         engine_draw_frame(&engine);

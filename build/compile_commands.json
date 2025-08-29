@@ -1,19 +1,43 @@
 [
 {
   "directory": "/home/valker/Malike/build",
-  "command": "/usr/bin/clang++ -DVKB_FORCE_KHR -I/home/valker/Malike/include -I/home/valker/Malike/external/vk-bootstrap/src -isystem /home/valker/Downloads/1.4.321.1/x86_64/include -std=gnu++17 -o CMakeFiles/my_vulkan_engine.dir/src/main.cpp.o -c /home/valker/Malike/src/main.cpp",
+  "command": "/usr/bin/clang++  -I/home/valker/Malike/include -I/home/valker/Malike/external/vk-bootstrap/src -I/home/valker/Malike/external/VulkanMemoryAllocator/include -isystem /home/valker/VulkanSDK/1.4.321.1/x86_64/include -std=gnu++20 -o CMakeFiles/my_vulkan_engine.dir/src/main.cpp.o -c /home/valker/Malike/src/main.cpp",
   "file": "/home/valker/Malike/src/main.cpp",
   "output": "CMakeFiles/my_vulkan_engine.dir/src/main.cpp.o"
 },
 {
   "directory": "/home/valker/Malike/build",
-  "command": "/usr/bin/clang++ -DVKB_FORCE_KHR -I/home/valker/Malike/include -I/home/valker/Malike/external/vk-bootstrap/src -isystem /home/valker/Downloads/1.4.321.1/x86_64/include -std=gnu++17 -o CMakeFiles/my_vulkan_engine.dir/src/engine.cpp.o -c /home/valker/Malike/src/engine.cpp",
+  "command": "/usr/bin/clang++  -I/home/valker/Malike/include -I/home/valker/Malike/external/vk-bootstrap/src -I/home/valker/Malike/external/VulkanMemoryAllocator/include -isystem /home/valker/VulkanSDK/1.4.321.1/x86_64/include -std=gnu++20 -o CMakeFiles/my_vulkan_engine.dir/src/engine.cpp.o -c /home/valker/Malike/src/engine.cpp",
   "file": "/home/valker/Malike/src/engine.cpp",
   "output": "CMakeFiles/my_vulkan_engine.dir/src/engine.cpp.o"
 },
 {
   "directory": "/home/valker/Malike/build",
-  "command": "/usr/bin/clang++ -DVKB_FORCE_KHR -I/home/valker/Malike/include -I/home/valker/Malike/external/vk-bootstrap/src -isystem /home/valker/Downloads/1.4.321.1/x86_64/include -std=gnu++17 -o CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.o -c /home/valker/Malike/external/vk-bootstrap/src/VkBootstrap.cpp",
+  "command": "/usr/bin/clang++  -I/home/valker/Malike/include -I/home/valker/Malike/external/vk-bootstrap/src -I/home/valker/Malike/external/VulkanMemoryAllocator/include -isystem /home/valker/VulkanSDK/1.4.321.1/x86_64/include -std=gnu++20 -o CMakeFiles/my_vulkan_engine.dir/src/images.cpp.o -c /home/valker/Malike/src/images.cpp",
+  "file": "/home/valker/Malike/src/images.cpp",
+  "output": "CMakeFiles/my_vulkan_engine.dir/src/images.cpp.o"
+},
+{
+  "directory": "/home/valker/Malike/build",
+  "command": "/usr/bin/clang++  -I/home/valker/Malike/include -I/home/valker/Malike/external/vk-bootstrap/src -I/home/valker/Malike/external/VulkanMemoryAllocator/include -isystem /home/valker/VulkanSDK/1.4.321.1/x86_64/include -std=gnu++20 -o CMakeFiles/my_vulkan_engine.dir/src/vma.cpp.o -c /home/valker/Malike/src/vma.cpp",
+  "file": "/home/valker/Malike/src/vma.cpp",
+  "output": "CMakeFiles/my_vulkan_engine.dir/src/vma.cpp.o"
+},
+{
+  "directory": "/home/valker/Malike/build",
+  "command": "/usr/bin/clang++  -I/home/valker/Malike/include -I/home/valker/Malike/external/vk-bootstrap/src -I/home/valker/Malike/external/VulkanMemoryAllocator/include -isystem /home/valker/VulkanSDK/1.4.321.1/x86_64/include -std=gnu++20 -o CMakeFiles/my_vulkan_engine.dir/src/helper.cpp.o -c /home/valker/Malike/src/helper.cpp",
+  "file": "/home/valker/Malike/src/helper.cpp",
+  "output": "CMakeFiles/my_vulkan_engine.dir/src/helper.cpp.o"
+},
+{
+  "directory": "/home/valker/Malike/build",
+  "command": "/usr/bin/clang++  -I/home/valker/Malike/include -I/home/valker/Malike/external/vk-bootstrap/src -I/home/valker/Malike/external/VulkanMemoryAllocator/include -isystem /home/valker/VulkanSDK/1.4.321.1/x86_64/include -std=gnu++20 -o CMakeFiles/my_vulkan_engine.dir/src/descriptors.cpp.o -c /home/valker/Malike/src/descriptors.cpp",
+  "file": "/home/valker/Malike/src/descriptors.cpp",
+  "output": "CMakeFiles/my_vulkan_engine.dir/src/descriptors.cpp.o"
+},
+{
+  "directory": "/home/valker/Malike/build",
+  "command": "/usr/bin/clang++  -I/home/valker/Malike/include -I/home/valker/Malike/external/vk-bootstrap/src -I/home/valker/Malike/external/VulkanMemoryAllocator/include -isystem /home/valker/VulkanSDK/1.4.321.1/x86_64/include -std=gnu++20 -o CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.o -c /home/valker/Malike/external/vk-bootstrap/src/VkBootstrap.cpp",
   "file": "/home/valker/Malike/external/vk-bootstrap/src/VkBootstrap.cpp",
   "output": "CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.o"
 }

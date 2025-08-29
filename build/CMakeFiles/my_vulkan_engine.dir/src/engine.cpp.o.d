@@ -22,25 +22,24 @@ CMakeFiles/my_vulkan_engine.dir/src/engine.cpp.o: \
   /usr/include/x86_64-linux-gnu/bits/wchar.h \
   /usr/include/x86_64-linux-gnu/bits/stdint-intn.h \
   /usr/include/x86_64-linux-gnu/bits/stdint-uintn.h \
-  /home/valker/Downloads/1.4.321.1/x86_64/include/vulkan/vulkan_core.h \
-  /home/valker/Downloads/1.4.321.1/x86_64/include/vulkan/vk_platform.h \
+  /home/valker/VulkanSDK/1.4.321.1/x86_64/include/vulkan/vulkan_core.h \
+  /home/valker/VulkanSDK/1.4.321.1/x86_64/include/vulkan/vk_platform.h \
   /usr/lib/llvm-14/lib/clang/14.0.0/include/stddef.h \
   /usr/lib/llvm-14/lib/clang/14.0.0/include/__stddef_max_align_t.h \
-  /home/valker/Downloads/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_h264std.h \
-  /home/valker/Downloads/1.4.321.1/x86_64/include/vk_video/vulkan_video_codecs_common.h \
-  /home/valker/Downloads/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_h264std_encode.h \
-  /home/valker/Downloads/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_h265std.h \
-  /home/valker/Downloads/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_h265std_encode.h \
-  /home/valker/Downloads/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_h264std_decode.h \
-  /home/valker/Downloads/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_h265std_decode.h \
-  /home/valker/Downloads/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_av1std.h \
-  /home/valker/Downloads/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_av1std_decode.h \
-  /home/valker/Downloads/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_av1std_encode.h \
-  /home/valker/Downloads/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_vp9std.h \
-  /home/valker/Downloads/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_vp9std_decode.h \
+  /home/valker/VulkanSDK/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_h264std.h \
+  /home/valker/VulkanSDK/1.4.321.1/x86_64/include/vk_video/vulkan_video_codecs_common.h \
+  /home/valker/VulkanSDK/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_h264std_encode.h \
+  /home/valker/VulkanSDK/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_h265std.h \
+  /home/valker/VulkanSDK/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_h265std_encode.h \
+  /home/valker/VulkanSDK/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_h264std_decode.h \
+  /home/valker/VulkanSDK/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_h265std_decode.h \
+  /home/valker/VulkanSDK/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_av1std.h \
+  /home/valker/VulkanSDK/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_av1std_decode.h \
+  /home/valker/VulkanSDK/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_av1std_encode.h \
+  /home/valker/VulkanSDK/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_vp9std.h \
+  /home/valker/VulkanSDK/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_vp9std_decode.h \
   /usr/include/GLFW/glfw3.h /usr/include/GL/gl.h /usr/include/GL/glext.h \
   /usr/include/KHR/khrplatform.h \
-  /usr/lib/llvm-14/lib/clang/14.0.0/include/stdbool.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/vector \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/stl_algobase.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/functexcept.h \
@@ -52,21 +51,25 @@ CMakeFiles/my_vulkan_engine.dir/src/engine.cpp.o: \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/type_traits \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/move.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/utility.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/compare \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/concepts \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/stl_iterator_base_types.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/iterator_concepts.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/ptr_traits.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/ranges_cmp.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/stl_iterator_base_funcs.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/concept_check.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/debug/assertions.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/stl_iterator.h \
-  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/ptr_traits.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/new \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/exception.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/stl_construct.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/debug/debug.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/predefined_ops.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/allocator.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/x86_64-linux-gnu/c++/12/bits/c++allocator.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/new_allocator.h \
-  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/new \
-  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/exception.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/memoryfwd.h \
-  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/stl_construct.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/stl_uninitialized.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/ext/alloc_traits.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/alloc_traits.h \
@@ -147,6 +150,9 @@ CMakeFiles/my_vulkan_engine.dir/src/engine.cpp.o: \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/cxxabi_forced.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/basic_string.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/string_view \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/ranges_base.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/max_size_type.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/numbers \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/string_view.tcc \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/ext/string_conversions.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/cstdlib \
@@ -194,10 +200,398 @@ CMakeFiles/my_vulkan_engine.dir/src/engine.cpp.o: \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/ostream.tcc \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/istream \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/istream.tcc \
-  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/stdlib.h \
-  /usr/include/string.h /usr/include/strings.h \
-  /home/valker/Malike/external/vk-bootstrap/src/VkBootstrap.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/deque \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/stl_deque.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/deque.tcc \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/x86_64-linux-gnu/c++/12/bits/stdc++.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/cassert \
   /usr/include/assert.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/cfloat \
+  /usr/lib/llvm-14/lib/clang/14.0.0/include/float.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/ciso646 \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/climits \
+  /usr/lib/llvm-14/lib/clang/14.0.0/include/limits.h \
+  /usr/include/limits.h /usr/include/x86_64-linux-gnu/bits/posix1_lim.h \
+  /usr/include/x86_64-linux-gnu/bits/local_lim.h \
+  /usr/include/linux/limits.h \
+  /usr/include/x86_64-linux-gnu/bits/posix2_lim.h \
+  /usr/include/x86_64-linux-gnu/bits/xopen_lim.h \
+  /usr/include/x86_64-linux-gnu/bits/uio_lim.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/cmath \
+  /usr/include/math.h /usr/include/x86_64-linux-gnu/bits/math-vector.h \
+  /usr/include/x86_64-linux-gnu/bits/libm-simd-decl-stubs.h \
+  /usr/include/x86_64-linux-gnu/bits/flt-eval-method.h \
+  /usr/include/x86_64-linux-gnu/bits/fp-logb.h \
+  /usr/include/x86_64-linux-gnu/bits/fp-fast.h \
+  /usr/include/x86_64-linux-gnu/bits/mathcalls-helper-functions.h \
+  /usr/include/x86_64-linux-gnu/bits/mathcalls.h \
+  /usr/include/x86_64-linux-gnu/bits/mathcalls-narrow.h \
+  /usr/include/x86_64-linux-gnu/bits/iscanonical.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/specfun.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/limits \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/tr1/gamma.tcc \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/tr1/special_function_util.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/tr1/bessel_function.tcc \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/tr1/beta_function.tcc \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/tr1/ell_integral.tcc \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/tr1/exp_integral.tcc \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/tr1/hypergeometric.tcc \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/tr1/legendre_function.tcc \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/tr1/modified_bessel_func.tcc \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/tr1/poly_hermite.tcc \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/tr1/poly_laguerre.tcc \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/tr1/riemann_zeta.tcc \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/csetjmp \
+  /usr/include/setjmp.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/csignal \
+  /usr/include/signal.h \
+  /usr/include/x86_64-linux-gnu/bits/signum-generic.h \
+  /usr/include/x86_64-linux-gnu/bits/signum-arch.h \
+  /usr/include/x86_64-linux-gnu/bits/types/sig_atomic_t.h \
+  /usr/include/x86_64-linux-gnu/bits/types/siginfo_t.h \
+  /usr/include/x86_64-linux-gnu/bits/types/__sigval_t.h \
+  /usr/include/x86_64-linux-gnu/bits/siginfo-arch.h \
+  /usr/include/x86_64-linux-gnu/bits/siginfo-consts.h \
+  /usr/include/x86_64-linux-gnu/bits/siginfo-consts-arch.h \
+  /usr/include/x86_64-linux-gnu/bits/types/sigval_t.h \
+  /usr/include/x86_64-linux-gnu/bits/types/sigevent_t.h \
+  /usr/include/x86_64-linux-gnu/bits/sigevent-consts.h \
+  /usr/include/x86_64-linux-gnu/bits/sigaction.h \
+  /usr/include/x86_64-linux-gnu/bits/sigcontext.h \
+  /usr/include/x86_64-linux-gnu/bits/types/stack_t.h \
+  /usr/include/x86_64-linux-gnu/sys/ucontext.h \
+  /usr/include/x86_64-linux-gnu/bits/sigstack.h \
+  /usr/include/x86_64-linux-gnu/bits/sigstksz.h /usr/include/unistd.h \
+  /usr/include/x86_64-linux-gnu/bits/posix_opt.h \
+  /usr/include/x86_64-linux-gnu/bits/environments.h \
+  /usr/include/x86_64-linux-gnu/bits/confname.h \
+  /usr/include/x86_64-linux-gnu/bits/getopt_posix.h \
+  /usr/include/x86_64-linux-gnu/bits/getopt_core.h \
+  /usr/include/x86_64-linux-gnu/bits/unistd_ext.h \
+  /usr/include/linux/close_range.h \
+  /usr/include/x86_64-linux-gnu/bits/ss_flags.h \
+  /usr/include/x86_64-linux-gnu/bits/types/struct_sigstack.h \
+  /usr/include/x86_64-linux-gnu/bits/sigthread.h \
+  /usr/include/x86_64-linux-gnu/bits/signal_ext.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/cstdarg \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/cstddef \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/cstring \
+  /usr/include/string.h /usr/include/strings.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/ctime \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/ccomplex \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/complex \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/sstream \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/sstream.tcc \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/cfenv \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/fenv.h \
+  /usr/include/fenv.h /usr/include/x86_64-linux-gnu/bits/fenv.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/cinttypes \
+  /usr/lib/llvm-14/lib/clang/14.0.0/include/inttypes.h \
+  /usr/include/inttypes.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/cstdalign \
+  /usr/lib/llvm-14/lib/clang/14.0.0/include/stdalign.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/cstdbool \
+  /usr/lib/llvm-14/lib/clang/14.0.0/include/stdbool.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/ctgmath \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/cuchar \
+  /usr/include/uchar.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/algorithm \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/stl_algo.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/algorithmfwd.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/stl_heap.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/stl_tempbuf.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/uniform_int_dist.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/ranges_algo.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/ranges_algobase.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/ranges_util.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/pstl/glue_algorithm_defs.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/pstl/execution_defs.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bitset \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/fstream \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/codecvt.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/x86_64-linux-gnu/c++/12/bits/basic_file.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/x86_64-linux-gnu/c++/12/bits/c++io.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/fstream.tcc \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/functional \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/tuple \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/uses_allocator.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/std_function.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/unordered_map \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/ext/aligned_buffer.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/hashtable.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/hashtable_policy.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/enable_special_members.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/node_handle.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/unordered_map.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/erase_if.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/array \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/iomanip \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/locale \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/locale_facets_nonio.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/x86_64-linux-gnu/c++/12/bits/time_members.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/x86_64-linux-gnu/c++/12/bits/messages_members.h \
+  /usr/include/libintl.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/locale_facets_nonio.tcc \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/locale_conv.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/quoted_string.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/iterator \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/stream_iterator.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/list \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/stl_list.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/allocated_ptr.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/list.tcc \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/map \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/stl_tree.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/stl_map.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/stl_multimap.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/memory \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/stl_raw_storage_iter.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/align.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bit \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/unique_ptr.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/shared_ptr.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/shared_ptr_base.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/ext/concurrence.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/shared_ptr_atomic.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/atomic_base.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/atomic_lockfree_defines.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/atomic_wait.h \
+  /usr/include/syscall.h /usr/include/x86_64-linux-gnu/sys/syscall.h \
+  /usr/include/x86_64-linux-gnu/asm/unistd.h \
+  /usr/include/x86_64-linux-gnu/asm/unistd_64.h \
+  /usr/include/x86_64-linux-gnu/bits/syscall.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/std_mutex.h \
+  /usr/lib/llvm-14/lib/clang/14.0.0/include/sanitizer/tsan_interface.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/backward/auto_ptr.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/ranges_uninitialized.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/uses_allocator_args.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/pstl/glue_memory_defs.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/numeric \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/stl_numeric.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/pstl/glue_numeric_defs.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/queue \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/stl_queue.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/set \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/stl_set.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/stl_multiset.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/stack \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/stl_stack.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/utility \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/stl_relops.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/valarray \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/valarray_array.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/valarray_array.tcc \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/valarray_before.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/slice_array.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/valarray_after.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/gslice.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/gslice_array.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/mask_array.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/indirect_array.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/atomic \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/chrono \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/chrono.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/ratio \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/parse_numbers.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/codecvt \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/condition_variable \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/unique_lock.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/stop_token \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/std_thread.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/semaphore \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/semaphore_base.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/atomic_timed_wait.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/this_thread_sleep.h \
+  /usr/include/x86_64-linux-gnu/sys/time.h /usr/include/semaphore.h \
+  /usr/include/x86_64-linux-gnu/bits/semaphore.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/forward_list \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/forward_list.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/forward_list.tcc \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/future \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/mutex \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/atomic_futex.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/random \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/random.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/x86_64-linux-gnu/c++/12/bits/opt_random.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/random.tcc \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/regex \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/regex_constants.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/regex_error.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/regex_automaton.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/regex_automaton.tcc \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/regex_scanner.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/regex_scanner.tcc \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/regex_compiler.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/regex_compiler.tcc \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/regex.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/regex.tcc \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/regex_executor.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/regex_executor.tcc \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/scoped_allocator \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/thread \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/typeindex \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/unordered_set \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/unordered_set.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/shared_mutex \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/any \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/charconv \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/filesystem \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/fs_fwd.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/fs_path.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/fs_dir.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/fs_ops.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/optional \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/memory_resource \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/variant \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/barrier \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/coroutine \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/latch \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/ranges \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/span \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/source_location \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/syncstream \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/version \
+  /home/valker/Malike/external/VulkanMemoryAllocator/include/vk_mem_alloc.h \
+  /home/valker/VulkanSDK/1.4.321.1/x86_64/include/vulkan/vulkan.h \
+  /home/valker/Malike/include/images.h \
+  /home/valker/Malike/include/descriptors.h \
+  /home/valker/Malike/include/helper.h /usr/include/glm/glm.hpp \
+  /usr/include/glm/detail/_fixes.hpp /usr/include/glm/detail/setup.hpp \
+  /usr/include/glm/detail/../simd/platform.h /usr/include/glm/fwd.hpp \
+  /usr/include/glm/detail/qualifier.hpp /usr/include/glm/vec2.hpp \
+  /usr/include/glm/./ext/vector_bool2.hpp \
+  /usr/include/glm/./ext/../detail/type_vec2.hpp \
+  /usr/include/glm/detail/type_vec2.inl \
+  /usr/include/glm/detail/./compute_vector_relational.hpp \
+  /usr/include/glm/./ext/vector_bool2_precision.hpp \
+  /usr/include/glm/./ext/vector_float2.hpp \
+  /usr/include/glm/./ext/vector_float2_precision.hpp \
+  /usr/include/glm/./ext/vector_double2.hpp \
+  /usr/include/glm/./ext/vector_double2_precision.hpp \
+  /usr/include/glm/./ext/vector_int2.hpp \
+  /usr/include/glm/./ext/vector_int2_sized.hpp \
+  /usr/include/glm/./ext/../ext/vector_int2.hpp \
+  /usr/include/glm/./ext/../ext/scalar_int_sized.hpp \
+  /usr/include/glm/./ext/../detail/setup.hpp \
+  /usr/include/glm/./ext/vector_uint2.hpp \
+  /usr/include/glm/./ext/vector_uint2_sized.hpp \
+  /usr/include/glm/./ext/../ext/vector_uint2.hpp \
+  /usr/include/glm/./ext/../ext/scalar_uint_sized.hpp \
+  /usr/include/glm/vec3.hpp /usr/include/glm/./ext/vector_bool3.hpp \
+  /usr/include/glm/./ext/../detail/type_vec3.hpp \
+  /usr/include/glm/detail/type_vec3.inl \
+  /usr/include/glm/detail/compute_vector_relational.hpp \
+  /usr/include/glm/./ext/vector_bool3_precision.hpp \
+  /usr/include/glm/./ext/vector_float3.hpp \
+  /usr/include/glm/./ext/vector_float3_precision.hpp \
+  /usr/include/glm/./ext/vector_double3.hpp \
+  /usr/include/glm/./ext/vector_double3_precision.hpp \
+  /usr/include/glm/./ext/vector_int3.hpp \
+  /usr/include/glm/./ext/vector_int3_sized.hpp \
+  /usr/include/glm/./ext/../ext/vector_int3.hpp \
+  /usr/include/glm/./ext/vector_uint3.hpp \
+  /usr/include/glm/./ext/vector_uint3_sized.hpp \
+  /usr/include/glm/./ext/../ext/vector_uint3.hpp \
+  /usr/include/glm/vec4.hpp /usr/include/glm/./ext/vector_bool4.hpp \
+  /usr/include/glm/./ext/../detail/type_vec4.hpp \
+  /usr/include/glm/detail/type_vec4.inl \
+  /usr/include/glm/./ext/vector_bool4_precision.hpp \
+  /usr/include/glm/./ext/vector_float4.hpp \
+  /usr/include/glm/./ext/vector_float4_precision.hpp \
+  /usr/include/glm/./ext/vector_double4.hpp \
+  /usr/include/glm/./ext/vector_double4_precision.hpp \
+  /usr/include/glm/./ext/vector_int4.hpp \
+  /usr/include/glm/./ext/vector_int4_sized.hpp \
+  /usr/include/glm/./ext/../ext/vector_int4.hpp \
+  /usr/include/glm/./ext/vector_uint4.hpp \
+  /usr/include/glm/./ext/vector_uint4_sized.hpp \
+  /usr/include/glm/./ext/../ext/vector_uint4.hpp \
+  /usr/include/glm/mat2x2.hpp \
+  /usr/include/glm/./ext/matrix_double2x2.hpp \
+  /usr/include/glm/./ext/../detail/type_mat2x2.hpp \
+  /usr/include/glm/detail/type_vec2.hpp \
+  /usr/include/glm/detail/type_mat2x2.inl \
+  /usr/include/glm/detail/../matrix.hpp /usr/include/glm/mat2x3.hpp \
+  /usr/include/glm/./ext/matrix_double2x3.hpp \
+  /usr/include/glm/./ext/../detail/type_mat2x3.hpp \
+  /usr/include/glm/detail/type_vec3.hpp \
+  /usr/include/glm/detail/type_mat2x3.inl \
+  /usr/include/glm/./ext/matrix_double2x3_precision.hpp \
+  /usr/include/glm/./ext/matrix_float2x3.hpp \
+  /usr/include/glm/./ext/matrix_float2x3_precision.hpp \
+  /usr/include/glm/mat2x4.hpp \
+  /usr/include/glm/./ext/matrix_double2x4.hpp \
+  /usr/include/glm/./ext/../detail/type_mat2x4.hpp \
+  /usr/include/glm/detail/type_vec4.hpp \
+  /usr/include/glm/detail/type_mat2x4.inl \
+  /usr/include/glm/./ext/matrix_double2x4_precision.hpp \
+  /usr/include/glm/./ext/matrix_float2x4.hpp \
+  /usr/include/glm/./ext/matrix_float2x4_precision.hpp \
+  /usr/include/glm/mat3x2.hpp \
+  /usr/include/glm/./ext/matrix_double3x2.hpp \
+  /usr/include/glm/./ext/../detail/type_mat3x2.hpp \
+  /usr/include/glm/detail/type_mat3x2.inl \
+  /usr/include/glm/./ext/matrix_double3x2_precision.hpp \
+  /usr/include/glm/./ext/matrix_float3x2.hpp \
+  /usr/include/glm/./ext/matrix_float3x2_precision.hpp \
+  /usr/include/glm/mat3x3.hpp \
+  /usr/include/glm/./ext/matrix_double3x3.hpp \
+  /usr/include/glm/./ext/../detail/type_mat3x3.hpp \
+  /usr/include/glm/detail/type_mat3x3.inl \
+  /usr/include/glm/./ext/matrix_double3x3_precision.hpp \
+  /usr/include/glm/./ext/matrix_float3x3.hpp \
+  /usr/include/glm/./ext/matrix_float3x3_precision.hpp \
+  /usr/include/glm/mat3x4.hpp \
+  /usr/include/glm/./ext/matrix_double3x4.hpp \
+  /usr/include/glm/./ext/../detail/type_mat3x4.hpp \
+  /usr/include/glm/detail/type_mat3x4.inl \
+  /usr/include/glm/./ext/matrix_double3x4_precision.hpp \
+  /usr/include/glm/./ext/matrix_float3x4.hpp \
+  /usr/include/glm/./ext/matrix_float3x4_precision.hpp \
+  /usr/include/glm/mat4x2.hpp \
+  /usr/include/glm/./ext/matrix_double4x2.hpp \
+  /usr/include/glm/./ext/../detail/type_mat4x2.hpp \
+  /usr/include/glm/detail/type_mat4x2.inl \
+  /usr/include/glm/./ext/matrix_double4x2_precision.hpp \
+  /usr/include/glm/./ext/matrix_float4x2.hpp \
+  /usr/include/glm/./ext/matrix_float4x2_precision.hpp \
+  /usr/include/glm/mat4x3.hpp \
+  /usr/include/glm/./ext/matrix_double4x3.hpp \
+  /usr/include/glm/./ext/../detail/type_mat4x3.hpp \
+  /usr/include/glm/detail/type_mat4x3.inl \
+  /usr/include/glm/./ext/matrix_double4x3_precision.hpp \
+  /usr/include/glm/./ext/matrix_float4x3.hpp \
+  /usr/include/glm/./ext/matrix_float4x3_precision.hpp \
+  /usr/include/glm/mat4x4.hpp \
+  /usr/include/glm/./ext/matrix_double4x4.hpp \
+  /usr/include/glm/./ext/../detail/type_mat4x4.hpp \
+  /usr/include/glm/detail/type_mat4x4.inl \
+  /usr/include/glm/./ext/matrix_double4x4_precision.hpp \
+  /usr/include/glm/./ext/matrix_float4x4.hpp \
+  /usr/include/glm/./ext/matrix_float4x4_precision.hpp \
+  /usr/include/glm/detail/func_matrix.inl \
+  /usr/include/glm/detail/../geometric.hpp \
+  /usr/include/glm/detail/func_geometric.inl \
+  /usr/include/glm/detail/../exponential.hpp \
+  /usr/include/glm/detail/type_vec1.hpp \
+  /usr/include/glm/detail/type_vec1.inl \
+  /usr/include/glm/detail/func_exponential.inl \
+  /usr/include/glm/detail/../vector_relational.hpp \
+  /usr/include/glm/detail/func_vector_relational.inl \
+  /usr/include/glm/detail/_vectorize.hpp \
+  /usr/include/glm/detail/../common.hpp \
+  /usr/include/glm/detail/func_common.inl \
+  /usr/include/glm/detail/compute_common.hpp \
+  /usr/include/glm/./ext/matrix_double2x2_precision.hpp \
+  /usr/include/glm/./ext/matrix_float2x2.hpp \
+  /usr/include/glm/./ext/matrix_float2x2_precision.hpp \
+  /usr/include/glm/trigonometric.hpp \
+  /usr/include/glm/detail/func_trigonometric.inl \
+  /usr/include/glm/exponential.hpp /usr/include/glm/common.hpp \
+  /usr/include/glm/packing.hpp /usr/include/glm/detail/func_packing.inl \
+  /usr/include/glm/detail/type_half.hpp \
+  /usr/include/glm/detail/type_half.inl /usr/include/glm/geometric.hpp \
+  /usr/include/glm/matrix.hpp /usr/include/glm/vector_relational.hpp \
+  /usr/include/glm/integer.hpp /usr/include/glm/detail/func_integer.inl \
+  /home/valker/Malike/external/vk-bootstrap/src/VkBootstrap.h \
   /home/valker/Malike/external/vk-bootstrap/src/VkBootstrapDispatch.h

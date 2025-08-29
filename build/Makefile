@@ -129,6 +129,19 @@ my_vulkan_engine/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/build
 .PHONY : my_vulkan_engine/fast
 
+#=============================================================================
+# Target rules for targets named Shaders
+
+# Build rule for target.
+Shaders: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 Shaders
+.PHONY : Shaders
+
+# fast build rule for target.
+Shaders/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Shaders.dir/build.make CMakeFiles/Shaders.dir/build
+.PHONY : Shaders/fast
+
 external/vk-bootstrap/src/VkBootstrap.o: external/vk-bootstrap/src/VkBootstrap.cpp.o
 .PHONY : external/vk-bootstrap/src/VkBootstrap.o
 
@@ -152,6 +165,30 @@ external/vk-bootstrap/src/VkBootstrap.s: external/vk-bootstrap/src/VkBootstrap.c
 external/vk-bootstrap/src/VkBootstrap.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.s
 .PHONY : external/vk-bootstrap/src/VkBootstrap.cpp.s
+
+src/descriptors.o: src/descriptors.cpp.o
+.PHONY : src/descriptors.o
+
+# target to build an object file
+src/descriptors.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/src/descriptors.cpp.o
+.PHONY : src/descriptors.cpp.o
+
+src/descriptors.i: src/descriptors.cpp.i
+.PHONY : src/descriptors.i
+
+# target to preprocess a source file
+src/descriptors.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/src/descriptors.cpp.i
+.PHONY : src/descriptors.cpp.i
+
+src/descriptors.s: src/descriptors.cpp.s
+.PHONY : src/descriptors.s
+
+# target to generate assembly for a file
+src/descriptors.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/src/descriptors.cpp.s
+.PHONY : src/descriptors.cpp.s
 
 src/engine.o: src/engine.cpp.o
 .PHONY : src/engine.o
@@ -177,6 +214,54 @@ src/engine.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/src/engine.cpp.s
 .PHONY : src/engine.cpp.s
 
+src/helper.o: src/helper.cpp.o
+.PHONY : src/helper.o
+
+# target to build an object file
+src/helper.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/src/helper.cpp.o
+.PHONY : src/helper.cpp.o
+
+src/helper.i: src/helper.cpp.i
+.PHONY : src/helper.i
+
+# target to preprocess a source file
+src/helper.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/src/helper.cpp.i
+.PHONY : src/helper.cpp.i
+
+src/helper.s: src/helper.cpp.s
+.PHONY : src/helper.s
+
+# target to generate assembly for a file
+src/helper.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/src/helper.cpp.s
+.PHONY : src/helper.cpp.s
+
+src/images.o: src/images.cpp.o
+.PHONY : src/images.o
+
+# target to build an object file
+src/images.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/src/images.cpp.o
+.PHONY : src/images.cpp.o
+
+src/images.i: src/images.cpp.i
+.PHONY : src/images.i
+
+# target to preprocess a source file
+src/images.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/src/images.cpp.i
+.PHONY : src/images.cpp.i
+
+src/images.s: src/images.cpp.s
+.PHONY : src/images.s
+
+# target to generate assembly for a file
+src/images.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/src/images.cpp.s
+.PHONY : src/images.cpp.s
+
 src/main.o: src/main.cpp.o
 .PHONY : src/main.o
 
@@ -201,6 +286,30 @@ src/main.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/src/main.cpp.s
 .PHONY : src/main.cpp.s
 
+src/vma.o: src/vma.cpp.o
+.PHONY : src/vma.o
+
+# target to build an object file
+src/vma.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/src/vma.cpp.o
+.PHONY : src/vma.cpp.o
+
+src/vma.i: src/vma.cpp.i
+.PHONY : src/vma.i
+
+# target to preprocess a source file
+src/vma.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/src/vma.cpp.i
+.PHONY : src/vma.cpp.i
+
+src/vma.s: src/vma.cpp.s
+.PHONY : src/vma.s
+
+# target to generate assembly for a file
+src/vma.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/src/vma.cpp.s
+.PHONY : src/vma.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -209,16 +318,29 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
+	@echo "... Shaders"
 	@echo "... my_vulkan_engine"
 	@echo "... external/vk-bootstrap/src/VkBootstrap.o"
 	@echo "... external/vk-bootstrap/src/VkBootstrap.i"
 	@echo "... external/vk-bootstrap/src/VkBootstrap.s"
+	@echo "... src/descriptors.o"
+	@echo "... src/descriptors.i"
+	@echo "... src/descriptors.s"
 	@echo "... src/engine.o"
 	@echo "... src/engine.i"
 	@echo "... src/engine.s"
+	@echo "... src/helper.o"
+	@echo "... src/helper.i"
+	@echo "... src/helper.s"
+	@echo "... src/images.o"
+	@echo "... src/images.i"
+	@echo "... src/images.s"
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
+	@echo "... src/vma.o"
+	@echo "... src/vma.i"
+	@echo "... src/vma.s"
 .PHONY : help
 
 
