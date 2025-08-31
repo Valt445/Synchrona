@@ -79,12 +79,12 @@ struct Engine {
     DeletionQueue mainDeletionQueue;
     FrameData frames[FRAME_OVERLAP];
     VmaAllocator allocator;
-    std::vector<VkSemaphore> imageAvailableSemaphores;
-		std::vector<VkSemaphore> renderFinishedSemaphores;
-
-
+ 
     AllocatedImage drawImage;
     VkExtent2D drawExtent;
+
+		std::vector<VkSemaphore> imageAvailableSemaphores;
+    std::vector<VkSemaphore> renderFinishedSemaphores; 
     
     DescriptorAllocator globalDescriptorAllocator;
     VkDescriptorSet drawImageDescriptors;
