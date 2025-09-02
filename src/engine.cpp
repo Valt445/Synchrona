@@ -14,6 +14,10 @@
 #include "helper.h"
 #include "descriptors.h"
 #include <iostream>
+#include "backends/imgui_impl_glfw.h"
+#include "backends/imgui_impl_vulkan.h"
+#include "imgui.h"
+
 
 // Define the global engine pointer declared as `extern` in the header
 Engine* engine = nullptr;
@@ -31,6 +35,7 @@ void init(Engine* e, uint32_t x, uint32_t y) {
     init_sync_structures(e);
     init_descriptors(e);
     init_pipelines(e);
+    init_imgui(e);
 }
 
 // Create Vulkan instance, surface, device and queue
@@ -121,6 +126,67 @@ void init_pipelines(Engine* e) {
     init_background_pipelines(e);
 }
 
+void init_imgui(Engine* e)
+{
+    VkDescriptorPoolSize pool_sizes[] = { { VK_DESCRIPTOR_TYPE_SAMPLER, 1000 },
+		{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 },
+		{ VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000 },
+		{ VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000 },
+		{ VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000 },
+		{ VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000 },
+		{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000 },
+		{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000 },
+		{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000 },
+		{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000 },
+		{ VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000 } };
+
+    VkDescriptorPoolCreateInfo pool_info = {};
+	  pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+	  pool_info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+	  pool_info.maxSets = 1000;
+	  pool_info.poolSizeCount = (uint32_t)std::size(pool_sizes);
+	  pool_info.pPoolSizes = pool_sizes;
+
+	  VkDescriptorPool imguiPool;
+	  VK_CHECK(vkCreateDescriptorPool(e->device, &pool_info, nullptr, &imguiPool));
+
+	// 2: initialize imgui library
+
+	// this initializes the core structures of imgui
+	  ImGui::CreateContext();
+
+	// this initializes imgui for SDL
+	  ImGui_ImplGlfw_InitForVulkan(e->window, true);
+
+	// this initializes imgui for Vulkan
+	  ImGui_ImplVulkan_InitInfo init_info = {};
+	  init_info.Instance = e->instance;
+	  init_info.PhysicalDevice = e->physicalDevice;
+	  init_info.Device = e->device;
+	  init_info.Queue = e->graphicsQueue;
+	  init_info.DescriptorPool = imguiPool;
+	  init_info.MinImageCount = 3;
+	  init_info.ImageCount = 3;
+	  init_info.UseDynamicRendering = true;
+
+	//dynamic rendering parameters for imgui to use
+	  init_info.PipelineRenderingCreateInfo = {.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO};
+	  init_info.PipelineRenderingCreateInfo.colorAttachmentCount = 1;
+	  init_info.PipelineRenderingCreateInfo.pColorAttachmentFormats = &e->swapchainImageFormat;
+	
+
+	  init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+
+	  ImGui_ImplVulkan_Init(&init_info);
+
+
+	// add the destroy the imgui created structures
+	  e->mainDeletionQueue.push_function([=]() {
+		    ImGui_ImplVulkan_Shutdown();
+		    vkDestroyDescriptorPool(e->device, imguiPool, nullptr);
+	  });
+}
+
 void init_swapchain(Engine* e, uint32_t width, uint32_t height) {
     vkb::SwapchainBuilder swapchainBuilder{ e->physicalDevice, e->device, e->surface };
     e->swapchainImageFormat = VK_FORMAT_B8G8R8A8_UNORM;
@@ -190,6 +256,28 @@ void init_swapchain(Engine* e, uint32_t width, uint32_t height) {
     std::printf("Swapchain initialized with %zu images\n", e->swapchainImages.size());
 }
 
+
+// ---------------------Dynamic Rendering---------------------
+
+VkRenderingAttachmentInfo attachment_info(VkImageView view, VkClearValue* clear, VkImageLayout layout)
+{
+    VkRenderingAttachmentInfo colorAttachment {};
+    colorAttachment.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
+    colorAttachment.pNext = nullptr;
+
+    colorAttachment.imageView = view;
+    colorAttachment.imageLayout = layout;
+    colorAttachment.loadOp = clear ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD;
+    colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    if (clear)
+    {
+        colorAttachment.clearValue = *clear;
+    }
+
+    return colorAttachment;
+    
+}
+
 // ------------------------- Commands -------------------------
 void init_commands(Engine* e) {
     VkCommandPoolCreateInfo commandPoolInfo{};
@@ -208,6 +296,22 @@ void init_commands(Engine* e) {
 
         VK_CHECK(vkAllocateCommandBuffers(e->device, &cmdAllocInfo, &e->frames[i].mainCommandBuffer));
     }
+
+    VK_CHECK(vkCreateCommandPool(e->device, &commandPoolInfo, nullptr, &e->immCommandPool));
+
+    // allocating command buffer for imidiate submition without synchronization mainly for imgui
+    VkCommandBufferAllocateInfo cmdAllocInfo{};
+    cmdAllocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    cmdAllocInfo.commandPool = e->immCommandPool;
+    cmdAllocInfo.commandBufferCount = 1;
+    cmdAllocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+
+    VK_CHECK(vkAllocateCommandBuffers(e->device, &cmdAllocInfo, &e->immCommandBuffer));
+
+    e->mainDeletionQueue.push_function([=]() {
+        vkDestroyCommandPool(e->device, e->immCommandPool, nullptr);
+    });
+    
     std::printf("Commands initialized\n");
 }
 
@@ -235,6 +339,9 @@ void init_sync_structures(Engine* e) {
         VK_CHECK(vkCreateSemaphore(e->device, &semaphoreCreateInfo, nullptr, &e->frames[i].swapchainSemaphore));
         VK_CHECK(vkCreateSemaphore(e->device, &semaphoreCreateInfo, nullptr, &e->frames[i].renderSemaphore));
     }
+
+    VK_CHECK(vkCreateFence(e->device, &fenceCreateInfo, nullptr, &e->immFence));
+    e->mainDeletionQueue.push_function([=]() { vkDestroyFence(e->device, e->immFence, nullptr); });
     std::printf("Sync structures initialized\n");
 }
 
@@ -277,12 +384,30 @@ void init_descriptors(Engine* e) {
 
 //---------------------------------Pipeline-----------------------------
 void init_background_pipelines(Engine* e) {
-    VkShaderModule computeDrawShader;
-    if(!e->util.load_shader_module("shaders/gradient.spv", e->device, &computeDrawShader)) {
-        std::cout << "CRITICAL: Shader load failed! Check path: shaders/gradient.comp.spv" << std::endl;
+    std::cout << "🛡️ 1. Starting pipeline initialization..." << std::endl;
+    
+    // 🛡️ CHECK ENGINE STATE
+    if (e == nullptr) {
+        std::cout << "❌ ENGINE IS NULL!" << std::endl;
         std::exit(1);
     }
+    if (e->device == VK_NULL_HANDLE) {
+        std::cout << "❌ DEVICE IS NULL!" << std::endl;
+        std::exit(1);
+    }
+    std::cout << "✅ Engine and device are valid" << std::endl;
 
+    // 🛡️ SHADER LOADING
+    std::cout << "🛡️ 2. Loading shader..." << std::endl;
+    VkShaderModule computeDrawShader;
+    if(!e->util.load_shader_module("shaders/gradient.spv", e->device, &computeDrawShader)) {
+        std::cout << "❌ SHADER LOAD FAILED!" << std::endl;
+        std::exit(1);
+    }
+    std::cout << "✅ Shader loaded successfully!" << std::endl;
+
+    // 🛡️ PIPELINE LAYOUT
+    std::cout << "🛡️ 3. Creating pipeline layout..." << std::endl;
     VkPushConstantRange push_constant_range = {
         .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
         .offset = 0,
@@ -291,44 +416,52 @@ void init_background_pipelines(Engine* e) {
 
     VkPipelineLayoutCreateInfo pipelineLayoutInfo = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
         .setLayoutCount = 1,
         .pSetLayouts = &e->drawImageDescriptorLayout,
         .pushConstantRangeCount = 1,
         .pPushConstantRanges = &push_constant_range
     };
 
-    VK_CHECK(vkCreatePipelineLayout(e->device, &pipelineLayoutInfo, nullptr, &e->gradientPipelineLayout));
+    // 🛡️ CHECK DESCRIPTOR LAYOUT
+    if (e->drawImageDescriptorLayout == VK_NULL_HANDLE) {
+        std::cout << "❌ DESCRIPTOR LAYOUT IS NULL!" << std::endl;
+        std::exit(1);
+    }
 
+    VkResult layoutResult = vkCreatePipelineLayout(e->device, &pipelineLayoutInfo, nullptr, &e->gradientPipelineLayout);
+    if (layoutResult != VK_SUCCESS) {
+        std::cout << "❌ PIPELINE LAYOUT CREATION FAILED: " << layoutResult << std::endl;
+        std::exit(1);
+    }
+    std::cout << "✅ Pipeline layout created!" << std::endl;
+
+    // 🛡️ PIPELINE CREATION
+    std::cout << "🛡️ 4. Creating compute pipeline..." << std::endl;
     VkPipelineShaderStageCreateInfo stageinfo = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
         .stage = VK_SHADER_STAGE_COMPUTE_BIT,
         .module = computeDrawShader,
-        .pName = "main",
-        .pSpecializationInfo = nullptr
+        .pName = "main"
     };
 
     VkComputePipelineCreateInfo computePipelineCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
         .stage = stageinfo,
-        .layout = e->gradientPipelineLayout,
-        .basePipelineHandle = VK_NULL_HANDLE,
-        .basePipelineIndex = -1
+        .layout = e->gradientPipelineLayout
     };
 
-    VK_CHECK(vkCreateComputePipelines(e->device, VK_NULL_HANDLE, 1, &computePipelineCreateInfo, nullptr, &e->gradientPipeline));
+    VkResult pipelineResult = vkCreateComputePipelines(e->device, VK_NULL_HANDLE, 1, &computePipelineCreateInfo, nullptr, &e->gradientPipeline);
+    
+    if (pipelineResult != VK_SUCCESS) {
+        std::cout << "❌ PIPELINE CREATION FAILED: " << pipelineResult << std::endl;
+        std::exit(1);
+    }
+    std::cout << "✅ Compute pipeline created!" << std::endl;
 
+    // 🛡️ CLEANUP
+    std::cout << "🛡️ 5. Cleaning up shader module..." << std::endl;
     vkDestroyShaderModule(e->device, computeDrawShader, nullptr);
-
-    e->mainDeletionQueue.push_function([&]() {
-        vkDestroyPipelineLayout(e->device, e->gradientPipelineLayout, nullptr);
-        vkDestroyPipeline(e->device, e->gradientPipeline, nullptr);
-    });
+    std::cout << "✅ Pipeline initialization complete!" << std::endl;
 }
 
 // ------------------------- Helpers -------------------------
@@ -398,19 +531,30 @@ void draw_background(VkCommandBuffer cmd, Engine* e) {
     vkCmdDispatch(cmd, dispatchX, dispatchY, 1);
 }
 
+void draw_imgui(VkCommandBuffer cmd, VkImageView targetImageView, Engine* e)
+{
+    VkRenderingAttachmentInfo colorAttachment = attachment_info(targetImageView, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+    VkRenderingInfo renderInfo = e->util.rendering_info(e->swapchainExtent, &colorAttachment, nullptr);
+
+    vkCmdBeginRendering(cmd, &renderInfo);
+
+    ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cmd);
+
+    vkCmdEndRendering(cmd);
+}
+      
 void engine_draw_frame(Engine* e) {
-   FrameData& frame = get_current_frame();
+    FrameData& frame = get_current_frame();
 
     VK_CHECK(vkWaitForFences(e->device, 1, &frame.renderFence, VK_TRUE, UINT64_MAX));
     VK_CHECK(vkResetFences(e->device, 1, &frame.renderFence));
 
-    // 🛡️ STEP 1: ACQUIRE IMAGE WITH SEMAPHORE SIGNALING
     uint32_t swapchainImageIndex;
     VkResult acquireResult = vkAcquireNextImageKHR(
         e->device,
         e->swapchain,
         UINT64_MAX,
-        frame.swapchainSemaphore,  // 🎯 USE FRAME SEMAPHORE FOR ACQUIRE
+        frame.swapchainSemaphore,
         VK_NULL_HANDLE,
         &swapchainImageIndex
     );
@@ -426,29 +570,36 @@ void engine_draw_frame(Engine* e) {
     VkCommandBufferBeginInfo cmdBeginInfo = command_buffer_info(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
     VK_CHECK(vkBeginCommandBuffer(cmd, &cmdBeginInfo));
 
-    
+    // Transition drawImage for compute shader
     transition_image(cmd, e->drawImage.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
     draw_background(cmd, e);
     transition_image(cmd, e->drawImage.image, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-    transition_image(cmd, e->swapchainImages[swapchainImageIndex], VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
-   copy_image_to_image(cmd, e->drawImage.image, e->swapchainImages[swapchainImageIndex],
+    // Transition swapchain image for copy operation
+    transition_image(cmd, e->swapchainImages[swapchainImageIndex], VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    copy_image_to_image(cmd, e->drawImage.image, e->swapchainImages[swapchainImageIndex],
                         VkExtent3D{e->drawImage.imageExtent.width, e->drawImage.imageExtent.height, 1},
                         e->swapchainExtent);
-    transition_image(cmd, e->swapchainImages[swapchainImageIndex], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+
+    // Transition swapchain image to COLOR_ATTACHMENT_OPTIMAL for ImGui rendering
+    transition_image(cmd, e->swapchainImages[swapchainImageIndex], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
+    // Render ImGui
+    draw_imgui(cmd, e->swapchainImageViews[swapchainImageIndex], e);
+
+    // Transition swapchain image back to PRESENT_SRC_KHR for presentation
+    transition_image(cmd, e->swapchainImages[swapchainImageIndex], VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
     VK_CHECK(vkEndCommandBuffer(cmd));
 
-     VkCommandBufferSubmitInfo cmdInfo = command_buffer_submit_info(cmd);
-    
+    VkCommandBufferSubmitInfo cmdInfo = command_buffer_submit_info(cmd);
     VkSemaphoreSubmitInfo waitInfo = semaphore_submit_info(
         VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
-        frame.swapchainSemaphore  // 🎯 WAIT ON ACQUIRE SEMAPHORE
+        frame.swapchainSemaphore
     );
-    
     VkSemaphoreSubmitInfo signalInfo = semaphore_submit_info(
         VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT,
-        e->renderFinishedSemaphores[swapchainImageIndex]  // 🎯 SIGNAL TO SPECIFIC IMAGE SEMAPHORE
+        e->renderFinishedSemaphores[swapchainImageIndex]
     );
 
     VkSubmitInfo2 submit = submit_info(&cmdInfo, &signalInfo, &waitInfo);
@@ -456,7 +607,7 @@ void engine_draw_frame(Engine* e) {
 
     VkPresentInfoKHR presentInfo{};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-    presentInfo.pWaitSemaphores = &e->renderFinishedSemaphores[swapchainImageIndex];  // 🎯 WAIT ON SPECIFIC IMAGE SEMAPHORE
+    presentInfo.pWaitSemaphores = &e->renderFinishedSemaphores[swapchainImageIndex];
     presentInfo.waitSemaphoreCount = 1;
     presentInfo.pSwapchains = &e->swapchain;
     presentInfo.swapchainCount = 1;
@@ -468,62 +619,147 @@ void engine_draw_frame(Engine* e) {
 }
 
 
-      
-
-
-
 // ------------------------- Cleanup -------------------------
 void engine_cleanup(Engine* e) {
-    if (!e) return;
-
-    if (e->device != VK_NULL_HANDLE) {
-        vkDeviceWaitIdle(e->device);
+    if (!e) {
+        std::printf("Engine cleanup: Engine is null, nothing to clean up.\n");
+        return;
     }
-    
+
+    // Step 0: Wait for all GPU work to complete
+    if (e->device != VK_NULL_HANDLE) {
+        std::printf("Engine cleanup: Waiting for device idle...\n");
+        VkResult result = vkDeviceWaitIdle(e->device);
+        if (result != VK_SUCCESS) {
+            std::printf("Engine cleanup: vkDeviceWaitIdle failed with result %d\n", result);
+            // Continue cleanup even on device loss, but be cautious
+        }
+    } else {
+        std::printf("Engine cleanup: Device is already null, skipping device wait.\n");
+    }
+
+    // Step 1: Shut down ImGui safely
+    std::printf("Engine cleanup: Shutting down ImGui...\n");
+    if (ImGui::GetCurrentContext() != nullptr) {
+        // Only shut down if ImGui context exists
+        ImGui_ImplVulkan_Shutdown();
+        ImGui_ImplGlfw_Shutdown();
+        ImGui::DestroyContext();
+    } else {
+        std::printf("Engine cleanup: ImGui context already destroyed or not initialized.\n");
+    }
+
+    // Step 2: Destroy per-frame resources
+    std::printf("Engine cleanup: Destroying per-frame resources...\n");
     for (int i = 0; i < FRAME_OVERLAP; i++) {
+        if (e->frames[i].commandPool) {
+            std::printf("Engine cleanup: Destroying command pool %p for frame %d\n", (void*)e->frames[i].commandPool, i);
+            vkDestroyCommandPool(e->device, e->frames[i].commandPool, nullptr);
+            e->frames[i].commandPool = VK_NULL_HANDLE;
+        }
         if (e->frames[i].renderFence) {
+            std::printf("Engine cleanup: Destroying render fence %p for frame %d\n", (void*)e->frames[i].renderFence, i);
             vkDestroyFence(e->device, e->frames[i].renderFence, nullptr);
+            e->frames[i].renderFence = VK_NULL_HANDLE;
         }
         if (e->frames[i].renderSemaphore) {
+            std::printf("Engine cleanup: Destroying render semaphore %p for frame %d\n", (void*)e->frames[i].renderSemaphore, i);
             vkDestroySemaphore(e->device, e->frames[i].renderSemaphore, nullptr);
+            e->frames[i].renderSemaphore = VK_NULL_HANDLE;
         }
         if (e->frames[i].swapchainSemaphore) {
+            std::printf("Engine cleanup: Destroying swapchain semaphore %p for frame %d\n", (void*)e->frames[i].swapchainSemaphore, i);
             vkDestroySemaphore(e->device, e->frames[i].swapchainSemaphore, nullptr);
-        }
-        if (e->frames[i].commandPool) {
-            vkDestroyCommandPool(e->device, e->frames[i].commandPool, nullptr);
+            e->frames[i].swapchainSemaphore = VK_NULL_HANDLE;
         }
     }
-    
-    e->mainDeletionQueue.flush();
-    
-    for (auto view : e->swapchainImageViews) {
-        if (view) {
-            vkDestroyImageView(e->device, view, nullptr);
+
+    // Step 3: Destroy swapchain resources
+    std::printf("Engine cleanup: Destroying swapchain resources...\n");
+    for (size_t i = 0; i < e->swapchainImageViews.size(); i++) {
+        if (e->swapchainImageViews[i]) {
+            std::printf("Engine cleanup: Destroying swapchain image view %p at index %zu\n", (void*)e->swapchainImageViews[i], i);
+            vkDestroyImageView(e->device, e->swapchainImageViews[i], nullptr);
+            e->swapchainImageViews[i] = VK_NULL_HANDLE;
+        }
+    }
+    for (size_t i = 0; i < e->imageAvailableSemaphores.size(); i++) {
+        if (e->imageAvailableSemaphores[i]) {
+            std::printf("Engine cleanup: Destroying image available semaphore %p at index %zu\n", (void*)e->imageAvailableSemaphores[i], i);
+            vkDestroySemaphore(e->device, e->imageAvailableSemaphores[i], nullptr);
+            e->imageAvailableSemaphores[i] = VK_NULL_HANDLE;
+        }
+        if (e->renderFinishedSemaphores[i]) {
+            std::printf("Engine cleanup: Destroying render finished semaphore %p at index %zu\n", (void*)e->renderFinishedSemaphores[i], i);
+            vkDestroySemaphore(e->device, e->renderFinishedSemaphores[i], nullptr);
+            e->renderFinishedSemaphores[i] = VK_NULL_HANDLE;
         }
     }
     if (e->swapchain) {
+        std::printf("Engine cleanup: Destroying swapchain %p\n", (void*)e->swapchain);
         vkDestroySwapchainKHR(e->device, e->swapchain, nullptr);
+        e->swapchain = VK_NULL_HANDLE;
     }
 
+    // Step 4: Destroy immediate command pool and fence
+    if (e->immCommandPool) {
+        std::printf("Engine cleanup: Destroying immediate command pool %p\n", (void*)e->immCommandPool);
+        vkDestroyCommandPool(e->device, e->immCommandPool, nullptr);
+        e->immCommandPool = VK_NULL_HANDLE;
+    }
+    if (e->immFence) {
+        std::printf("Engine cleanup: Destroying immediate fence %p\n", (void*)e->immFence);
+        vkDestroyFence(e->device, e->immFence, nullptr);
+        e->immFence = VK_NULL_HANDLE;
+    }
+
+    // Step 5: Flush main deletion queue
     if (e->device != VK_NULL_HANDLE) {
+        std::printf("Engine cleanup: Flushing main deletion queue...\n");
+        e->mainDeletionQueue.flush();
+    } else {
+        std::printf("Engine cleanup: Skipping main deletion queue flush due to null device.\n");
+    }
+
+    // Step 6: Destroy VMA allocator
+    if (e->allocator) {
+        std::printf("Engine cleanup: Destroying VMA allocator %p\n", (void*)e->allocator);
+        vmaDestroyAllocator(e->allocator);
+        e->allocator = VK_NULL_HANDLE;
+    }
+
+    // Step 7: Destroy device
+    if (e->device) {
+        std::printf("Engine cleanup: Destroying device %p\n", (void*)e->device);
         vkDestroyDevice(e->device, nullptr);
+        e->device = VK_NULL_HANDLE;
     }
 
-    if (e->surface != VK_NULL_HANDLE) {
-        vkDestroySurfaceKHR(e->instance, e->surface, nullptr);
-    }
-    if (e->debug_messenger != VK_NULL_HANDLE) {
+    // Step 8: Destroy instance-level resources
+    if (e->debug_messenger) {
+        std::printf("Engine cleanup: Destroying debug messenger %p\n", (void*)e->debug_messenger);
         vkb::destroy_debug_utils_messenger(e->instance, e->debug_messenger);
+        e->debug_messenger = VK_NULL_HANDLE;
     }
-    if (e->instance != VK_NULL_HANDLE) {
+    if (e->surface) {
+        std::printf("Engine cleanup: Destroying surface %p\n", (void*)e->surface);
+        vkDestroySurfaceKHR(e->instance, e->surface, nullptr);
+        e->surface = VK_NULL_HANDLE;
+    }
+    if (e->instance) {
+        std::printf("Engine cleanup: Destroying instance %p\n", (void*)e->instance);
         vkDestroyInstance(e->instance, nullptr);
+        e->instance = VK_NULL_HANDLE;
     }
 
+    // Step 9: Destroy GLFW window and terminate
     if (e->window) {
+        std::printf("Engine cleanup: Destroying GLFW window %p\n", (void*)e->window);
         glfwDestroyWindow(e->window);
+        e->window = nullptr;
     }
+    std::printf("Engine cleanup: Terminating GLFW...\n");
     glfwTerminate();
 
-    std::printf("Engine cleaned up.\n");
+    std::printf("Engine cleanup: Completed successfully!\n");
 }

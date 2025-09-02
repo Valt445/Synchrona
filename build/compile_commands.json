@@ -1,44 +1,80 @@
 [
 {
-  "directory": "/home/valker/Malike/build",
-  "command": "/usr/bin/clang++  -I/home/valker/Malike/include -I/home/valker/Malike/external/vk-bootstrap/src -I/home/valker/Malike/external/VulkanMemoryAllocator/include -isystem /home/valker/VulkanSDK/1.4.321.1/x86_64/include -std=gnu++20 -o CMakeFiles/my_vulkan_engine.dir/src/main.cpp.o -c /home/valker/Malike/src/main.cpp",
-  "file": "/home/valker/Malike/src/main.cpp",
+  "directory": "/home/valker/Synchrona/build",
+  "command": "/usr/bin/clang++  -I/home/valker/Synchrona/include -I/home/valker/Synchrona/external/vk-bootstrap/src -I/home/valker/Synchrona/external/VulkanMemoryAllocator/include -I/home/valker/Synchrona/external/imgui -isystem /home/valker/VulkanSDK/1.4.321.1/x86_64/include -std=gnu++20 -o CMakeFiles/my_vulkan_engine.dir/src/main.cpp.o -c /home/valker/Synchrona/src/main.cpp",
+  "file": "/home/valker/Synchrona/src/main.cpp",
   "output": "CMakeFiles/my_vulkan_engine.dir/src/main.cpp.o"
 },
 {
-  "directory": "/home/valker/Malike/build",
-  "command": "/usr/bin/clang++  -I/home/valker/Malike/include -I/home/valker/Malike/external/vk-bootstrap/src -I/home/valker/Malike/external/VulkanMemoryAllocator/include -isystem /home/valker/VulkanSDK/1.4.321.1/x86_64/include -std=gnu++20 -o CMakeFiles/my_vulkan_engine.dir/src/engine.cpp.o -c /home/valker/Malike/src/engine.cpp",
-  "file": "/home/valker/Malike/src/engine.cpp",
+  "directory": "/home/valker/Synchrona/build",
+  "command": "/usr/bin/clang++  -I/home/valker/Synchrona/include -I/home/valker/Synchrona/external/vk-bootstrap/src -I/home/valker/Synchrona/external/VulkanMemoryAllocator/include -I/home/valker/Synchrona/external/imgui -isystem /home/valker/VulkanSDK/1.4.321.1/x86_64/include -std=gnu++20 -o CMakeFiles/my_vulkan_engine.dir/src/engine.cpp.o -c /home/valker/Synchrona/src/engine.cpp",
+  "file": "/home/valker/Synchrona/src/engine.cpp",
   "output": "CMakeFiles/my_vulkan_engine.dir/src/engine.cpp.o"
 },
 {
-  "directory": "/home/valker/Malike/build",
-  "command": "/usr/bin/clang++  -I/home/valker/Malike/include -I/home/valker/Malike/external/vk-bootstrap/src -I/home/valker/Malike/external/VulkanMemoryAllocator/include -isystem /home/valker/VulkanSDK/1.4.321.1/x86_64/include -std=gnu++20 -o CMakeFiles/my_vulkan_engine.dir/src/images.cpp.o -c /home/valker/Malike/src/images.cpp",
-  "file": "/home/valker/Malike/src/images.cpp",
+  "directory": "/home/valker/Synchrona/build",
+  "command": "/usr/bin/clang++  -I/home/valker/Synchrona/include -I/home/valker/Synchrona/external/vk-bootstrap/src -I/home/valker/Synchrona/external/VulkanMemoryAllocator/include -I/home/valker/Synchrona/external/imgui -isystem /home/valker/VulkanSDK/1.4.321.1/x86_64/include -std=gnu++20 -o CMakeFiles/my_vulkan_engine.dir/src/images.cpp.o -c /home/valker/Synchrona/src/images.cpp",
+  "file": "/home/valker/Synchrona/src/images.cpp",
   "output": "CMakeFiles/my_vulkan_engine.dir/src/images.cpp.o"
 },
 {
-  "directory": "/home/valker/Malike/build",
-  "command": "/usr/bin/clang++  -I/home/valker/Malike/include -I/home/valker/Malike/external/vk-bootstrap/src -I/home/valker/Malike/external/VulkanMemoryAllocator/include -isystem /home/valker/VulkanSDK/1.4.321.1/x86_64/include -std=gnu++20 -o CMakeFiles/my_vulkan_engine.dir/src/vma.cpp.o -c /home/valker/Malike/src/vma.cpp",
-  "file": "/home/valker/Malike/src/vma.cpp",
+  "directory": "/home/valker/Synchrona/build",
+  "command": "/usr/bin/clang++  -I/home/valker/Synchrona/include -I/home/valker/Synchrona/external/vk-bootstrap/src -I/home/valker/Synchrona/external/VulkanMemoryAllocator/include -I/home/valker/Synchrona/external/imgui -isystem /home/valker/VulkanSDK/1.4.321.1/x86_64/include -std=gnu++20 -o CMakeFiles/my_vulkan_engine.dir/src/vma.cpp.o -c /home/valker/Synchrona/src/vma.cpp",
+  "file": "/home/valker/Synchrona/src/vma.cpp",
   "output": "CMakeFiles/my_vulkan_engine.dir/src/vma.cpp.o"
 },
 {
-  "directory": "/home/valker/Malike/build",
-  "command": "/usr/bin/clang++  -I/home/valker/Malike/include -I/home/valker/Malike/external/vk-bootstrap/src -I/home/valker/Malike/external/VulkanMemoryAllocator/include -isystem /home/valker/VulkanSDK/1.4.321.1/x86_64/include -std=gnu++20 -o CMakeFiles/my_vulkan_engine.dir/src/helper.cpp.o -c /home/valker/Malike/src/helper.cpp",
-  "file": "/home/valker/Malike/src/helper.cpp",
+  "directory": "/home/valker/Synchrona/build",
+  "command": "/usr/bin/clang++  -I/home/valker/Synchrona/include -I/home/valker/Synchrona/external/vk-bootstrap/src -I/home/valker/Synchrona/external/VulkanMemoryAllocator/include -I/home/valker/Synchrona/external/imgui -isystem /home/valker/VulkanSDK/1.4.321.1/x86_64/include -std=gnu++20 -o CMakeFiles/my_vulkan_engine.dir/src/helper.cpp.o -c /home/valker/Synchrona/src/helper.cpp",
+  "file": "/home/valker/Synchrona/src/helper.cpp",
   "output": "CMakeFiles/my_vulkan_engine.dir/src/helper.cpp.o"
 },
 {
-  "directory": "/home/valker/Malike/build",
-  "command": "/usr/bin/clang++  -I/home/valker/Malike/include -I/home/valker/Malike/external/vk-bootstrap/src -I/home/valker/Malike/external/VulkanMemoryAllocator/include -isystem /home/valker/VulkanSDK/1.4.321.1/x86_64/include -std=gnu++20 -o CMakeFiles/my_vulkan_engine.dir/src/descriptors.cpp.o -c /home/valker/Malike/src/descriptors.cpp",
-  "file": "/home/valker/Malike/src/descriptors.cpp",
+  "directory": "/home/valker/Synchrona/build",
+  "command": "/usr/bin/clang++  -I/home/valker/Synchrona/include -I/home/valker/Synchrona/external/vk-bootstrap/src -I/home/valker/Synchrona/external/VulkanMemoryAllocator/include -I/home/valker/Synchrona/external/imgui -isystem /home/valker/VulkanSDK/1.4.321.1/x86_64/include -std=gnu++20 -o CMakeFiles/my_vulkan_engine.dir/src/descriptors.cpp.o -c /home/valker/Synchrona/src/descriptors.cpp",
+  "file": "/home/valker/Synchrona/src/descriptors.cpp",
   "output": "CMakeFiles/my_vulkan_engine.dir/src/descriptors.cpp.o"
 },
 {
-  "directory": "/home/valker/Malike/build",
-  "command": "/usr/bin/clang++  -I/home/valker/Malike/include -I/home/valker/Malike/external/vk-bootstrap/src -I/home/valker/Malike/external/VulkanMemoryAllocator/include -isystem /home/valker/VulkanSDK/1.4.321.1/x86_64/include -std=gnu++20 -o CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.o -c /home/valker/Malike/external/vk-bootstrap/src/VkBootstrap.cpp",
-  "file": "/home/valker/Malike/external/vk-bootstrap/src/VkBootstrap.cpp",
+  "directory": "/home/valker/Synchrona/build",
+  "command": "/usr/bin/clang++  -I/home/valker/Synchrona/include -I/home/valker/Synchrona/external/vk-bootstrap/src -I/home/valker/Synchrona/external/VulkanMemoryAllocator/include -I/home/valker/Synchrona/external/imgui -isystem /home/valker/VulkanSDK/1.4.321.1/x86_64/include -std=gnu++20 -o CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.o -c /home/valker/Synchrona/external/vk-bootstrap/src/VkBootstrap.cpp",
+  "file": "/home/valker/Synchrona/external/vk-bootstrap/src/VkBootstrap.cpp",
   "output": "CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.o"
+},
+{
+  "directory": "/home/valker/Synchrona/build",
+  "command": "/usr/bin/clang++  -I/home/valker/Synchrona/include -I/home/valker/Synchrona/external/vk-bootstrap/src -I/home/valker/Synchrona/external/VulkanMemoryAllocator/include -I/home/valker/Synchrona/external/imgui -isystem /home/valker/VulkanSDK/1.4.321.1/x86_64/include -std=gnu++20 -o CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui.cpp.o -c /home/valker/Synchrona/external/imgui/imgui.cpp",
+  "file": "/home/valker/Synchrona/external/imgui/imgui.cpp",
+  "output": "CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui.cpp.o"
+},
+{
+  "directory": "/home/valker/Synchrona/build",
+  "command": "/usr/bin/clang++  -I/home/valker/Synchrona/include -I/home/valker/Synchrona/external/vk-bootstrap/src -I/home/valker/Synchrona/external/VulkanMemoryAllocator/include -I/home/valker/Synchrona/external/imgui -isystem /home/valker/VulkanSDK/1.4.321.1/x86_64/include -std=gnu++20 -o CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui_draw.cpp.o -c /home/valker/Synchrona/external/imgui/imgui_draw.cpp",
+  "file": "/home/valker/Synchrona/external/imgui/imgui_draw.cpp",
+  "output": "CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui_draw.cpp.o"
+},
+{
+  "directory": "/home/valker/Synchrona/build",
+  "command": "/usr/bin/clang++  -I/home/valker/Synchrona/include -I/home/valker/Synchrona/external/vk-bootstrap/src -I/home/valker/Synchrona/external/VulkanMemoryAllocator/include -I/home/valker/Synchrona/external/imgui -isystem /home/valker/VulkanSDK/1.4.321.1/x86_64/include -std=gnu++20 -o CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui_widgets.cpp.o -c /home/valker/Synchrona/external/imgui/imgui_widgets.cpp",
+  "file": "/home/valker/Synchrona/external/imgui/imgui_widgets.cpp",
+  "output": "CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui_widgets.cpp.o"
+},
+{
+  "directory": "/home/valker/Synchrona/build",
+  "command": "/usr/bin/clang++  -I/home/valker/Synchrona/include -I/home/valker/Synchrona/external/vk-bootstrap/src -I/home/valker/Synchrona/external/VulkanMemoryAllocator/include -I/home/valker/Synchrona/external/imgui -isystem /home/valker/VulkanSDK/1.4.321.1/x86_64/include -std=gnu++20 -o CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui_tables.cpp.o -c /home/valker/Synchrona/external/imgui/imgui_tables.cpp",
+  "file": "/home/valker/Synchrona/external/imgui/imgui_tables.cpp",
+  "output": "CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui_tables.cpp.o"
+},
+{
+  "directory": "/home/valker/Synchrona/build",
+  "command": "/usr/bin/clang++  -I/home/valker/Synchrona/include -I/home/valker/Synchrona/external/vk-bootstrap/src -I/home/valker/Synchrona/external/VulkanMemoryAllocator/include -I/home/valker/Synchrona/external/imgui -isystem /home/valker/VulkanSDK/1.4.321.1/x86_64/include -std=gnu++20 -o CMakeFiles/my_vulkan_engine.dir/external/imgui/backends/imgui_impl_glfw.cpp.o -c /home/valker/Synchrona/external/imgui/backends/imgui_impl_glfw.cpp",
+  "file": "/home/valker/Synchrona/external/imgui/backends/imgui_impl_glfw.cpp",
+  "output": "CMakeFiles/my_vulkan_engine.dir/external/imgui/backends/imgui_impl_glfw.cpp.o"
+},
+{
+  "directory": "/home/valker/Synchrona/build",
+  "command": "/usr/bin/clang++  -I/home/valker/Synchrona/include -I/home/valker/Synchrona/external/vk-bootstrap/src -I/home/valker/Synchrona/external/VulkanMemoryAllocator/include -I/home/valker/Synchrona/external/imgui -isystem /home/valker/VulkanSDK/1.4.321.1/x86_64/include -std=gnu++20 -o CMakeFiles/my_vulkan_engine.dir/external/imgui/backends/imgui_impl_vulkan.cpp.o -c /home/valker/Synchrona/external/imgui/backends/imgui_impl_vulkan.cpp",
+  "file": "/home/valker/Synchrona/external/imgui/backends/imgui_impl_vulkan.cpp",
+  "output": "CMakeFiles/my_vulkan_engine.dir/external/imgui/backends/imgui_impl_vulkan.cpp.o"
 }
 ]

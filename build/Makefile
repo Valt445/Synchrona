@@ -57,10 +57,10 @@ RM = /home/valker/.local/lib/python3.10/site-packages/cmake/data/bin/cmake -E rm
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/valker/Malike
+CMAKE_SOURCE_DIR = /home/valker/Synchrona
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/valker/Malike/build
+CMAKE_BINARY_DIR = /home/valker/Synchrona/build
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -87,9 +87,9 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/valker/Malike/build/CMakeFiles /home/valker/Malike/build//CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/valker/Synchrona/build/CMakeFiles /home/valker/Synchrona/build//CMakeFiles/progress.marks
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/valker/Malike/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/valker/Synchrona/build/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
@@ -141,6 +141,150 @@ Shaders: cmake_check_build_system
 Shaders/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Shaders.dir/build.make CMakeFiles/Shaders.dir/build
 .PHONY : Shaders/fast
+
+external/imgui/backends/imgui_impl_glfw.o: external/imgui/backends/imgui_impl_glfw.cpp.o
+.PHONY : external/imgui/backends/imgui_impl_glfw.o
+
+# target to build an object file
+external/imgui/backends/imgui_impl_glfw.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/external/imgui/backends/imgui_impl_glfw.cpp.o
+.PHONY : external/imgui/backends/imgui_impl_glfw.cpp.o
+
+external/imgui/backends/imgui_impl_glfw.i: external/imgui/backends/imgui_impl_glfw.cpp.i
+.PHONY : external/imgui/backends/imgui_impl_glfw.i
+
+# target to preprocess a source file
+external/imgui/backends/imgui_impl_glfw.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/external/imgui/backends/imgui_impl_glfw.cpp.i
+.PHONY : external/imgui/backends/imgui_impl_glfw.cpp.i
+
+external/imgui/backends/imgui_impl_glfw.s: external/imgui/backends/imgui_impl_glfw.cpp.s
+.PHONY : external/imgui/backends/imgui_impl_glfw.s
+
+# target to generate assembly for a file
+external/imgui/backends/imgui_impl_glfw.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/external/imgui/backends/imgui_impl_glfw.cpp.s
+.PHONY : external/imgui/backends/imgui_impl_glfw.cpp.s
+
+external/imgui/backends/imgui_impl_vulkan.o: external/imgui/backends/imgui_impl_vulkan.cpp.o
+.PHONY : external/imgui/backends/imgui_impl_vulkan.o
+
+# target to build an object file
+external/imgui/backends/imgui_impl_vulkan.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/external/imgui/backends/imgui_impl_vulkan.cpp.o
+.PHONY : external/imgui/backends/imgui_impl_vulkan.cpp.o
+
+external/imgui/backends/imgui_impl_vulkan.i: external/imgui/backends/imgui_impl_vulkan.cpp.i
+.PHONY : external/imgui/backends/imgui_impl_vulkan.i
+
+# target to preprocess a source file
+external/imgui/backends/imgui_impl_vulkan.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/external/imgui/backends/imgui_impl_vulkan.cpp.i
+.PHONY : external/imgui/backends/imgui_impl_vulkan.cpp.i
+
+external/imgui/backends/imgui_impl_vulkan.s: external/imgui/backends/imgui_impl_vulkan.cpp.s
+.PHONY : external/imgui/backends/imgui_impl_vulkan.s
+
+# target to generate assembly for a file
+external/imgui/backends/imgui_impl_vulkan.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/external/imgui/backends/imgui_impl_vulkan.cpp.s
+.PHONY : external/imgui/backends/imgui_impl_vulkan.cpp.s
+
+external/imgui/imgui.o: external/imgui/imgui.cpp.o
+.PHONY : external/imgui/imgui.o
+
+# target to build an object file
+external/imgui/imgui.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui.cpp.o
+.PHONY : external/imgui/imgui.cpp.o
+
+external/imgui/imgui.i: external/imgui/imgui.cpp.i
+.PHONY : external/imgui/imgui.i
+
+# target to preprocess a source file
+external/imgui/imgui.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui.cpp.i
+.PHONY : external/imgui/imgui.cpp.i
+
+external/imgui/imgui.s: external/imgui/imgui.cpp.s
+.PHONY : external/imgui/imgui.s
+
+# target to generate assembly for a file
+external/imgui/imgui.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui.cpp.s
+.PHONY : external/imgui/imgui.cpp.s
+
+external/imgui/imgui_draw.o: external/imgui/imgui_draw.cpp.o
+.PHONY : external/imgui/imgui_draw.o
+
+# target to build an object file
+external/imgui/imgui_draw.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui_draw.cpp.o
+.PHONY : external/imgui/imgui_draw.cpp.o
+
+external/imgui/imgui_draw.i: external/imgui/imgui_draw.cpp.i
+.PHONY : external/imgui/imgui_draw.i
+
+# target to preprocess a source file
+external/imgui/imgui_draw.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui_draw.cpp.i
+.PHONY : external/imgui/imgui_draw.cpp.i
+
+external/imgui/imgui_draw.s: external/imgui/imgui_draw.cpp.s
+.PHONY : external/imgui/imgui_draw.s
+
+# target to generate assembly for a file
+external/imgui/imgui_draw.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui_draw.cpp.s
+.PHONY : external/imgui/imgui_draw.cpp.s
+
+external/imgui/imgui_tables.o: external/imgui/imgui_tables.cpp.o
+.PHONY : external/imgui/imgui_tables.o
+
+# target to build an object file
+external/imgui/imgui_tables.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui_tables.cpp.o
+.PHONY : external/imgui/imgui_tables.cpp.o
+
+external/imgui/imgui_tables.i: external/imgui/imgui_tables.cpp.i
+.PHONY : external/imgui/imgui_tables.i
+
+# target to preprocess a source file
+external/imgui/imgui_tables.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui_tables.cpp.i
+.PHONY : external/imgui/imgui_tables.cpp.i
+
+external/imgui/imgui_tables.s: external/imgui/imgui_tables.cpp.s
+.PHONY : external/imgui/imgui_tables.s
+
+# target to generate assembly for a file
+external/imgui/imgui_tables.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui_tables.cpp.s
+.PHONY : external/imgui/imgui_tables.cpp.s
+
+external/imgui/imgui_widgets.o: external/imgui/imgui_widgets.cpp.o
+.PHONY : external/imgui/imgui_widgets.o
+
+# target to build an object file
+external/imgui/imgui_widgets.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui_widgets.cpp.o
+.PHONY : external/imgui/imgui_widgets.cpp.o
+
+external/imgui/imgui_widgets.i: external/imgui/imgui_widgets.cpp.i
+.PHONY : external/imgui/imgui_widgets.i
+
+# target to preprocess a source file
+external/imgui/imgui_widgets.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui_widgets.cpp.i
+.PHONY : external/imgui/imgui_widgets.cpp.i
+
+external/imgui/imgui_widgets.s: external/imgui/imgui_widgets.cpp.s
+.PHONY : external/imgui/imgui_widgets.s
+
+# target to generate assembly for a file
+external/imgui/imgui_widgets.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui_widgets.cpp.s
+.PHONY : external/imgui/imgui_widgets.cpp.s
 
 external/vk-bootstrap/src/VkBootstrap.o: external/vk-bootstrap/src/VkBootstrap.cpp.o
 .PHONY : external/vk-bootstrap/src/VkBootstrap.o
@@ -320,6 +464,24 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... Shaders"
 	@echo "... my_vulkan_engine"
+	@echo "... external/imgui/backends/imgui_impl_glfw.o"
+	@echo "... external/imgui/backends/imgui_impl_glfw.i"
+	@echo "... external/imgui/backends/imgui_impl_glfw.s"
+	@echo "... external/imgui/backends/imgui_impl_vulkan.o"
+	@echo "... external/imgui/backends/imgui_impl_vulkan.i"
+	@echo "... external/imgui/backends/imgui_impl_vulkan.s"
+	@echo "... external/imgui/imgui.o"
+	@echo "... external/imgui/imgui.i"
+	@echo "... external/imgui/imgui.s"
+	@echo "... external/imgui/imgui_draw.o"
+	@echo "... external/imgui/imgui_draw.i"
+	@echo "... external/imgui/imgui_draw.s"
+	@echo "... external/imgui/imgui_tables.o"
+	@echo "... external/imgui/imgui_tables.i"
+	@echo "... external/imgui/imgui_tables.s"
+	@echo "... external/imgui/imgui_widgets.o"
+	@echo "... external/imgui/imgui_widgets.i"
+	@echo "... external/imgui/imgui_widgets.s"
 	@echo "... external/vk-bootstrap/src/VkBootstrap.o"
 	@echo "... external/vk-bootstrap/src/VkBootstrap.i"
 	@echo "... external/vk-bootstrap/src/VkBootstrap.s"

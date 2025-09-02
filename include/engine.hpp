@@ -12,6 +12,8 @@
 #include "descriptors.h"
 #include "helper.h"
 #include "glm/glm.hpp"
+#include "imgui.h"
+
 // Vulkan error checking macro
 #define VK_CHECK(x)                                                     \
     do {                                                                \
@@ -91,7 +93,11 @@ struct Engine {
     VkDescriptorSetLayout drawImageDescriptorLayout;
 
     VkPipeline gradientPipeline;
-    VkPipelineLayout gradientPipelineLayout; 
+    VkPipelineLayout gradientPipelineLayout;
+
+    VkFence immFence;
+    VkCommandBuffer immCommandBuffer;
+    VkCommandPool immCommandPool; 
 
     Utils util;
 };
@@ -124,3 +130,10 @@ VkSubmitInfo2 submit_info(VkCommandBufferSubmitInfo* cmd,
 void init_descriptors(Engine* engine);
 void init_pipelines(Engine* engine);
 void init_background_pipelines(Engine* engine);
+
+void immediate_submit(std::function<void(VkCommandBuffer cmd)>&& function, Engine* e);
+void init_imgui(Engine* e);
+void draw_imgui(VkCommandBuffer cmd, VkImageView targetImageView, Engine* e);
+
+//Dynamic Rendering!!
+VkRenderingAttachmentInfo attachment_info(VkImageView view, VkClearValue* clear, VkImageLayout layout);

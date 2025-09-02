@@ -1,4 +1,4 @@
-/home/valker/Malike/build/CMakeFiles/my_vulkan_engine.dir
-/home/valker/Malike/build/CMakeFiles/Shaders.dir
-/home/valker/Malike/build/CMakeFiles/edit_cache.dir
-/home/valker/Malike/build/CMakeFiles/rebuild_cache.dir
+/home/valker/Synchrona/build/CMakeFiles/my_vulkan_engine.dir
+/home/valker/Synchrona/build/CMakeFiles/Shaders.dir
+/home/valker/Synchrona/build/CMakeFiles/edit_cache.dir
+/home/valker/Synchrona/build/CMakeFiles/rebuild_cache.dir

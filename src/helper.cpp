@@ -46,3 +46,20 @@ bool Utils::load_shader_module(const char* filePath,
     *outShaderModule = shaderModule;
     return true;
 }
+
+VkRenderingInfo Utils::rendering_info(VkExtent2D renderExtent, VkRenderingAttachmentInfo* colorAttachment,
+    VkRenderingAttachmentInfo* depthAttachment)
+{
+    VkRenderingInfo renderInfo {};
+    renderInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
+    renderInfo.pNext = nullptr;
+
+    renderInfo.renderArea = VkRect2D { VkOffset2D { 0, 0 }, renderExtent };
+    renderInfo.layerCount = 1;
+    renderInfo.colorAttachmentCount = 1;
+    renderInfo.pColorAttachments = colorAttachment;
+    renderInfo.pDepthAttachment = depthAttachment;
+    renderInfo.pStencilAttachment = nullptr;
+
+    return renderInfo;
+}

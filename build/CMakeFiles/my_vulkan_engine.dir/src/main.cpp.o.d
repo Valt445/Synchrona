@@ -1,9 +1,14 @@
 CMakeFiles/my_vulkan_engine.dir/src/main.cpp.o: \
-  /home/valker/Malike/src/main.cpp \
-  /home/valker/Malike/include/engine.hpp \
-  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/cstdint \
-  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/x86_64-linux-gnu/c++/12/bits/c++config.h \
-  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/x86_64-linux-gnu/c++/12/bits/os_defines.h \
+  /home/valker/Synchrona/src/main.cpp \
+  /home/valker/Synchrona/external/imgui/backends/imgui_impl_glfw.h \
+  /home/valker/Synchrona/external/imgui/imgui.h \
+  /home/valker/Synchrona/external/imgui/imconfig.h \
+  /usr/lib/llvm-14/lib/clang/14.0.0/include/float.h \
+  /usr/lib/llvm-14/lib/clang/14.0.0/include/stdarg.h \
+  /usr/lib/llvm-14/lib/clang/14.0.0/include/stddef.h \
+  /usr/lib/llvm-14/lib/clang/14.0.0/include/__stddef_max_align_t.h \
+  /usr/include/string.h \
+  /usr/include/x86_64-linux-gnu/bits/libc-header-start.h \
   /usr/include/features.h /usr/include/features-time64.h \
   /usr/include/x86_64-linux-gnu/bits/wordsize.h \
   /usr/include/x86_64-linux-gnu/bits/timesize.h \
@@ -11,21 +16,20 @@ CMakeFiles/my_vulkan_engine.dir/src/main.cpp.o: \
   /usr/include/x86_64-linux-gnu/bits/long-double.h \
   /usr/include/x86_64-linux-gnu/gnu/stubs.h \
   /usr/include/x86_64-linux-gnu/gnu/stubs-64.h \
-  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/x86_64-linux-gnu/c++/12/bits/cpu_defines.h \
-  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/pstl/pstl_config.h \
+  /usr/include/x86_64-linux-gnu/bits/types/locale_t.h \
+  /usr/include/x86_64-linux-gnu/bits/types/__locale_t.h \
+  /usr/include/strings.h /usr/include/assert.h \
+  /home/valker/Synchrona/external/imgui/backends/imgui_impl_vulkan.h \
+  /home/valker/VulkanSDK/1.4.321.1/x86_64/include/vulkan/vulkan.h \
+  /home/valker/VulkanSDK/1.4.321.1/x86_64/include/vulkan/vk_platform.h \
   /usr/lib/llvm-14/lib/clang/14.0.0/include/stdint.h \
-  /usr/include/stdint.h \
-  /usr/include/x86_64-linux-gnu/bits/libc-header-start.h \
-  /usr/include/x86_64-linux-gnu/bits/types.h \
+  /usr/include/stdint.h /usr/include/x86_64-linux-gnu/bits/types.h \
   /usr/include/x86_64-linux-gnu/bits/typesizes.h \
   /usr/include/x86_64-linux-gnu/bits/time64.h \
   /usr/include/x86_64-linux-gnu/bits/wchar.h \
   /usr/include/x86_64-linux-gnu/bits/stdint-intn.h \
   /usr/include/x86_64-linux-gnu/bits/stdint-uintn.h \
   /home/valker/VulkanSDK/1.4.321.1/x86_64/include/vulkan/vulkan_core.h \
-  /home/valker/VulkanSDK/1.4.321.1/x86_64/include/vulkan/vk_platform.h \
-  /usr/lib/llvm-14/lib/clang/14.0.0/include/stddef.h \
-  /usr/lib/llvm-14/lib/clang/14.0.0/include/__stddef_max_align_t.h \
   /home/valker/VulkanSDK/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_h264std.h \
   /home/valker/VulkanSDK/1.4.321.1/x86_64/include/vk_video/vulkan_video_codecs_common.h \
   /home/valker/VulkanSDK/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_h264std_encode.h \
@@ -38,6 +42,12 @@ CMakeFiles/my_vulkan_engine.dir/src/main.cpp.o: \
   /home/valker/VulkanSDK/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_av1std_encode.h \
   /home/valker/VulkanSDK/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_vp9std.h \
   /home/valker/VulkanSDK/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_vp9std_decode.h \
+  /home/valker/Synchrona/include/engine.hpp \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/cstdint \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/x86_64-linux-gnu/c++/12/bits/c++config.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/x86_64-linux-gnu/c++/12/bits/os_defines.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/x86_64-linux-gnu/c++/12/bits/cpu_defines.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/pstl/pstl_config.h \
   /usr/include/GLFW/glfw3.h /usr/include/GL/gl.h /usr/include/GL/glext.h \
   /usr/include/KHR/khrplatform.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/vector \
@@ -93,14 +103,11 @@ CMakeFiles/my_vulkan_engine.dir/src/main.cpp.o: \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/cwchar \
   /usr/include/wchar.h /usr/include/x86_64-linux-gnu/bits/floatn.h \
   /usr/include/x86_64-linux-gnu/bits/floatn-common.h \
-  /usr/lib/llvm-14/lib/clang/14.0.0/include/stdarg.h \
   /usr/include/x86_64-linux-gnu/bits/types/wint_t.h \
   /usr/include/x86_64-linux-gnu/bits/types/mbstate_t.h \
   /usr/include/x86_64-linux-gnu/bits/types/__mbstate_t.h \
   /usr/include/x86_64-linux-gnu/bits/types/__FILE.h \
   /usr/include/x86_64-linux-gnu/bits/types/FILE.h \
-  /usr/include/x86_64-linux-gnu/bits/types/locale_t.h \
-  /usr/include/x86_64-linux-gnu/bits/types/__locale_t.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/exception \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/exception_ptr.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/cxxabi_init_exception.h \
@@ -205,9 +212,7 @@ CMakeFiles/my_vulkan_engine.dir/src/main.cpp.o: \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/deque.tcc \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/x86_64-linux-gnu/c++/12/bits/stdc++.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/cassert \
-  /usr/include/assert.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/cfloat \
-  /usr/lib/llvm-14/lib/clang/14.0.0/include/float.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/ciso646 \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/climits \
   /usr/lib/llvm-14/lib/clang/14.0.0/include/limits.h \
@@ -276,7 +281,6 @@ CMakeFiles/my_vulkan_engine.dir/src/main.cpp.o: \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/cstdarg \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/cstddef \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/cstring \
-  /usr/include/string.h /usr/include/strings.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/ctime \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/ccomplex \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/complex \
@@ -451,11 +455,10 @@ CMakeFiles/my_vulkan_engine.dir/src/main.cpp.o: \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/source_location \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/syncstream \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/version \
-  /home/valker/Malike/external/VulkanMemoryAllocator/include/vk_mem_alloc.h \
-  /home/valker/VulkanSDK/1.4.321.1/x86_64/include/vulkan/vulkan.h \
-  /home/valker/Malike/include/images.h \
-  /home/valker/Malike/include/descriptors.h \
-  /home/valker/Malike/include/helper.h /usr/include/glm/glm.hpp \
+  /home/valker/Synchrona/external/VulkanMemoryAllocator/include/vk_mem_alloc.h \
+  /home/valker/Synchrona/include/images.h \
+  /home/valker/Synchrona/include/descriptors.h \
+  /home/valker/Synchrona/include/helper.h /usr/include/glm/glm.hpp \
   /usr/include/glm/detail/_fixes.hpp /usr/include/glm/detail/setup.hpp \
   /usr/include/glm/detail/../simd/platform.h /usr/include/glm/fwd.hpp \
   /usr/include/glm/detail/qualifier.hpp /usr/include/glm/vec2.hpp \

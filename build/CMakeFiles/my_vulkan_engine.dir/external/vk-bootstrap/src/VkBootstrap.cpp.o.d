@@ -1,6 +1,6 @@
 CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.o: \
-  /home/valker/Malike/external/vk-bootstrap/src/VkBootstrap.cpp \
-  /home/valker/Malike/external/vk-bootstrap/src/VkBootstrap.h \
+  /home/valker/Synchrona/external/vk-bootstrap/src/VkBootstrap.cpp \
+  /home/valker/Synchrona/external/vk-bootstrap/src/VkBootstrap.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/cassert \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/x86_64-linux-gnu/c++/12/bits/c++config.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/x86_64-linux-gnu/c++/12/bits/os_defines.h \
@@ -165,7 +165,7 @@ CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.o: \
   /home/valker/VulkanSDK/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_av1std_encode.h \
   /home/valker/VulkanSDK/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_vp9std.h \
   /home/valker/VulkanSDK/1.4.321.1/x86_64/include/vk_video/vulkan_video_codec_vp9std_decode.h \
-  /home/valker/Malike/external/vk-bootstrap/src/VkBootstrapDispatch.h \
+  /home/valker/Synchrona/external/vk-bootstrap/src/VkBootstrapDispatch.h \
   /usr/include/dlfcn.h /usr/include/x86_64-linux-gnu/bits/dlfcn.h \
   /usr/include/x86_64-linux-gnu/bits/dl_find_object.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/mutex \

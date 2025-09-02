@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/clang++
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/home/valker/Malike/include -I/home/valker/Malike/external/vk-bootstrap/src -I/home/valker/Malike/external/VulkanMemoryAllocator/include -isystem /home/valker/VulkanSDK/1.4.321.1/x86_64/include
+CXX_INCLUDES = -I/home/valker/Synchrona/include -I/home/valker/Synchrona/external/vk-bootstrap/src -I/home/valker/Synchrona/external/VulkanMemoryAllocator/include -I/home/valker/Synchrona/external/imgui -isystem /home/valker/VulkanSDK/1.4.321.1/x86_64/include
 
 CXX_FLAGS = -std=gnu++20
 
