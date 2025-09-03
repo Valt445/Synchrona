@@ -1,28 +1,125 @@
-//GLSL version to use
 #version 460
 
-//size of a workgroup for compute
 layout (local_size_x = 16, local_size_y = 16) in;
+layout(rgba16f, set = 0, binding = 0) uniform image2D image;
 
-//descriptor bindings for the pipeline
-layout(rgba16f,set = 0, binding = 0) uniform image2D image;
-
-
-void main() 
+layout(push_constant) uniform constants
 {
-    ivec2 texelCoord = ivec2(gl_GlobalInvocationID.xy);
-	ivec2 size = imageSize(image);
+ vec4 data1; // x: time, y: zoom, z: metaball count, w: field scale
+ vec4 data2; // rgb: light direction (normalized)
+ vec4 data3; // rgb: material color
+ vec4 data4; // x: specular power, y: ambient, z: diffuse, w: specular
+} PushConstants;
 
-    if(texelCoord.x < size.x && texelCoord.y < size.y)
-    {
-        vec4 color = vec4(0.0, 0.0, 0.0, 1.0);
+struct Metaball {
+    vec3 position;
+    float radius;
+    vec3 velocity;
+};
 
-        if(gl_LocalInvocationID.x != 0 && gl_LocalInvocationID.y != 0)
-        {
-            color.x = float(texelCoord.x)/(size.x);
-            color.y = float(texelCoord.y)/(size.y);	
-        }
+// Smooth minimum function
+float smin(float a, float b, float k) {
+    float h = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0);
+    return mix(b, a, h) - k * h * (1.0 - h);
+}
+
+// Metaball field function
+float map(vec3 p, Metaball[4] metaballs) {
+    float dist = 1000.0;
+    float k = 0.3; // Smoothing factor
     
-        imageStore(image, texelCoord, color);
+    for (int i = 0; i < 4; i++) {
+        if (i >= int(PushConstants.data1.z)) break;
+        
+        float d = length(p - metaballs[i].position) - metaballs[i].radius;
+        dist = smin(dist, d, k);
     }
+    
+    return dist;
+}
+
+// Calculate normal using gradient
+vec3 calcNormal(vec3 p, Metaball[4] metaballs) {
+    const float eps = 0.001;
+    return normalize(vec3(
+        map(vec3(p.x + eps, p.y, p.z), metaballs) - map(vec3(p.x - eps, p.y, p.z), metaballs),
+        map(vec3(p.x, p.y + eps, p.z), metaballs) - map(vec3(p.x, p.y - eps, p.z), metaballs),
+        map(vec3(p.x, p.y, p.z + eps), metaballs) - map(vec3(p.x, p.y, p.z - eps), metaballs)
+    ));
+}
+
+void main() {
+    ivec2 texelCoord = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 imageSize = imageSize(image);
+    vec2 uv = (vec2(texelCoord) * 2.0 - vec2(imageSize)) / min(imageSize.x, imageSize.y);
+    
+    float time = PushConstants.data1.x;
+    float zoom = PushConstants.data1.y * 2.0 + 1.0;
+    int ballCount = int(PushConstants.data1.z);
+    float fieldScale = PushConstants.data1.w * 2.0;
+    
+    vec3 lightDir = normalize(PushConstants.data2.rgb);
+    vec3 materialColor = PushConstants.data3.rgb;
+    
+    float specPower = PushConstants.data4.x * 128.0;
+    float ambient = PushConstants.data4.y;
+    float diffuse = PushConstants.data4.z;
+    float specular = PushConstants.data4.w;
+    
+    // Create animated metaballs
+    Metaball[4] metaballs;
+    for (int i = 0; i < 4; i++) {
+        if (i >= ballCount) break;
+        
+        float angle = float(i) * 1.57 + time * (0.5 + float(i) * 0.2);
+        float radius = 0.2 + 0.1 * sin(time * 0.7 + float(i));
+        
+        metaballs[i].position = vec3(
+            sin(angle) * 0.8,
+            cos(angle * 1.3) * 0.6,
+            sin(angle * 0.7) * 0.5
+        ) * fieldScale;
+        
+        metaballs[i].radius = radius;
+    }
+    
+    // Ray setup
+    vec3 ro = vec3(0.0, 0.0, zoom); // Ray origin
+    vec3 rd = normalize(vec3(uv, -1.0)); // Ray direction
+    
+    // Ray marching
+    float t = 0.0;
+    vec3 p = ro;
+    bool hit = false;
+    
+    for (int i = 0; i < 64; i++) {
+        p = ro + rd * t;
+        float d = map(p, metaballs);
+        
+        if (d < 0.001) {
+            hit = true;
+            break;
+        }
+        
+        if (t > 10.0) break;
+        
+        t += d;
+    }
+    
+    vec3 color = vec3(0.0);
+    
+    if (hit) {
+        // Calculate lighting
+        vec3 normal = calcNormal(p, metaballs);
+        vec3 viewDir = normalize(ro - p);
+        vec3 reflectDir = reflect(-lightDir, normal);
+        
+        // Lighting components
+        float diff = max(dot(normal, lightDir), 0.0) * diffuse;
+        float spec = pow(max(dot(viewDir, reflectDir), 0.0), specPower) * specular;
+        
+        color = materialColor * (ambient + diff) + vec3(spec);
+    }
+    
+    imageStore(image, texelCoord, vec4(color, 1.0));
 }

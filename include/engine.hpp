@@ -97,11 +97,11 @@ struct Engine {
 
     VkFence immFence;
     VkCommandBuffer immCommandBuffer;
-    VkCommandPool immCommandPool; 
+    VkCommandPool immCommandPool;
+    VkDescriptorPool imguiDescriptorPool;
 
-    Utils util;
+    Utils util; 
 };
-
 // Global engine pointer (defined in .cpp)
 extern Engine* engine;
 
