@@ -156,10 +156,38 @@ CMakeFiles/my_vulkan_engine.dir/src/descriptors.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/my_vulkan_engine.dir/src/descriptors.cpp.s"
 	/usr/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/valker/Synchrona/src/descriptors.cpp -o CMakeFiles/my_vulkan_engine.dir/src/descriptors.cpp.s
 
+CMakeFiles/my_vulkan_engine.dir/src/debug_ui.cpp.o: CMakeFiles/my_vulkan_engine.dir/flags.make
+CMakeFiles/my_vulkan_engine.dir/src/debug_ui.cpp.o: /home/valker/Synchrona/src/debug_ui.cpp
+CMakeFiles/my_vulkan_engine.dir/src/debug_ui.cpp.o: CMakeFiles/my_vulkan_engine.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/valker/Synchrona/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/my_vulkan_engine.dir/src/debug_ui.cpp.o"
+	/usr/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/my_vulkan_engine.dir/src/debug_ui.cpp.o -MF CMakeFiles/my_vulkan_engine.dir/src/debug_ui.cpp.o.d -o CMakeFiles/my_vulkan_engine.dir/src/debug_ui.cpp.o -c /home/valker/Synchrona/src/debug_ui.cpp
+
+CMakeFiles/my_vulkan_engine.dir/src/debug_ui.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/my_vulkan_engine.dir/src/debug_ui.cpp.i"
+	/usr/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/valker/Synchrona/src/debug_ui.cpp > CMakeFiles/my_vulkan_engine.dir/src/debug_ui.cpp.i
+
+CMakeFiles/my_vulkan_engine.dir/src/debug_ui.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/my_vulkan_engine.dir/src/debug_ui.cpp.s"
+	/usr/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/valker/Synchrona/src/debug_ui.cpp -o CMakeFiles/my_vulkan_engine.dir/src/debug_ui.cpp.s
+
+CMakeFiles/my_vulkan_engine.dir/src/graphics_pipeline.cpp.o: CMakeFiles/my_vulkan_engine.dir/flags.make
+CMakeFiles/my_vulkan_engine.dir/src/graphics_pipeline.cpp.o: /home/valker/Synchrona/src/graphics_pipeline.cpp
+CMakeFiles/my_vulkan_engine.dir/src/graphics_pipeline.cpp.o: CMakeFiles/my_vulkan_engine.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/valker/Synchrona/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/my_vulkan_engine.dir/src/graphics_pipeline.cpp.o"
+	/usr/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/my_vulkan_engine.dir/src/graphics_pipeline.cpp.o -MF CMakeFiles/my_vulkan_engine.dir/src/graphics_pipeline.cpp.o.d -o CMakeFiles/my_vulkan_engine.dir/src/graphics_pipeline.cpp.o -c /home/valker/Synchrona/src/graphics_pipeline.cpp
+
+CMakeFiles/my_vulkan_engine.dir/src/graphics_pipeline.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/my_vulkan_engine.dir/src/graphics_pipeline.cpp.i"
+	/usr/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/valker/Synchrona/src/graphics_pipeline.cpp > CMakeFiles/my_vulkan_engine.dir/src/graphics_pipeline.cpp.i
+
+CMakeFiles/my_vulkan_engine.dir/src/graphics_pipeline.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/my_vulkan_engine.dir/src/graphics_pipeline.cpp.s"
+	/usr/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/valker/Synchrona/src/graphics_pipeline.cpp -o CMakeFiles/my_vulkan_engine.dir/src/graphics_pipeline.cpp.s
+
 CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.o: CMakeFiles/my_vulkan_engine.dir/flags.make
 CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.o: /home/valker/Synchrona/external/vk-bootstrap/src/VkBootstrap.cpp
 CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.o: CMakeFiles/my_vulkan_engine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/valker/Synchrona/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/valker/Synchrona/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.o"
 	/usr/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.o -MF CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.o.d -o CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.o -c /home/valker/Synchrona/external/vk-bootstrap/src/VkBootstrap.cpp
 
 CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.i: cmake_force
@@ -173,7 +201,7 @@ CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.s: cma
 CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui.cpp.o: CMakeFiles/my_vulkan_engine.dir/flags.make
 CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui.cpp.o: /home/valker/Synchrona/external/imgui/imgui.cpp
 CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui.cpp.o: CMakeFiles/my_vulkan_engine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/valker/Synchrona/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/valker/Synchrona/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building CXX object CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui.cpp.o"
 	/usr/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui.cpp.o -MF CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui.cpp.o.d -o CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui.cpp.o -c /home/valker/Synchrona/external/imgui/imgui.cpp
 
 CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui.cpp.i: cmake_force
@@ -187,7 +215,7 @@ CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui.cpp.s: cmake_force
 CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui_draw.cpp.o: CMakeFiles/my_vulkan_engine.dir/flags.make
 CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui_draw.cpp.o: /home/valker/Synchrona/external/imgui/imgui_draw.cpp
 CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui_draw.cpp.o: CMakeFiles/my_vulkan_engine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/valker/Synchrona/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui_draw.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/valker/Synchrona/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building CXX object CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui_draw.cpp.o"
 	/usr/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui_draw.cpp.o -MF CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui_draw.cpp.o.d -o CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui_draw.cpp.o -c /home/valker/Synchrona/external/imgui/imgui_draw.cpp
 
 CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui_draw.cpp.i: cmake_force
@@ -201,7 +229,7 @@ CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui_draw.cpp.s: cmake_force
 CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui_widgets.cpp.o: CMakeFiles/my_vulkan_engine.dir/flags.make
 CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui_widgets.cpp.o: /home/valker/Synchrona/external/imgui/imgui_widgets.cpp
 CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui_widgets.cpp.o: CMakeFiles/my_vulkan_engine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/valker/Synchrona/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building CXX object CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui_widgets.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/valker/Synchrona/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building CXX object CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui_widgets.cpp.o"
 	/usr/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui_widgets.cpp.o -MF CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui_widgets.cpp.o.d -o CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui_widgets.cpp.o -c /home/valker/Synchrona/external/imgui/imgui_widgets.cpp
 
 CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui_widgets.cpp.i: cmake_force
@@ -215,7 +243,7 @@ CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui_widgets.cpp.s: cmake_force
 CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui_tables.cpp.o: CMakeFiles/my_vulkan_engine.dir/flags.make
 CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui_tables.cpp.o: /home/valker/Synchrona/external/imgui/imgui_tables.cpp
 CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui_tables.cpp.o: CMakeFiles/my_vulkan_engine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/valker/Synchrona/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building CXX object CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui_tables.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/valker/Synchrona/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building CXX object CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui_tables.cpp.o"
 	/usr/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui_tables.cpp.o -MF CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui_tables.cpp.o.d -o CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui_tables.cpp.o -c /home/valker/Synchrona/external/imgui/imgui_tables.cpp
 
 CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui_tables.cpp.i: cmake_force
@@ -229,7 +257,7 @@ CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui_tables.cpp.s: cmake_force
 CMakeFiles/my_vulkan_engine.dir/external/imgui/backends/imgui_impl_glfw.cpp.o: CMakeFiles/my_vulkan_engine.dir/flags.make
 CMakeFiles/my_vulkan_engine.dir/external/imgui/backends/imgui_impl_glfw.cpp.o: /home/valker/Synchrona/external/imgui/backends/imgui_impl_glfw.cpp
 CMakeFiles/my_vulkan_engine.dir/external/imgui/backends/imgui_impl_glfw.cpp.o: CMakeFiles/my_vulkan_engine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/valker/Synchrona/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building CXX object CMakeFiles/my_vulkan_engine.dir/external/imgui/backends/imgui_impl_glfw.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/valker/Synchrona/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Building CXX object CMakeFiles/my_vulkan_engine.dir/external/imgui/backends/imgui_impl_glfw.cpp.o"
 	/usr/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/my_vulkan_engine.dir/external/imgui/backends/imgui_impl_glfw.cpp.o -MF CMakeFiles/my_vulkan_engine.dir/external/imgui/backends/imgui_impl_glfw.cpp.o.d -o CMakeFiles/my_vulkan_engine.dir/external/imgui/backends/imgui_impl_glfw.cpp.o -c /home/valker/Synchrona/external/imgui/backends/imgui_impl_glfw.cpp
 
 CMakeFiles/my_vulkan_engine.dir/external/imgui/backends/imgui_impl_glfw.cpp.i: cmake_force
@@ -243,7 +271,7 @@ CMakeFiles/my_vulkan_engine.dir/external/imgui/backends/imgui_impl_glfw.cpp.s: c
 CMakeFiles/my_vulkan_engine.dir/external/imgui/backends/imgui_impl_vulkan.cpp.o: CMakeFiles/my_vulkan_engine.dir/flags.make
 CMakeFiles/my_vulkan_engine.dir/external/imgui/backends/imgui_impl_vulkan.cpp.o: /home/valker/Synchrona/external/imgui/backends/imgui_impl_vulkan.cpp
 CMakeFiles/my_vulkan_engine.dir/external/imgui/backends/imgui_impl_vulkan.cpp.o: CMakeFiles/my_vulkan_engine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/valker/Synchrona/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building CXX object CMakeFiles/my_vulkan_engine.dir/external/imgui/backends/imgui_impl_vulkan.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/valker/Synchrona/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Building CXX object CMakeFiles/my_vulkan_engine.dir/external/imgui/backends/imgui_impl_vulkan.cpp.o"
 	/usr/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/my_vulkan_engine.dir/external/imgui/backends/imgui_impl_vulkan.cpp.o -MF CMakeFiles/my_vulkan_engine.dir/external/imgui/backends/imgui_impl_vulkan.cpp.o.d -o CMakeFiles/my_vulkan_engine.dir/external/imgui/backends/imgui_impl_vulkan.cpp.o -c /home/valker/Synchrona/external/imgui/backends/imgui_impl_vulkan.cpp
 
 CMakeFiles/my_vulkan_engine.dir/external/imgui/backends/imgui_impl_vulkan.cpp.i: cmake_force
@@ -262,6 +290,8 @@ my_vulkan_engine_OBJECTS = \
 "CMakeFiles/my_vulkan_engine.dir/src/vma.cpp.o" \
 "CMakeFiles/my_vulkan_engine.dir/src/helper.cpp.o" \
 "CMakeFiles/my_vulkan_engine.dir/src/descriptors.cpp.o" \
+"CMakeFiles/my_vulkan_engine.dir/src/debug_ui.cpp.o" \
+"CMakeFiles/my_vulkan_engine.dir/src/graphics_pipeline.cpp.o" \
 "CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.o" \
 "CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui.cpp.o" \
 "CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui_draw.cpp.o" \
@@ -279,6 +309,8 @@ my_vulkan_engine: CMakeFiles/my_vulkan_engine.dir/src/images.cpp.o
 my_vulkan_engine: CMakeFiles/my_vulkan_engine.dir/src/vma.cpp.o
 my_vulkan_engine: CMakeFiles/my_vulkan_engine.dir/src/helper.cpp.o
 my_vulkan_engine: CMakeFiles/my_vulkan_engine.dir/src/descriptors.cpp.o
+my_vulkan_engine: CMakeFiles/my_vulkan_engine.dir/src/debug_ui.cpp.o
+my_vulkan_engine: CMakeFiles/my_vulkan_engine.dir/src/graphics_pipeline.cpp.o
 my_vulkan_engine: CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.o
 my_vulkan_engine: CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui.cpp.o
 my_vulkan_engine: CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui_draw.cpp.o
@@ -289,7 +321,7 @@ my_vulkan_engine: CMakeFiles/my_vulkan_engine.dir/external/imgui/backends/imgui_
 my_vulkan_engine: CMakeFiles/my_vulkan_engine.dir/build.make
 my_vulkan_engine: /home/valker/VulkanSDK/1.4.321.1/x86_64/lib/libvulkan.so
 my_vulkan_engine: CMakeFiles/my_vulkan_engine.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/valker/Synchrona/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Linking CXX executable my_vulkan_engine"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/valker/Synchrona/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_16) "Linking CXX executable my_vulkan_engine"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/my_vulkan_engine.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

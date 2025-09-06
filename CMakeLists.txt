@@ -32,6 +32,8 @@ add_executable(my_vulkan_engine
     src/vma.cpp
     src/helper.cpp
     src/descriptors.cpp
+    src/debug_ui.cpp
+    src/graphics_pipeline.cpp
     external/vk-bootstrap/src/VkBootstrap.cpp
     ${IMGUI_SOURCES} # Add ImGui sources
 )
@@ -56,11 +58,17 @@ if(NOT GLSLC_EXECUTABLE)
     message(FATAL_ERROR "glslc not found! Please install glslang-tools.")
 endif()
 
-file(GLOB SHADER_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.comp")
+# Grab all shaders
+file(GLOB SHADER_SOURCES
+    "${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.vert"
+    "${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.frag"
+    "${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.comp"
+)
+
 set(SPIRV_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/shaders)
 
 foreach(SHADER ${SHADER_SOURCES})
-    get_filename_component(FILE_NAME ${SHADER} NAME_WE)
+    get_filename_component(FILE_NAME ${SHADER} NAME)
     set(SPIRV_FILE ${SPIRV_OUTPUT_DIR}/${FILE_NAME}.spv)
 
     add_custom_command(

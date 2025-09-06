@@ -1,6 +1,7 @@
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_vulkan.h"
 #include "engine.hpp"
+#include "debug_ui.h"  // Make sure this is included
 #include <imgui.h>
 #include <thread>
 #include <chrono>
@@ -22,30 +23,15 @@ int main() {
             continue;
         }
 
-        // Start ImGui frame
-        ImGui_ImplVulkan_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-
-        // Debug window
-        ImGui::Begin("Debug Window");
-        ImGui::Text("Hello, Vulkan and ImGui!");
-        ImGui::Text("Frame Time: %.3f ms", 1000.0f / ImGui::GetIO().Framerate);
-        ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
-        if (ImGui::Button("Click Me")) {
-            ImGui::Text("Button clicked!");
-        }
-        ImGui::End();
-
-        // Render ImGui
-        ImGui::Render();
+  
+        // This will handle ImGui rendering internally
         engine_draw_frame(engine);
     }
 
     // Wait for GPU to finish before destroying anything
     vkDeviceWaitIdle(engine->device);
 
-    // Only clean up engine — do NOT manually call ImGui shutdown if engine_cleanup already handles it
+    // Clean up engine (includes ImGui shutdown)
     engine_cleanup(engine);
 
     return 0;

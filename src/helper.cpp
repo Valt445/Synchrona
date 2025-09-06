@@ -1,4 +1,5 @@
 #include "helper.h"
+#include <vulkan/vulkan_core.h>
 
 bool Utils::load_shader_module(const char* filePath,
     VkDevice device,
@@ -62,4 +63,34 @@ VkRenderingInfo Utils::rendering_info(VkExtent2D renderExtent, VkRenderingAttach
     renderInfo.pStencilAttachment = nullptr;
 
     return renderInfo;
+}
+
+VkPipelineShaderStageCreateInfo Utils::pipeline_shader_stage_create_info(VkShaderStageFlagBits stage, VkShaderModule shaderModule, const char* entry)
+{
+    VkPipelineShaderStageCreateInfo info {};
+    info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    info.pNext = nullptr;
+
+    // shader stage
+    info.stage = stage;
+    // module containing the code for this shader stage
+    info.module = shaderModule;
+    // the entry point of the shader
+    info.pName = entry;
+    return info;
+}
+
+VkPipelineLayoutCreateInfo Utils::pipeline_layout_create_info()
+{
+    VkPipelineLayoutCreateInfo info {};
+    info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    info.pNext = nullptr;
+
+    // empty defaults
+    info.flags = 0;
+    info.setLayoutCount = 0;
+    info.pSetLayouts = nullptr;
+    info.pushConstantRangeCount = 0;
+    info.pPushConstantRanges = nullptr;
+    return info;
 }

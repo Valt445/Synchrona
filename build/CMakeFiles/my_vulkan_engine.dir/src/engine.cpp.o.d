@@ -453,6 +453,10 @@ CMakeFiles/my_vulkan_engine.dir/src/engine.cpp.o: \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/version \
   /home/valker/Synchrona/external/VulkanMemoryAllocator/include/vk_mem_alloc.h \
   /home/valker/VulkanSDK/1.4.321.1/x86_64/include/vulkan/vulkan.h \
+  /home/valker/Synchrona/include/debug_ui.h \
+  /home/valker/Synchrona/external/imgui/imgui.h \
+  /home/valker/Synchrona/external/imgui/imconfig.h \
+  /home/valker/Synchrona/include/graphics_pipeline.h \
   /home/valker/Synchrona/include/images.h \
   /home/valker/Synchrona/include/descriptors.h \
   /home/valker/Synchrona/include/helper.h /usr/include/glm/glm.hpp \
@@ -593,8 +597,6 @@ CMakeFiles/my_vulkan_engine.dir/src/engine.cpp.o: \
   /usr/include/glm/detail/type_half.inl /usr/include/glm/geometric.hpp \
   /usr/include/glm/matrix.hpp /usr/include/glm/vector_relational.hpp \
   /usr/include/glm/integer.hpp /usr/include/glm/detail/func_integer.inl \
-  /home/valker/Synchrona/external/imgui/imgui.h \
-  /home/valker/Synchrona/external/imgui/imconfig.h \
   /home/valker/Synchrona/external/vk-bootstrap/src/VkBootstrap.h \
   /home/valker/Synchrona/external/vk-bootstrap/src/VkBootstrapDispatch.h \
   /home/valker/Synchrona/external/imgui/backends/imgui_impl_glfw.h \

@@ -310,6 +310,30 @@ external/vk-bootstrap/src/VkBootstrap.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.s
 .PHONY : external/vk-bootstrap/src/VkBootstrap.cpp.s
 
+src/debug_ui.o: src/debug_ui.cpp.o
+.PHONY : src/debug_ui.o
+
+# target to build an object file
+src/debug_ui.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/src/debug_ui.cpp.o
+.PHONY : src/debug_ui.cpp.o
+
+src/debug_ui.i: src/debug_ui.cpp.i
+.PHONY : src/debug_ui.i
+
+# target to preprocess a source file
+src/debug_ui.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/src/debug_ui.cpp.i
+.PHONY : src/debug_ui.cpp.i
+
+src/debug_ui.s: src/debug_ui.cpp.s
+.PHONY : src/debug_ui.s
+
+# target to generate assembly for a file
+src/debug_ui.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/src/debug_ui.cpp.s
+.PHONY : src/debug_ui.cpp.s
+
 src/descriptors.o: src/descriptors.cpp.o
 .PHONY : src/descriptors.o
 
@@ -357,6 +381,30 @@ src/engine.s: src/engine.cpp.s
 src/engine.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/src/engine.cpp.s
 .PHONY : src/engine.cpp.s
+
+src/graphics_pipeline.o: src/graphics_pipeline.cpp.o
+.PHONY : src/graphics_pipeline.o
+
+# target to build an object file
+src/graphics_pipeline.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/src/graphics_pipeline.cpp.o
+.PHONY : src/graphics_pipeline.cpp.o
+
+src/graphics_pipeline.i: src/graphics_pipeline.cpp.i
+.PHONY : src/graphics_pipeline.i
+
+# target to preprocess a source file
+src/graphics_pipeline.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/src/graphics_pipeline.cpp.i
+.PHONY : src/graphics_pipeline.cpp.i
+
+src/graphics_pipeline.s: src/graphics_pipeline.cpp.s
+.PHONY : src/graphics_pipeline.s
+
+# target to generate assembly for a file
+src/graphics_pipeline.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/src/graphics_pipeline.cpp.s
+.PHONY : src/graphics_pipeline.cpp.s
 
 src/helper.o: src/helper.cpp.o
 .PHONY : src/helper.o
@@ -485,12 +533,18 @@ help:
 	@echo "... external/vk-bootstrap/src/VkBootstrap.o"
 	@echo "... external/vk-bootstrap/src/VkBootstrap.i"
 	@echo "... external/vk-bootstrap/src/VkBootstrap.s"
+	@echo "... src/debug_ui.o"
+	@echo "... src/debug_ui.i"
+	@echo "... src/debug_ui.s"
 	@echo "... src/descriptors.o"
 	@echo "... src/descriptors.i"
 	@echo "... src/descriptors.s"
 	@echo "... src/engine.o"
 	@echo "... src/engine.i"
 	@echo "... src/engine.s"
+	@echo "... src/graphics_pipeline.o"
+	@echo "... src/graphics_pipeline.i"
+	@echo "... src/graphics_pipeline.s"
 	@echo "... src/helper.o"
 	@echo "... src/helper.i"
 	@echo "... src/helper.s"

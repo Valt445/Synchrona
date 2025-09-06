@@ -37,6 +37,18 @@
 },
 {
   "directory": "/home/valker/Synchrona/build",
+  "command": "/usr/bin/clang++  -I/home/valker/Synchrona/include -I/home/valker/Synchrona/external/vk-bootstrap/src -I/home/valker/Synchrona/external/VulkanMemoryAllocator/include -I/home/valker/Synchrona/external/imgui -isystem /home/valker/VulkanSDK/1.4.321.1/x86_64/include -std=gnu++20 -o CMakeFiles/my_vulkan_engine.dir/src/debug_ui.cpp.o -c /home/valker/Synchrona/src/debug_ui.cpp",
+  "file": "/home/valker/Synchrona/src/debug_ui.cpp",
+  "output": "CMakeFiles/my_vulkan_engine.dir/src/debug_ui.cpp.o"
+},
+{
+  "directory": "/home/valker/Synchrona/build",
+  "command": "/usr/bin/clang++  -I/home/valker/Synchrona/include -I/home/valker/Synchrona/external/vk-bootstrap/src -I/home/valker/Synchrona/external/VulkanMemoryAllocator/include -I/home/valker/Synchrona/external/imgui -isystem /home/valker/VulkanSDK/1.4.321.1/x86_64/include -std=gnu++20 -o CMakeFiles/my_vulkan_engine.dir/src/graphics_pipeline.cpp.o -c /home/valker/Synchrona/src/graphics_pipeline.cpp",
+  "file": "/home/valker/Synchrona/src/graphics_pipeline.cpp",
+  "output": "CMakeFiles/my_vulkan_engine.dir/src/graphics_pipeline.cpp.o"
+},
+{
+  "directory": "/home/valker/Synchrona/build",
   "command": "/usr/bin/clang++  -I/home/valker/Synchrona/include -I/home/valker/Synchrona/external/vk-bootstrap/src -I/home/valker/Synchrona/external/VulkanMemoryAllocator/include -I/home/valker/Synchrona/external/imgui -isystem /home/valker/VulkanSDK/1.4.321.1/x86_64/include -std=gnu++20 -o CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.o -c /home/valker/Synchrona/external/vk-bootstrap/src/VkBootstrap.cpp",
   "file": "/home/valker/Synchrona/external/vk-bootstrap/src/VkBootstrap.cpp",
   "output": "CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.o"

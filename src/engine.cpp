@@ -10,6 +10,7 @@
 #include <vulkan/vulkan_core.h>
 #include <VkBootstrap.h>
 #include <GLFW/glfw3.h>
+#include "debug_ui.h"
 #include "images.h"
 #include "helper.h"
 #include "descriptors.h"
@@ -17,6 +18,7 @@
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_vulkan.h"
 #include "imgui.h"
+#include "graphics_pipeline.h"
 
 
 // Define the global engine pointer declared as `extern` in the header
@@ -35,6 +37,7 @@ void init(Engine* e, uint32_t x, uint32_t y) {
     init_sync_structures(e);
     init_descriptors(e);
     init_pipelines(e);
+    init_triangle_pipeline(e);
     init_imgui(e);
 }
 
@@ -68,7 +71,7 @@ void init_vulkan(Engine* e) {
     }
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    e->window = glfwCreateWindow(800, 600, "Vulkan Window", nullptr, nullptr);
+    e->window = glfwCreateWindow(1720, 1200, "Vulkan Window", nullptr, nullptr);
     if (!e->window) {
         std::printf("Failed to create GLFW window\n");
         std::exit(1);
@@ -180,6 +183,7 @@ void init_imgui(Engine* e)
 
     ImGui_ImplVulkan_Init(&init_info);
 
+    debug_ui_init(e);
     // now add an explicit cleanup action (we will call it in engine_cleanup before device destruction)
     e->mainDeletionQueue.push_function([=]() {
         // Ensure ImGui is shutdown before the descriptor pool is destroyed
@@ -192,7 +196,6 @@ void init_imgui(Engine* e)
 void init_swapchain(Engine* e, uint32_t width, uint32_t height) {
     vkb::SwapchainBuilder swapchainBuilder{ e->physicalDevice, e->device, e->surface };
     e->swapchainImageFormat = VK_FORMAT_B8G8R8A8_UNORM;
-
     vkb::Swapchain vkbSwapchain = swapchainBuilder
         .set_desired_format(VkSurfaceFormatKHR{ .format = e->swapchainImageFormat, .colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR })
         .set_desired_present_mode(VK_PRESENT_MODE_FIFO_KHR)
@@ -205,6 +208,19 @@ void init_swapchain(Engine* e, uint32_t width, uint32_t height) {
     e->swapchain = vkbSwapchain.swapchain;
     e->swapchainImages = vkbSwapchain.get_images().value();
     e->swapchainImageViews = vkbSwapchain.get_image_views().value();
+
+    // Initialize memory stats
+    e->memoryStats = {};
+
+    // Track swapchain memory - ONLY if images are valid
+    for (auto& image : e->swapchainImages) {
+        if (image != VK_NULL_HANDLE) {
+            VkMemoryRequirements memReq;
+            vkGetImageMemoryRequirements(e->device, image, &memReq);
+            e->memoryStats.swapchainMemoryBytes += memReq.size;
+            e->memoryStats.totalMemoryBytes += memReq.size;
+        }
+    }
 
     // 🛡️ DIVINE FIX: PER-IMAGE SEMAPHORES
     e->imageAvailableSemaphores.resize(e->swapchainImages.size());
@@ -239,7 +255,14 @@ void init_swapchain(Engine* e, uint32_t width, uint32_t height) {
     rimg_allocinfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
     rimg_allocinfo.requiredFlags = VkMemoryPropertyFlags(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
+    // CREATE THE IMAGE FIRST
     vmaCreateImage(e->allocator, &rimg_info, &rimg_allocinfo, &e->drawImage.image, &e->drawImage.allocation, nullptr);
+
+    // NOW get memory requirements (AFTER image creation)
+    VkMemoryRequirements memReq;
+    vkGetImageMemoryRequirements(e->device, e->drawImage.image, &memReq);
+    e->memoryStats.imageMemoryBytes += memReq.size;
+    e->memoryStats.totalMemoryBytes += memReq.size;
 
     VkImageViewCreateInfo rview_info = imageview_create_info(e->drawImage.imageFormat, e->drawImage.image, VK_IMAGE_ASPECT_COLOR_BIT);
 
@@ -340,6 +363,7 @@ void init_sync_structures(Engine* e) {
         VK_CHECK(vkCreateFence(e->device, &fenceCreateInfo, nullptr, &e->frames[i].renderFence));
         VK_CHECK(vkCreateSemaphore(e->device, &semaphoreCreateInfo, nullptr, &e->frames[i].swapchainSemaphore));
         VK_CHECK(vkCreateSemaphore(e->device, &semaphoreCreateInfo, nullptr, &e->frames[i].renderSemaphore));
+        ComputeEffect& selected = engine->backgroundEffects[engine->currentBackgroundEffect];
     }
 
     VK_CHECK(vkCreateFence(e->device, &fenceCreateInfo, nullptr, &e->immFence));
@@ -383,8 +407,6 @@ void init_descriptors(Engine* e) {
         vkDestroyDescriptorSetLayout(e->device, e->drawImageDescriptorLayout, nullptr);
     });
 }
-
-//---------------------------------Pipeline-----------------------------
 void init_background_pipelines(Engine* e) {
     std::cout << "🛡️ 1. Starting pipeline initialization..." << std::endl;
     
@@ -402,10 +424,17 @@ void init_background_pipelines(Engine* e) {
     // 🛡️ SHADER LOADING
     std::cout << "🛡️ 2. Loading shader..." << std::endl;
     VkShaderModule computeDrawShader;
-    if(!e->util.load_shader_module("shaders/gradient.spv", e->device, &computeDrawShader)) {
+    if(!e->util.load_shader_module("shaders/gradient.comp.spv", e->device, &computeDrawShader)) {
         std::cout << "❌ SHADER LOAD FAILED!" << std::endl;
         std::exit(1);
     }
+
+    VkShaderModule skyShader;
+    if(!e->util.load_shader_module("shaders/sky.comp.spv", e->device, &skyShader)) {
+        std::cout << "❌ SHADER LOAD FAILED!" << std::endl;
+        std::exit(1);
+    }
+    
     std::cout << "✅ Shader loaded successfully!" << std::endl;
 
     // 🛡️ PIPELINE LAYOUT
@@ -453,20 +482,129 @@ void init_background_pipelines(Engine* e) {
         .layout = e->gradientPipelineLayout
     };
 
+    // Create gradient pipeline
     VkResult pipelineResult = vkCreateComputePipelines(e->device, VK_NULL_HANDLE, 1, &computePipelineCreateInfo, nullptr, &e->gradientPipeline);
-    
     if (pipelineResult != VK_SUCCESS) {
-        std::cout << "❌ PIPELINE CREATION FAILED: " << pipelineResult << std::endl;
+        std::cout << "❌ GRADIENT PIPELINE CREATION FAILED: " << pipelineResult << std::endl;
         std::exit(1);
     }
-    std::cout << "✅ Compute pipeline created!" << std::endl;
 
-    // 🛡️ CLEANUP
-    std::cout << "🛡️ 5. Cleaning up shader module..." << std::endl;
+    // Create sky pipeline
+    computePipelineCreateInfo.stage.module = skyShader;
+    VkPipeline skyPipeline;
+    VkResult skyPipelineResult = vkCreateComputePipelines(e->device, VK_NULL_HANDLE, 1, &computePipelineCreateInfo, nullptr, &skyPipeline);
+    if (skyPipelineResult != VK_SUCCESS) {
+        std::cout << "❌ SKY PIPELINE CREATION FAILED: " << skyPipelineResult << std::endl;
+        std::exit(1);
+    }
+
+    // Create and populate background effects
+    ComputeEffect gradient;
+    gradient.pipeline = e->gradientPipeline;
+    gradient.layout = e->gradientPipelineLayout;
+    gradient.name = "gradient";
+    gradient.data = {};
+    gradient.data.data1 = glm::vec4(1, 0, 0, 1);
+    gradient.data.data2 = glm::vec4(0, 0, 1, 1);
+
+    ComputeEffect sky;
+    sky.pipeline = skyPipeline;
+    sky.layout = e->gradientPipelineLayout;
+    sky.name = "sky";
+    sky.data = {};
+    sky.data.data1 = glm::vec4(0.1, 0.2, 0.4, 0.97);
+
+    // Add the 2 background effects into the array
+    e->backgroundEffects.push_back(gradient);
+    e->backgroundEffects.push_back(sky);
+
+    std::cout << "✅ Compute pipelines created!" << std::endl;
+
+    // 🛡️ CLEANUP - Add pipelines to deletion queue
+    e->mainDeletionQueue.push_function([=]() {
+        std::cout << "Cleaning up pipelines..." << std::endl;
+        
+        // Destroy all pipelines in background effects
+        for (auto& effect : e->backgroundEffects) {
+            if (effect.pipeline != VK_NULL_HANDLE) {
+                vkDestroyPipeline(e->device, effect.pipeline, nullptr);
+                effect.pipeline = VK_NULL_HANDLE; // Mark as destroyed
+            }
+        }
+        
+        // Destroy pipeline layout
+        if (e->gradientPipelineLayout != VK_NULL_HANDLE) {
+            vkDestroyPipelineLayout(e->device, e->gradientPipelineLayout, nullptr);
+            e->gradientPipelineLayout = VK_NULL_HANDLE; // Mark as destroyed
+        }
+        
+        // Clear the effects vector
+        e->backgroundEffects.clear();
+        
+        std::cout << "Pipeline cleanup complete!" << std::endl;
+    });
+
+    // 🛡️ Clean up shader modules immediately (they're no longer needed after pipeline creation)
     vkDestroyShaderModule(e->device, computeDrawShader, nullptr);
+    vkDestroyShaderModule(e->device, skyShader, nullptr);
+    
     std::cout << "✅ Pipeline initialization complete!" << std::endl;
 }
 
+// Graphics Pipeline
+void init_triangle_pipeline(Engine* e)
+{
+    VkShaderModule triangleFragShader;
+    if (!e->util.load_shader_module("shaders/triangle_frag.frag.spv", e->device, &triangleFragShader)) {
+        std::cout << "Failed to load triangle fragment shader\n";
+        std::exit(1);
+    }
+
+    VkShaderModule triangleVertShader;
+    if (!e->util.load_shader_module("shaders/triangle_vert.vert.spv", e->device, &triangleVertShader)) {
+        std::cout << "Failed to load triangle vertex shader\n";
+        std::exit(1);
+    }
+
+    // Create pipeline layout
+    VkPipelineLayoutCreateInfo pipeline_layout_info = e->util.pipeline_layout_create_info();
+    if (vkCreatePipelineLayout(e->device, &pipeline_layout_info, nullptr, &e->trianglePipelineLayout) != VK_SUCCESS) {
+        std::cerr << "Failed to create triangle pipeline layout\n";
+        std::exit(1);
+    }
+
+    // Use a LOCAL pipeline builder instead of the shared one
+    PipelineBuilder pbuilder = {}; // Create a fresh builder
+    pbuilder.pipelineLayout = e->trianglePipelineLayout;
+
+    // Set shaders & states
+    set_shaders(triangleVertShader, triangleFragShader, pbuilder);
+    set_input_topology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, pbuilder);
+    set_polygon_mode(VK_POLYGON_MODE_FILL, pbuilder);
+    set_cull_mode(VK_CULL_MODE_NONE, VK_FRONT_FACE_CLOCKWISE, pbuilder);
+    set_multisampling_none(pbuilder);
+    disable_blending(pbuilder);
+    disable_depthtest(pbuilder);
+
+    set_color_attachment_format(e->drawImage.imageFormat, pbuilder);
+    set_depth_format(VK_FORMAT_UNDEFINED, pbuilder);
+
+    // Build pipeline
+    e->trianglePipeline = build_pipeline(e->device, pbuilder);
+    if (e->trianglePipeline == VK_NULL_HANDLE) {
+        std::cerr << "❌ Failed to create triangle pipeline. Aborting." << std::endl;
+        std::exit(1);
+    }
+
+    // Clean up shader modules
+    vkDestroyShaderModule(e->device, triangleVertShader, nullptr);
+    vkDestroyShaderModule(e->device, triangleFragShader, nullptr);
+
+    e->mainDeletionQueue.push_function([=]() {
+        vkDestroyPipelineLayout(e->device, e->trianglePipelineLayout, nullptr);
+        vkDestroyPipeline(e->device, e->trianglePipeline, nullptr);
+    });
+}
 // ------------------------- Helpers -------------------------
 VkCommandBufferBeginInfo command_buffer_info(VkCommandBufferUsageFlags flags) {
     VkCommandBufferBeginInfo info{};
@@ -512,22 +650,60 @@ FrameData& get_current_frame() {
 }
 
 // ------------------------- Draw Functions -------------------------
+
+void draw_geometry(Engine* e, VkCommandBuffer cmd)
+{
+    VkRenderingAttachmentInfo colorAttachment = attachment_info(e->drawImage.imageView, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
+    VkRenderingInfo renderInfo = e->util.rendering_info(e->drawExtent, &colorAttachment, nullptr);
+	  vkCmdBeginRendering(cmd, &renderInfo);
+
+	  vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, e->trianglePipeline);
+
+	//set dynamic viewport and scissor
+	  VkViewport viewport = {};
+	  viewport.x = 0;
+	  viewport.y = 0;
+	  viewport.width = e->drawExtent.width;
+	  viewport.height = e->drawExtent.height;
+	  viewport.minDepth = 0.f;
+	  viewport.maxDepth = 1.f;
+
+	  vkCmdSetViewport(cmd, 0, 1, &viewport);
+
+	  VkRect2D scissor = {};
+	  scissor.offset.x = 0;
+	  scissor.offset.y = 0;
+	  scissor.extent.width = e->drawExtent.width;
+	  scissor.extent.height = e->drawExtent.height;
+
+	  vkCmdSetScissor(cmd, 0, 1, &scissor);
+
+	//launch a draw command to draw 3 vertices
+	  vkCmdDraw(cmd, 3, 1, 0, 0);
+
+	  vkCmdEndRendering(cmd);
+}
+
+
 void draw_background(VkCommandBuffer cmd, Engine* e) {
-    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, e->gradientPipeline);
+
+    ComputeEffect& effect = e->backgroundEffects[e->currentBackgroundEffect];
+    
+    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, effect.pipeline);
     vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE,
                             e->gradientPipelineLayout, 0, 1,
                             &e->drawImageDescriptors, 0, nullptr);
 
     // 🛡️ DIVINE FIX: PROPER PUSH CONSTANTS
-    PushConstants constants {
-        .time = static_cast<float>(e->frameNumber) / 60.0f,
-        .resolution = { (float)e->drawExtent.width, (float)e->drawExtent.height }, 
-        .pulse = std::sin(e->frameNumber / 30.0f)
-    };
 
+    PushConstants constants;
+    constants.data1 = glm::vec4(0, 1, 0, 1);
+    constants.data2 = glm::vec4(0, 0, 1, 0);
+    
     vkCmdPushConstants(cmd, e->gradientPipelineLayout,
                      VK_SHADER_STAGE_COMPUTE_BIT,
-                     0, sizeof(PushConstants), &constants);
+                     0, sizeof(PushConstants), &effect.data);
 
     uint32_t dispatchX = (e->drawImage.imageExtent.width + 15) / 16;
     uint32_t dispatchY = (e->drawImage.imageExtent.height + 15) / 16;
@@ -536,17 +712,26 @@ void draw_background(VkCommandBuffer cmd, Engine* e) {
 
 void draw_imgui(VkCommandBuffer cmd, VkImageView targetImageView, Engine* e)
 {
+    // Start new ImGui frame
+    ImGui_ImplVulkan_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+    
+    // Render debug UI
+    debug_ui_render();
+    
+    // End ImGui frame and render
+    ImGui::Render();
+
     VkRenderingAttachmentInfo colorAttachment = attachment_info(targetImageView, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
     VkRenderingInfo renderInfo = e->util.rendering_info(e->swapchainExtent, &colorAttachment, nullptr);
 
     vkCmdBeginRendering(cmd, &renderInfo);
-
     ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cmd);
-
     vkCmdEndRendering(cmd);
 }
-      
-void engine_draw_frame(Engine* e) {
+
+ void engine_draw_frame(Engine* e) {
     FrameData& frame = get_current_frame();
 
     VK_CHECK(vkWaitForFences(e->device, 1, &frame.renderFence, VK_TRUE, UINT64_MAX));
@@ -567,19 +752,38 @@ void engine_draw_frame(Engine* e) {
         return;
     }
 
+    // Update debug UI timing
+    static auto lastTime = std::chrono::high_resolution_clock::now();
+    auto currentTime = std::chrono::high_resolution_clock::now();
+    float deltaTime = std::chrono::duration<float>(currentTime - lastTime).count();
+    lastTime = currentTime;
+    
+    debug_ui_update(deltaTime);
+
     VkCommandBuffer cmd = frame.mainCommandBuffer;
     VK_CHECK(vkResetCommandBuffer(cmd, 0));
 
     VkCommandBufferBeginInfo cmdBeginInfo = command_buffer_info(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
     VK_CHECK(vkBeginCommandBuffer(cmd, &cmdBeginInfo));
-
-    // Transition drawImage for compute shader
+    // Transitioning imageformats for graphics pipeline
+    VK_CHECK(vkBeginCommandBuffer(cmd, &cmdBeginInfo));
+    
+    // Proper layout transitions:
+    // Start with undefined -> general for compute
     transition_image(cmd, e->drawImage.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
+    
+    // Draw background (compute)
     draw_background(cmd, e);
-    transition_image(cmd, e->drawImage.image, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-
-    // Transition swapchain image for copy operation
-    transition_image(cmd, e->swapchainImages[swapchainImageIndex], VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    
+    // General -> color attachment for graphics
+    transition_image(cmd, e->drawImage.image, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+    
+    // Draw geometry
+    draw_geometry(e, cmd);    
+    
+    // Color attachment -> transfer src for copy
+    transition_image(cmd, e->drawImage.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+    
     copy_image_to_image(cmd, e->drawImage.image, e->swapchainImages[swapchainImageIndex],
                         VkExtent3D{e->drawImage.imageExtent.width, e->drawImage.imageExtent.height, 1},
                         e->swapchainExtent);
@@ -593,6 +797,7 @@ void engine_draw_frame(Engine* e) {
     // Transition swapchain image back to PRESENT_SRC_KHR for presentation
     transition_image(cmd, e->swapchainImages[swapchainImageIndex], VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
+    
     VK_CHECK(vkEndCommandBuffer(cmd));
 
     VkCommandBufferSubmitInfo cmdInfo = command_buffer_submit_info(cmd);
@@ -621,7 +826,6 @@ void engine_draw_frame(Engine* e) {
     e->frameNumber++;
 }
 
-
 // ------------------------- Cleanup -------------------------
 // -------------------- IMGUI INITIALIZATION --------------------
 void engine_cleanup(Engine* e) {
@@ -641,25 +845,22 @@ void engine_cleanup(Engine* e) {
         vkDestroyFence(e->device, e->frames[i].renderFence, nullptr);
     }
 
-    // 2. Flush main deletion queue (ImGui, allocators, etc.)
+    // 2. Flush main deletion queue (ImGui, pipelines, allocators, etc.)
     e->mainDeletionQueue.flush();
 
-    // 3. Destroy pipelines
-    if (e->gradientPipeline) vkDestroyPipeline(e->device, e->gradientPipeline, nullptr);
-    if (e->gradientPipelineLayout) vkDestroyPipelineLayout(e->device, e->gradientPipelineLayout, nullptr);
-
-    // 4. Destroy swapchain image views
+    // 3. Destroy swapchain image views
+    ComputeEffect& selected = engine->backgroundEffects[engine->currentBackgroundEffect];
     for (auto view : e->swapchainImageViews) {
         vkDestroyImageView(e->device, view, nullptr);
     }
 
-    // 5. Destroy swapchain
+    // 4. Destroy swapchain
     if (e->swapchain) vkDestroySwapchainKHR(e->device, e->swapchain, nullptr);
 
-    // 6. Destroy device
+    // 5. Destroy device
     if (e->device) vkDestroyDevice(e->device, nullptr);
 
-    // 7. Destroy debug messenger **before destroying the instance**
+    // 6. Destroy debug messenger **before destroying the instance**
     if (e->debug_messenger) {
         auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)
             vkGetInstanceProcAddr(e->instance, "vkDestroyDebugUtilsMessengerEXT");
@@ -669,12 +870,17 @@ void engine_cleanup(Engine* e) {
         e->debug_messenger = VK_NULL_HANDLE;
     }
 
-    // 8. Destroy surface
+    // 7. Destroy surface
     if (e->surface) vkDestroySurfaceKHR(e->instance, e->surface, nullptr);
 
-    // 9. Destroy Vulkan instance
+    // 8. Destroy Vulkan instance
     if (e->instance) vkDestroyInstance(e->instance, nullptr);
+
+    // 9. Destroy window
+    if (e->window) glfwDestroyWindow(e->window);
+    
+    // 10. Terminate GLFW
+    glfwTerminate();
 
     std::cout << "Engine cleanup complete!" << std::endl;
 }
-

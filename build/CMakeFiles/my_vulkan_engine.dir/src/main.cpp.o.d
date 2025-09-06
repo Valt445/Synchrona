@@ -456,6 +456,8 @@ CMakeFiles/my_vulkan_engine.dir/src/main.cpp.o: \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/syncstream \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/version \
   /home/valker/Synchrona/external/VulkanMemoryAllocator/include/vk_mem_alloc.h \
+  /home/valker/Synchrona/include/debug_ui.h \
+  /home/valker/Synchrona/include/graphics_pipeline.h \
   /home/valker/Synchrona/include/images.h \
   /home/valker/Synchrona/include/descriptors.h \
   /home/valker/Synchrona/include/helper.h /usr/include/glm/glm.hpp \

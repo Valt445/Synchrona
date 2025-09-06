@@ -8,11 +8,14 @@
 #include <deque>
 #include <bits/stdc++.h>
 #include <vk_mem_alloc.h>
+#include "debug_ui.h"
+#include "graphics_pipeline.h"
 #include "images.h"
 #include "descriptors.h"
 #include "helper.h"
 #include "glm/glm.hpp"
 #include "imgui.h"
+
 
 // Vulkan error checking macro
 #define VK_CHECK(x)                                                     \
@@ -43,11 +46,38 @@ struct DeletionQueue
 	}
 };
 
+struct DebugUIState;
+
+struct PipelineBuilder;
+
 struct PushConstants
 {
-	float time;
-	glm::vec2 resolution;
-	float pulse;
+
+	glm::vec4 data1;
+	glm::vec4 data2;
+	glm::vec4 data3;
+	glm::vec4 data4;
+	
+};
+
+struct MemoryStats
+{
+	size_t totalMemoryBytes;
+	size_t imageMemoryBytes;
+	size_t bufferMemoryBytes;
+	size_t swapchainMemoryBytes;
+}; 
+
+
+
+struct ComputeEffect
+{
+	const char* name;
+
+	VkPipeline pipeline;
+	VkPipelineLayout layout;
+
+	PushConstants data;
 };
 
 struct FrameData {
@@ -100,7 +130,17 @@ struct Engine {
     VkCommandPool immCommandPool;
     VkDescriptorPool imguiDescriptorPool;
 
-    Utils util; 
+		std::vector<ComputeEffect> backgroundEffects;
+		int currentBackgroundEffect{0};
+		MemoryStats memoryStats;
+		
+    Utils util;
+
+    //Graphics Pipeline
+    PipelineBuilder pipelineBuilder;
+    VkPipelineLayout trianglePipelineLayout;
+    VkPipeline trianglePipeline;
+     
 };
 // Global engine pointer (defined in .cpp)
 extern Engine* engine;
@@ -134,6 +174,11 @@ void init_background_pipelines(Engine* engine);
 void immediate_submit(std::function<void(VkCommandBuffer cmd)>&& function, Engine* e);
 void init_imgui(Engine* e);
 void draw_imgui(VkCommandBuffer cmd, VkImageView targetImageView, Engine* e);
+void CreateShaderModule(const char* filePath, Engine* e ,VkShaderModule shaderName);
 
 //Dynamic Rendering!!
 VkRenderingAttachmentInfo attachment_info(VkImageView view, VkClearValue* clear, VkImageLayout layout);
+
+// Graphics Pipeline
+void init_triangle_pipeline(Engine* e);
+void draw_geometry(Engine* e, VkCommandBuffer cmd);

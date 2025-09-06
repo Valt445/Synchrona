@@ -88,12 +88,12 @@ clean: CMakeFiles/Shaders.dir/clean
 CMakeFiles/my_vulkan_engine.dir/all: CMakeFiles/Shaders.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/valker/Synchrona/build/CMakeFiles --progress-num=2,3,4,5,6,7,8,9,10,11,12,13,14,15 "Built target my_vulkan_engine"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/valker/Synchrona/build/CMakeFiles --progress-num=5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20 "Built target my_vulkan_engine"
 .PHONY : CMakeFiles/my_vulkan_engine.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/my_vulkan_engine.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/valker/Synchrona/build/CMakeFiles 15
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/valker/Synchrona/build/CMakeFiles 20
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/my_vulkan_engine.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/valker/Synchrona/build/CMakeFiles 0
 .PHONY : CMakeFiles/my_vulkan_engine.dir/rule
@@ -119,12 +119,12 @@ CMakeFiles/my_vulkan_engine.dir/clean:
 CMakeFiles/Shaders.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Shaders.dir/build.make CMakeFiles/Shaders.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Shaders.dir/build.make CMakeFiles/Shaders.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/valker/Synchrona/build/CMakeFiles --progress-num=1 "Built target Shaders"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/valker/Synchrona/build/CMakeFiles --progress-num=1,2,3,4 "Built target Shaders"
 .PHONY : CMakeFiles/Shaders.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/Shaders.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/valker/Synchrona/build/CMakeFiles 1
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/valker/Synchrona/build/CMakeFiles 4
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/Shaders.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/valker/Synchrona/build/CMakeFiles 0
 .PHONY : CMakeFiles/Shaders.dir/rule
