@@ -7,6 +7,7 @@ set(CMAKE_DEPENDS_GENERATOR "Unix Makefiles")
 # The top level Makefile was generated from the following files:
 set(CMAKE_MAKEFILE_DEPENDS
   "CMakeCache.txt"
+  "/home/valker/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.31/Modules/CMakeCInformation.cmake"
   "/home/valker/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.31/Modules/CMakeCXXInformation.cmake"
   "/home/valker/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.31/Modules/CMakeCommonLanguageInclude.cmake"
   "/home/valker/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.31/Modules/CMakeGenericSystem.cmake"
@@ -17,27 +18,36 @@ set(CMAKE_MAKEFILE_DEPENDS
   "/home/valker/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.31/Modules/Compiler/CMakeCommonCompilerMacros.cmake"
   "/home/valker/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.31/Modules/Compiler/Clang-CXX.cmake"
   "/home/valker/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.31/Modules/Compiler/Clang.cmake"
+  "/home/valker/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.31/Modules/Compiler/GNU-C.cmake"
   "/home/valker/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.31/Modules/Compiler/GNU.cmake"
   "/home/valker/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.31/Modules/FindPackageHandleStandardArgs.cmake"
   "/home/valker/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.31/Modules/FindPackageMessage.cmake"
   "/home/valker/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.31/Modules/FindPkgConfig.cmake"
   "/home/valker/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.31/Modules/FindVulkan.cmake"
+  "/home/valker/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.31/Modules/Internal/CMakeCLinkerInformation.cmake"
   "/home/valker/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.31/Modules/Internal/CMakeCXXLinkerInformation.cmake"
   "/home/valker/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.31/Modules/Internal/CMakeCommonLinkerInformation.cmake"
+  "/home/valker/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.31/Modules/Linker/GNU-C.cmake"
   "/home/valker/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.31/Modules/Linker/GNU-CXX.cmake"
   "/home/valker/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.31/Modules/Linker/GNU.cmake"
   "/home/valker/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.31/Modules/Platform/Linker/GNU.cmake"
+  "/home/valker/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.31/Modules/Platform/Linker/Linux-GNU-C.cmake"
   "/home/valker/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.31/Modules/Platform/Linker/Linux-GNU-CXX.cmake"
   "/home/valker/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.31/Modules/Platform/Linker/Linux-GNU.cmake"
   "/home/valker/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.31/Modules/Platform/Linux-Clang-CXX.cmake"
+  "/home/valker/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.31/Modules/Platform/Linux-GNU-C.cmake"
   "/home/valker/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.31/Modules/Platform/Linux-GNU-CXX.cmake"
   "/home/valker/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.31/Modules/Platform/Linux-GNU.cmake"
   "/home/valker/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.31/Modules/Platform/Linux-Initialize.cmake"
   "/home/valker/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.31/Modules/Platform/Linux.cmake"
   "/home/valker/.local/lib/python3.10/site-packages/cmake/data/share/cmake-3.31/Modules/Platform/UnixPaths.cmake"
   "/home/valker/Synchrona/CMakeLists.txt"
+  "CMakeFiles/3.31.0/CMakeCCompiler.cmake"
   "CMakeFiles/3.31.0/CMakeCXXCompiler.cmake"
   "CMakeFiles/3.31.0/CMakeSystem.cmake"
+  "/home/valker/Synchrona/external/VulkanMemoryAllocator/CMakeLists.txt"
+  "/home/valker/Synchrona/external/vk-bootstrap/CMakeLists.txt"
+  "/home/valker/Synchrona/external/vk-bootstrap/gen/CurrentBuildVulkanVersion.cmake"
   )
 
 # The corresponding makefile is:
@@ -49,10 +59,13 @@ set(CMAKE_MAKEFILE_OUTPUTS
 # Byproducts of CMake generate step:
 set(CMAKE_MAKEFILE_PRODUCTS
   "CMakeFiles/CMakeDirectoryInformation.cmake"
+  "external/vk-bootstrap/CMakeFiles/CMakeDirectoryInformation.cmake"
+  "external/VulkanMemoryAllocator/CMakeFiles/CMakeDirectoryInformation.cmake"
   )
 
 # Dependency information for all targets:
 set(CMAKE_DEPEND_INFO_FILES
   "CMakeFiles/my_vulkan_engine.dir/DependInfo.cmake"
   "CMakeFiles/Shaders.dir/DependInfo.cmake"
+  "external/vk-bootstrap/CMakeFiles/vk-bootstrap.dir/DependInfo.cmake"
   )

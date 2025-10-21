@@ -22,6 +22,7 @@ CMakeFiles/my_vulkan_engine.dir/src/engine.cpp.o: \
   /usr/include/x86_64-linux-gnu/bits/wchar.h \
   /usr/include/x86_64-linux-gnu/bits/stdint-intn.h \
   /usr/include/x86_64-linux-gnu/bits/stdint-uintn.h \
+  /home/valker/Synchrona/include/types.h \
   /home/valker/VulkanSDK/1.4.321.1/x86_64/include/vulkan/vulkan_core.h \
   /home/valker/VulkanSDK/1.4.321.1/x86_64/include/vulkan/vk_platform.h \
   /usr/lib/llvm-14/lib/clang/14.0.0/include/stddef.h \
@@ -453,14 +454,8 @@ CMakeFiles/my_vulkan_engine.dir/src/engine.cpp.o: \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/version \
   /home/valker/Synchrona/external/VulkanMemoryAllocator/include/vk_mem_alloc.h \
   /home/valker/VulkanSDK/1.4.321.1/x86_64/include/vulkan/vulkan.h \
-  /home/valker/Synchrona/include/debug_ui.h \
-  /home/valker/Synchrona/external/imgui/imgui.h \
-  /home/valker/Synchrona/external/imgui/imconfig.h \
-  /home/valker/Synchrona/include/graphics_pipeline.h \
-  /home/valker/Synchrona/include/images.h \
-  /home/valker/Synchrona/include/descriptors.h \
-  /home/valker/Synchrona/include/helper.h /usr/include/glm/glm.hpp \
-  /usr/include/glm/detail/_fixes.hpp /usr/include/glm/detail/setup.hpp \
+  /usr/include/glm/glm.hpp /usr/include/glm/detail/_fixes.hpp \
+  /usr/include/glm/detail/setup.hpp \
   /usr/include/glm/detail/../simd/platform.h /usr/include/glm/fwd.hpp \
   /usr/include/glm/detail/qualifier.hpp /usr/include/glm/vec2.hpp \
   /usr/include/glm/./ext/vector_bool2.hpp \
@@ -599,5 +594,38 @@ CMakeFiles/my_vulkan_engine.dir/src/engine.cpp.o: \
   /usr/include/glm/integer.hpp /usr/include/glm/detail/func_integer.inl \
   /home/valker/Synchrona/external/vk-bootstrap/src/VkBootstrap.h \
   /home/valker/Synchrona/external/vk-bootstrap/src/VkBootstrapDispatch.h \
+  /home/valker/Synchrona/include/debug_ui.h \
+  /home/valker/Synchrona/external/imgui/imgui.h \
+  /home/valker/Synchrona/external/imgui/imconfig.h \
+  /home/valker/Synchrona/include/images.h \
+  /home/valker/Synchrona/include/helper.h \
+  /home/valker/Synchrona/include/descriptors.h \
   /home/valker/Synchrona/external/imgui/backends/imgui_impl_glfw.h \
-  /home/valker/Synchrona/external/imgui/backends/imgui_impl_vulkan.h
+  /home/valker/Synchrona/external/imgui/backends/imgui_impl_vulkan.h \
+  /home/valker/Synchrona/include/graphics_pipeline.h \
+  /home/valker/VulkanSDK/1.4.321.1/x86_64/include/vma/vk_mem_alloc.h \
+  /home/valker/Synchrona/include/loader.h \
+  /usr/include/glm/ext/matrix_transform.hpp \
+  /usr/include/glm/./ext/../gtc/constants.hpp \
+  /usr/include/glm/./ext/../gtc/../ext/scalar_constants.hpp \
+  /usr/include/glm/./ext/scalar_constants.inl \
+  /usr/include/glm/./ext/../gtc/constants.inl \
+  /usr/include/glm/./ext/../geometric.hpp \
+  /usr/include/glm/./ext/../trigonometric.hpp \
+  /usr/include/glm/./ext/../matrix.hpp \
+  /usr/include/glm/./ext/matrix_transform.inl \
+  /usr/include/glm/gtc/matrix_transform.hpp \
+  /usr/include/glm/./ext/../gtc/../mat4x4.hpp \
+  /usr/include/glm/./ext/../gtc/../vec2.hpp \
+  /usr/include/glm/./ext/../gtc/../vec3.hpp \
+  /usr/include/glm/./ext/../gtc/../vec4.hpp \
+  /usr/include/glm/./ext/../gtc/../ext/matrix_projection.hpp \
+  /usr/include/glm/./ext/matrix_projection.inl \
+  /usr/include/glm/./ext/../gtc/../ext/matrix_clip_space.hpp \
+  /usr/include/glm/./ext/../ext/scalar_constants.hpp \
+  /usr/include/glm/./ext/matrix_clip_space.inl \
+  /usr/include/glm/./ext/../gtc/../ext/matrix_transform.hpp \
+  /usr/include/glm/./ext/../gtc/matrix_transform.inl \
+  /usr/include/glm/./ext/../gtc/../geometric.hpp \
+  /usr/include/glm/./ext/../gtc/../trigonometric.hpp \
+  /usr/include/glm/./ext/../gtc/../matrix.hpp

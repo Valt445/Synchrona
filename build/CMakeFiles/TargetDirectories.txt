@@ -2,3 +2,8 @@
 /home/valker/Synchrona/build/CMakeFiles/Shaders.dir
 /home/valker/Synchrona/build/CMakeFiles/edit_cache.dir
 /home/valker/Synchrona/build/CMakeFiles/rebuild_cache.dir
+/home/valker/Synchrona/build/external/vk-bootstrap/CMakeFiles/vk-bootstrap.dir
+/home/valker/Synchrona/build/external/vk-bootstrap/CMakeFiles/edit_cache.dir
+/home/valker/Synchrona/build/external/vk-bootstrap/CMakeFiles/rebuild_cache.dir
+/home/valker/Synchrona/build/external/VulkanMemoryAllocator/CMakeFiles/edit_cache.dir
+/home/valker/Synchrona/build/external/VulkanMemoryAllocator/CMakeFiles/rebuild_cache.dir

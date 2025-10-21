@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/clang++
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/home/valker/Synchrona/include -I/home/valker/Synchrona/external/vk-bootstrap/src -I/home/valker/Synchrona/external/VulkanMemoryAllocator/include -I/home/valker/Synchrona/external/imgui -isystem /home/valker/VulkanSDK/1.4.321.1/x86_64/include
+CXX_INCLUDES = -I/home/valker/Synchrona/include -I/home/valker/Synchrona/external/cgltf -I/home/valker/Synchrona/external/vk-bootstrap/src -I/home/valker/Synchrona/external/VulkanMemoryAllocator/include -I/home/valker/Synchrona/external/imgui -I/home/valker/Synchrona/external/glm -isystem /home/valker/VulkanSDK/1.4.321.1/x86_64/include
 
-CXX_FLAGS = -std=gnu++20
+CXX_FLAGS = -std=gnu++20 -Wall -Wextra
 

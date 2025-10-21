@@ -65,35 +65,81 @@ CMAKE_BINARY_DIR = /home/valker/Synchrona/build
 # The main recursive "all" target.
 all: CMakeFiles/my_vulkan_engine.dir/all
 all: CMakeFiles/Shaders.dir/all
+all: external/vk-bootstrap/all
+all: external/VulkanMemoryAllocator/all
 .PHONY : all
 
 # The main recursive "codegen" target.
 codegen: CMakeFiles/my_vulkan_engine.dir/codegen
 codegen: CMakeFiles/Shaders.dir/codegen
+codegen: external/vk-bootstrap/codegen
+codegen: external/VulkanMemoryAllocator/codegen
 .PHONY : codegen
 
 # The main recursive "preinstall" target.
-preinstall:
+preinstall: external/vk-bootstrap/preinstall
+preinstall: external/VulkanMemoryAllocator/preinstall
 .PHONY : preinstall
 
 # The main recursive "clean" target.
 clean: CMakeFiles/my_vulkan_engine.dir/clean
 clean: CMakeFiles/Shaders.dir/clean
+clean: external/vk-bootstrap/clean
+clean: external/VulkanMemoryAllocator/clean
 .PHONY : clean
+
+#=============================================================================
+# Directory level rules for directory external/VulkanMemoryAllocator
+
+# Recursive "all" directory target.
+external/VulkanMemoryAllocator/all:
+.PHONY : external/VulkanMemoryAllocator/all
+
+# Recursive "codegen" directory target.
+external/VulkanMemoryAllocator/codegen:
+.PHONY : external/VulkanMemoryAllocator/codegen
+
+# Recursive "preinstall" directory target.
+external/VulkanMemoryAllocator/preinstall:
+.PHONY : external/VulkanMemoryAllocator/preinstall
+
+# Recursive "clean" directory target.
+external/VulkanMemoryAllocator/clean:
+.PHONY : external/VulkanMemoryAllocator/clean
+
+#=============================================================================
+# Directory level rules for directory external/vk-bootstrap
+
+# Recursive "all" directory target.
+external/vk-bootstrap/all: external/vk-bootstrap/CMakeFiles/vk-bootstrap.dir/all
+.PHONY : external/vk-bootstrap/all
+
+# Recursive "codegen" directory target.
+external/vk-bootstrap/codegen: external/vk-bootstrap/CMakeFiles/vk-bootstrap.dir/codegen
+.PHONY : external/vk-bootstrap/codegen
+
+# Recursive "preinstall" directory target.
+external/vk-bootstrap/preinstall:
+.PHONY : external/vk-bootstrap/preinstall
+
+# Recursive "clean" directory target.
+external/vk-bootstrap/clean: external/vk-bootstrap/CMakeFiles/vk-bootstrap.dir/clean
+.PHONY : external/vk-bootstrap/clean
 
 #=============================================================================
 # Target rules for target CMakeFiles/my_vulkan_engine.dir
 
 # All Build rule for target.
 CMakeFiles/my_vulkan_engine.dir/all: CMakeFiles/Shaders.dir/all
+CMakeFiles/my_vulkan_engine.dir/all: external/vk-bootstrap/CMakeFiles/vk-bootstrap.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/valker/Synchrona/build/CMakeFiles --progress-num=5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20 "Built target my_vulkan_engine"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/valker/Synchrona/build/CMakeFiles --progress-num=6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21 "Built target my_vulkan_engine"
 .PHONY : CMakeFiles/my_vulkan_engine.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/my_vulkan_engine.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/valker/Synchrona/build/CMakeFiles 20
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/valker/Synchrona/build/CMakeFiles 23
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/my_vulkan_engine.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/valker/Synchrona/build/CMakeFiles 0
 .PHONY : CMakeFiles/my_vulkan_engine.dir/rule
@@ -119,12 +165,12 @@ CMakeFiles/my_vulkan_engine.dir/clean:
 CMakeFiles/Shaders.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Shaders.dir/build.make CMakeFiles/Shaders.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Shaders.dir/build.make CMakeFiles/Shaders.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/valker/Synchrona/build/CMakeFiles --progress-num=1,2,3,4 "Built target Shaders"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/valker/Synchrona/build/CMakeFiles --progress-num=1,2,3,4,5 "Built target Shaders"
 .PHONY : CMakeFiles/Shaders.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/Shaders.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/valker/Synchrona/build/CMakeFiles 4
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/valker/Synchrona/build/CMakeFiles 5
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/Shaders.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/valker/Synchrona/build/CMakeFiles 0
 .PHONY : CMakeFiles/Shaders.dir/rule
@@ -142,6 +188,37 @@ CMakeFiles/Shaders.dir/codegen:
 CMakeFiles/Shaders.dir/clean:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Shaders.dir/build.make CMakeFiles/Shaders.dir/clean
 .PHONY : CMakeFiles/Shaders.dir/clean
+
+#=============================================================================
+# Target rules for target external/vk-bootstrap/CMakeFiles/vk-bootstrap.dir
+
+# All Build rule for target.
+external/vk-bootstrap/CMakeFiles/vk-bootstrap.dir/all:
+	$(MAKE) $(MAKESILENT) -f external/vk-bootstrap/CMakeFiles/vk-bootstrap.dir/build.make external/vk-bootstrap/CMakeFiles/vk-bootstrap.dir/depend
+	$(MAKE) $(MAKESILENT) -f external/vk-bootstrap/CMakeFiles/vk-bootstrap.dir/build.make external/vk-bootstrap/CMakeFiles/vk-bootstrap.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/valker/Synchrona/build/CMakeFiles --progress-num=22,23 "Built target vk-bootstrap"
+.PHONY : external/vk-bootstrap/CMakeFiles/vk-bootstrap.dir/all
+
+# Build rule for subdir invocation for target.
+external/vk-bootstrap/CMakeFiles/vk-bootstrap.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/valker/Synchrona/build/CMakeFiles 2
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 external/vk-bootstrap/CMakeFiles/vk-bootstrap.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/valker/Synchrona/build/CMakeFiles 0
+.PHONY : external/vk-bootstrap/CMakeFiles/vk-bootstrap.dir/rule
+
+# Convenience name for target.
+vk-bootstrap: external/vk-bootstrap/CMakeFiles/vk-bootstrap.dir/rule
+.PHONY : vk-bootstrap
+
+# codegen rule for target.
+external/vk-bootstrap/CMakeFiles/vk-bootstrap.dir/codegen:
+	$(MAKE) $(MAKESILENT) -f external/vk-bootstrap/CMakeFiles/vk-bootstrap.dir/build.make external/vk-bootstrap/CMakeFiles/vk-bootstrap.dir/codegen
+.PHONY : external/vk-bootstrap/CMakeFiles/vk-bootstrap.dir/codegen
+
+# clean rule for target.
+external/vk-bootstrap/CMakeFiles/vk-bootstrap.dir/clean:
+	$(MAKE) $(MAKESILENT) -f external/vk-bootstrap/CMakeFiles/vk-bootstrap.dir/build.make external/vk-bootstrap/CMakeFiles/vk-bootstrap.dir/clean
+.PHONY : external/vk-bootstrap/CMakeFiles/vk-bootstrap.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.

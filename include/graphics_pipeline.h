@@ -15,6 +15,8 @@ struct PipelineBuilder
   VkPipelineRenderingCreateInfo renderInfo;
   VkFormat colorAttachmentformat;
   VkPipelineDepthStencilStateCreateInfo depthStencil; 
+
+  PipelineBuilder();
    
 };
 
@@ -29,3 +31,6 @@ void set_color_attachment_format(VkFormat format, PipelineBuilder& pb);
 void disable_blending(PipelineBuilder& pb); 
 void set_depth_format(VkFormat format, PipelineBuilder& pb); 
 void disable_depthtest(PipelineBuilder& pb);
+void enable_blending_additive(PipelineBuilder& pb);
+void enable_blending_alphablend(PipelineBuilder& pb);
+

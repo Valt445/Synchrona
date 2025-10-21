@@ -142,6 +142,19 @@ Shaders/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Shaders.dir/build.make CMakeFiles/Shaders.dir/build
 .PHONY : Shaders/fast
 
+#=============================================================================
+# Target rules for targets named vk-bootstrap
+
+# Build rule for target.
+vk-bootstrap: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 vk-bootstrap
+.PHONY : vk-bootstrap
+
+# fast build rule for target.
+vk-bootstrap/fast:
+	$(MAKE) $(MAKESILENT) -f external/vk-bootstrap/CMakeFiles/vk-bootstrap.dir/build.make external/vk-bootstrap/CMakeFiles/vk-bootstrap.dir/build
+.PHONY : vk-bootstrap/fast
+
 external/imgui/backends/imgui_impl_glfw.o: external/imgui/backends/imgui_impl_glfw.cpp.o
 .PHONY : external/imgui/backends/imgui_impl_glfw.o
 
@@ -285,30 +298,6 @@ external/imgui/imgui_widgets.s: external/imgui/imgui_widgets.cpp.s
 external/imgui/imgui_widgets.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/external/imgui/imgui_widgets.cpp.s
 .PHONY : external/imgui/imgui_widgets.cpp.s
-
-external/vk-bootstrap/src/VkBootstrap.o: external/vk-bootstrap/src/VkBootstrap.cpp.o
-.PHONY : external/vk-bootstrap/src/VkBootstrap.o
-
-# target to build an object file
-external/vk-bootstrap/src/VkBootstrap.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.o
-.PHONY : external/vk-bootstrap/src/VkBootstrap.cpp.o
-
-external/vk-bootstrap/src/VkBootstrap.i: external/vk-bootstrap/src/VkBootstrap.cpp.i
-.PHONY : external/vk-bootstrap/src/VkBootstrap.i
-
-# target to preprocess a source file
-external/vk-bootstrap/src/VkBootstrap.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.i
-.PHONY : external/vk-bootstrap/src/VkBootstrap.cpp.i
-
-external/vk-bootstrap/src/VkBootstrap.s: external/vk-bootstrap/src/VkBootstrap.cpp.s
-.PHONY : external/vk-bootstrap/src/VkBootstrap.s
-
-# target to generate assembly for a file
-external/vk-bootstrap/src/VkBootstrap.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/external/vk-bootstrap/src/VkBootstrap.cpp.s
-.PHONY : external/vk-bootstrap/src/VkBootstrap.cpp.s
 
 src/debug_ui.o: src/debug_ui.cpp.o
 .PHONY : src/debug_ui.o
@@ -454,6 +443,30 @@ src/images.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/src/images.cpp.s
 .PHONY : src/images.cpp.s
 
+src/loader.o: src/loader.cpp.o
+.PHONY : src/loader.o
+
+# target to build an object file
+src/loader.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/src/loader.cpp.o
+.PHONY : src/loader.cpp.o
+
+src/loader.i: src/loader.cpp.i
+.PHONY : src/loader.i
+
+# target to preprocess a source file
+src/loader.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/src/loader.cpp.i
+.PHONY : src/loader.cpp.i
+
+src/loader.s: src/loader.cpp.s
+.PHONY : src/loader.s
+
+# target to generate assembly for a file
+src/loader.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/my_vulkan_engine.dir/build.make CMakeFiles/my_vulkan_engine.dir/src/loader.cpp.s
+.PHONY : src/loader.cpp.s
+
 src/main.o: src/main.cpp.o
 .PHONY : src/main.o
 
@@ -512,6 +525,7 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... Shaders"
 	@echo "... my_vulkan_engine"
+	@echo "... vk-bootstrap"
 	@echo "... external/imgui/backends/imgui_impl_glfw.o"
 	@echo "... external/imgui/backends/imgui_impl_glfw.i"
 	@echo "... external/imgui/backends/imgui_impl_glfw.s"
@@ -530,9 +544,6 @@ help:
 	@echo "... external/imgui/imgui_widgets.o"
 	@echo "... external/imgui/imgui_widgets.i"
 	@echo "... external/imgui/imgui_widgets.s"
-	@echo "... external/vk-bootstrap/src/VkBootstrap.o"
-	@echo "... external/vk-bootstrap/src/VkBootstrap.i"
-	@echo "... external/vk-bootstrap/src/VkBootstrap.s"
 	@echo "... src/debug_ui.o"
 	@echo "... src/debug_ui.i"
 	@echo "... src/debug_ui.s"
@@ -551,6 +562,9 @@ help:
 	@echo "... src/images.o"
 	@echo "... src/images.i"
 	@echo "... src/images.s"
+	@echo "... src/loader.o"
+	@echo "... src/loader.i"
+	@echo "... src/loader.s"
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
