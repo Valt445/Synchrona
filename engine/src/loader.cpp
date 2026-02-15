@@ -1,7 +1,7 @@
 
 #define CGLTF_IMPLEMENTATION
 #include "loader.h"
-#include "engine.hpp"
+#include "engine.h"
 #include "types.h"
 #include <glm/gtx/quaternion.hpp>
 #include <memory>

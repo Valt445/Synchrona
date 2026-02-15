@@ -1,4 +1,4 @@
-#include "engine.hpp"
+#include "engine.h"
 #include "VkBootstrap.h"
 #include "graphics_pipeline.h"
 #include "imgui.h"
@@ -11,8 +11,10 @@
 #include <vulkan/vulkan_core.h>
 #include <iostream>
 #include "loader.h"
+#include <glm/packing.hpp>
 
 // Define the global engine pointer declared as `extern` in the header
+
 Engine* engine = nullptr;
 
 // ------------------------- Initialization -------------------------
@@ -377,6 +379,110 @@ void destroy_draw_image(Engine* e) {
     }
 }
 
+// --- CHANGED: create_image (no-data) ---
+AllocatedImage create_image(Engine* e, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped)
+{
+    AllocatedImage newImage{};
+    newImage.imageFormat = format;
+    newImage.imageExtent = size;
+
+    VkImageCreateInfo img_info = image_create_info(format, usage, size);
+    if (mipmapped)
+    {
+        img_info.mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(size.width, size.height)))) + 1;
+    }
+
+    VmaAllocationCreateInfo alloc_info = {};
+    alloc_info.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+    alloc_info.requiredFlags = VkMemoryPropertyFlags(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+    VK_CHECK(vmaCreateImage(e->allocator, &img_info, &alloc_info, &newImage.image, &newImage.allocation, nullptr));
+
+    VkImageAspectFlags aspectFlags = VK_IMAGE_ASPECT_COLOR_BIT;
+    if (format == VK_FORMAT_D32_SFLOAT)
+    {
+        aspectFlags = VK_IMAGE_ASPECT_DEPTH_BIT;
+    }
+
+    VkImageViewCreateInfo view_info = imageview_create_info(format, newImage.image, aspectFlags);
+    view_info.subresourceRange.levelCount = img_info.mipLevels;
+
+    VK_CHECK(vkCreateImageView(e->device, &view_info, nullptr, &newImage.imageView));
+
+    // Ensure image/alloc are destroyed before allocator is destroyed.
+    e->mainDeletionQueue.push_function([=]() {
+        if (newImage.imageView != VK_NULL_HANDLE) {
+            vkDestroyImageView(e->device, newImage.imageView, nullptr);
+        }
+        if (newImage.image != VK_NULL_HANDLE) {
+            vmaDestroyImage(e->allocator, newImage.image, newImage.allocation);
+        }
+    });
+
+    return newImage;
+}
+
+// --- CHANGED: create_image (data upload) ---
+AllocatedImage create_image(void* data, Engine* e, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped)
+{
+    size_t data_size = size.depth * size.height * size.width * 4; // 4 bytes per pixel for R8G8B8A8
+    AllocatedBuffer uploadbuffer = create_buffer(
+        e->allocator,
+        data_size,
+        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+        VMA_MEMORY_USAGE_CPU_TO_GPU
+    );
+
+    // Map explicitly and copy -- VMA may not provide pMappedData for this usage automatically.
+    void* mapped = nullptr;
+    VK_CHECK(vmaMapMemory(e->allocator, uploadbuffer.allocation, &mapped));
+    memcpy(mapped, data, data_size);
+    vmaUnmapMemory(e->allocator, uploadbuffer.allocation);
+
+    // Fix: include TRANSFER_DST (was duplicated TRANSFER_SRC previously)
+    AllocatedImage newImage = create_image(e, size, format, usage | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT, mipmapped);
+
+    immediate_submit([&](VkCommandBuffer cmd) {
+        // Transition
+        transition_image(cmd, newImage.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+        // Copy
+        VkBufferImageCopy copyRegion{};
+        copyRegion.bufferOffset = 0;
+        copyRegion.bufferRowLength = 0;
+        copyRegion.bufferImageHeight = 0;
+        copyRegion.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        copyRegion.imageSubresource.mipLevel = 0;
+        copyRegion.imageSubresource.baseArrayLayer = 0;
+        copyRegion.imageSubresource.layerCount = 1;
+        copyRegion.imageExtent = size;
+
+        vkCmdCopyBufferToImage(
+            cmd,
+            uploadbuffer.buffer,
+            newImage.image,
+            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            1,
+            &copyRegion
+        );
+
+        transition_image(cmd, newImage.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+    } , e);
+
+    destroy_buffer(uploadbuffer, e);
+    return newImage;
+}
+
+void destroy_image(const AllocatedImage& image, Engine* e)
+{
+    if (image.imageView != VK_NULL_HANDLE) {
+        vkDestroyImageView(e->device, image.imageView, nullptr);
+    }
+    if (image.image != VK_NULL_HANDLE) {
+        vmaDestroyImage(e->allocator, image.image, image.allocation);
+    }
+}
+
 void create_draw_image(Engine* e, uint32_t width, uint32_t height) {
     std::printf("🎨 Creating draw image %ux%u...\n", width, height);
     
@@ -702,6 +808,8 @@ void init_commands(Engine* e) {
     std::printf("Commands initialized\n");
 }
 
+
+
 // ------------------------- Sync -------------------------
 VkFenceCreateInfo fence_create_info(VkFenceCreateFlags flags) {
     VkFenceCreateInfo info{};
@@ -761,7 +869,13 @@ void init_descriptors(Engine* e) {
     drawImageWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
     drawImageWrite.pImageInfo = &imgInfo;
 
+	DescriptorLayoutBuilder builder;
+	builder.add_binding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+	e->singleImageDescriptorSetLayout = builder.build(e->device, VK_SHADER_STAGE_COMPUTE_BIT);
+
     vkUpdateDescriptorSets(e->device, 1, &drawImageWrite, 0, nullptr);
+
+   
 
     e->mainDeletionQueue.push_function([e]() {
         e->globalDescriptorAllocator.destroy_pool(e->device);
@@ -924,6 +1038,18 @@ void init_mesh_pipelines(Engine* e)
         std::exit(1);
     }
 
+    VkShaderModule texImageShader;
+	if (!e->util.load_shader_module("shaders/tex_image.frag.spv", e->device, &texImageShader)) {
+       std::cerr << "Failed to load triangle fragment shader\n";
+       std::exit(1);
+    }
+    else
+    {
+		std::cerr << "Loaded tex image shader\n";
+    }
+    
+ 
+
     VkPushConstantRange bufferRange{};
     bufferRange.offset = 0;
     bufferRange.size = sizeof(GPUDrawPushConstants);
@@ -932,6 +1058,11 @@ void init_mesh_pipelines(Engine* e)
     VkPipelineLayoutCreateInfo pipeline_layout_info = e->util.pipeline_layout_create_info();
     pipeline_layout_info.pPushConstantRanges = &bufferRange;
     pipeline_layout_info.pushConstantRangeCount = 1;
+    pipeline_layout_info.pSetLayouts = &e->singleImageDescriptorSetLayout;
+	pipeline_layout_info.setLayoutCount = 1;
+
+	VK_CHECK(vkCreatePipelineLayout(e->device, &pipeline_layout_info, nullptr, &e->meshPipelineLayout));
+
     
     if (vkCreatePipelineLayout(e->device, &pipeline_layout_info, nullptr, &e->meshPipelineLayout) != VK_SUCCESS) {
         std::cerr << "Failed to create mesh pipeline layout\n";
@@ -1071,6 +1202,12 @@ void draw_geometry(Engine* e, VkCommandBuffer cmd)
 
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, e->meshPipeline);
 
+	VkDescriptorSet imageSet = get_current_frame().frameDescriptors.allocate(e->device, e->singleImageDescriptorSetLayout);
+    
+    {
+        DescriptorWriter writer;
+    }
+
     VkViewport viewport = {};
     viewport.x = 0;
     viewport.y = 0;
@@ -1095,7 +1232,7 @@ void draw_geometry(Engine* e, VkCommandBuffer cmd)
     projection[1][1] *= -1;
     push_constants.worldMatrix = projection * view;
 
-    // Draw rectangle
+    /* Draw rectangle
     if (e->rectangle.vertexBuffer.buffer != VK_NULL_HANDLE) {
         push_constants.vertexBuffer = e->rectangle.vertexBufferAddress;
         vkCmdPushConstants(cmd, e->meshPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants), &push_constants);
@@ -1112,6 +1249,10 @@ void draw_geometry(Engine* e, VkCommandBuffer cmd)
     }
 
     // Draw monkey mesh
+        
+	vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, e->meshPipeline);
+    */
+
 
     if (!e->testMeshes.empty() && e->testMeshes.size() > 2 && e->testMeshes[2]->meshBuffers.vertexBuffer.buffer != VK_NULL_HANDLE) {
         push_constants.vertexBuffer = e->testMeshes[2]->meshBuffers.vertexBufferAddress;
@@ -1172,6 +1313,47 @@ void init_default_data(Engine* e)
                   << ", indexCount=" << e->testMeshes[i]->surfaces[0].count << std::endl;
     }
 
+    uint32_t white = glm::packUnorm4x8(glm::vec4(1, 1, 1, 1));
+	e->whiteImage = create_image((void*)&white, e, VkExtent3D{ 1, 1, 1 }, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT);
+
+
+    uint32_t grey = glm::packUnorm4x8(glm::vec4(0.66f, 0.66f, 0.66f, 1));
+    e->whiteImage = create_image((void*)&grey, e, VkExtent3D{ 1, 1, 1 }, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT);
+
+
+    uint32_t black = glm::packUnorm4x8(glm::vec4(0, 0, 0, 0));
+    e->whiteImage = create_image((void*)&black, e, VkExtent3D{ 1, 1, 1 }, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT);
+
+    // Medium gray - when minified with mipmapping, creates interesting patterns
+   // 1x256 gradient from black to white
+    std::array<uint32_t, 256> gradientPixels;
+    for (int i = 0; i < 256; i++) {
+        float t = i / 255.0f;
+        gradientPixels[i] = glm::packUnorm4x8(glm::vec4(t, t, t, 1.0f));
+    }
+
+
+    e->errrorImage = create_image((void*)&gradientPixels, e,
+        VkExtent3D{ 1, 1, 1 }, VK_FORMAT_R8G8B8A8_UNORM,
+        VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT);
+   
+	VkSamplerCreateInfo sampl = { .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO };
+	sampl.magFilter = VK_FILTER_NEAREST;
+	sampl.minFilter = VK_FILTER_NEAREST;
+
+	vkCreateSampler(e->device, &sampl, nullptr, &e->defaultSamplerNearest);
+
+	sampl.magFilter = VK_FILTER_LINEAR;
+	sampl.minFilter = VK_FILTER_LINEAR;
+    
+	vkCreateSampler(e->device, &sampl, nullptr, &e->defaultSamplerLinear);
+
+	sampl.magFilter = VK_FILTER_LINEAR;
+	sampl.minFilter = VK_FILTER_LINEAR;
+
+	vkCreateSampler(e->device, &sampl, nullptr, &e->defaultSamplerLinear);
+
+    
     e->mainDeletionQueue.push_function([=]() {
         destroy_buffer(e->rectangle.vertexBuffer, e);
         destroy_buffer(e->rectangle.indexBuffer, e);
