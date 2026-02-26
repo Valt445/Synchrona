@@ -1,0 +1,24 @@
+[submodule "external/vk-bootstrap"]
+	path = external/vk-bootstrap
+	url = https://github.com/charles-lunarg/vk-bootstrap
+[submodule "VulkanMemoryAllocator"]
+	path = VulkanMemoryAllocator
+	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
+[submodule "imgui"]
+	path = imgui
+	url = https://github.com/ocornut/imgui.git
+[submodule "fastgltf"]
+	path = fastgltf
+	url = https://github.com/spnda/fastgltf.git
+[submodule "external/imgui"]
+	path = external/imgui
+	url = https://github.com/ocornut/imgui.git
+[submodule "external/cgltf"]
+	path = external/cgltf
+	url = https://github.com/jkuhlmann/cgltf.git
+[submodule "external/glfw"]
+	path = external/glfw
+	url = https://github.com/glfw/glfw.git
+[submodule "external/glm"]
+	path = external/glm
+	url = https://github.com/g-truc/glm.git

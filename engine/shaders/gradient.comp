@@ -1,0 +1,39 @@
+#version 450
+layout (local_size_x = 16, local_size_y = 16) in;
+
+// Use Binding 1 for Storage (Writing)
+layout(set = 0, binding = 1, rgba16f) uniform image2D image;
+
+layout (push_constant) uniform PushConstants {
+    vec4 color1;
+    vec4 color2;
+    float time;
+} pc;
+
+float hash(vec2 p) {
+    return fract(sin(dot(p, vec2(41.0, 289.0))) * 45758.5453);
+}
+
+float noise(vec2 p) {
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+    float a = hash(i);
+    float b = hash(i + vec2(1.0, 0.0));
+    float c = hash(i + vec2(0.0, 1.0));
+    float d = hash(i + vec2(1.0, 1.0));
+    vec2 u = f*f*(3.0-2.0*f);
+    return mix(mix(a,b,u.x), mix(c,d,u.x), u.y);
+}
+
+void main() {
+    ivec2 pixel = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 size  = imageSize(image); // imageSize returns ivec2
+    
+    if(pixel.x < size.x && pixel.y < size.y) {
+        vec2 uv = vec2(pixel) / vec2(size);
+        float n = noise(uv * 10.0 + pc.time * 0.1);
+        vec3 finalColor = mix(pc.color1.rgb, pc.color2.rgb, n);
+        
+        imageStore(image, pixel, vec4(finalColor, 1.0));
+    }
+}

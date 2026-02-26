@@ -1,0 +1,23 @@
+#version 450
+layout (local_size_x = 16, local_size_y = 16) in;
+
+// Use Binding 1 for Storage (Writing)
+layout(set = 0, binding = 1, rgba16f) uniform image2D image;
+
+layout(push_constant) uniform constants {
+    vec4 data1;
+    vec4 data2;
+    vec4 data3;
+    vec4 data4;
+} pc;
+
+void main() {
+    ivec2 pixel = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 size  = imageSize(image);
+    
+    if(pixel.x < size.x && pixel.y < size.y) {
+        float background = float(pixel.y) / float(size.y);
+        vec3 color = pc.data1.xyz * background;
+        imageStore(image, pixel, vec4(color, 1.0));
+    }
+}
