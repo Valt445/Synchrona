@@ -173,33 +173,29 @@ void init_descriptors(Engine* e) {
     std::cout << "Initializing high-performance bindless system (Dual-Mode)...\n";
 
     std::vector<DescriptorAllocator::PoolSizeRatio> sizes = {
-        { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000.0f },
-        { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 100.0f }
+        { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 4096.0f },
+        { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 16.0f },
+        { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 16.0f }   // ← added for camera
     };
     e->globalDescriptorAllocator.init_pool(e->device, 10, sizes);
 
     DescriptorLayoutBuilder builder;
-    // Keep bindings matching what the shaders declare:
-    // Binding 0: COMBINED_IMAGE_SAMPLER array (textures) - fragment shader "allTextures"
-    // Binding 1: STORAGE_IMAGE (draw image) - compute shader "image"
-    // We use a fixed count of 4096 for binding 0 — no VARIABLE_DESCRIPTOR_COUNT needed
-    // (that flag is only valid on the LAST binding, which is the storage image here).
     builder.add_bindless_array(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 4096);
     builder.add_binding(1, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1);
 
+    // ←←← CAMERA UBO (binding 2) — this was missing!
+    builder.add_binding(2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1);
+
     e->bindlessLayout = builder.build(
         e->device,
-        VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT,
+        VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT,
         nullptr,
         VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT
     );
 
-    std::cout << "[BINDLESS] Layout created successfully\n";
+    std::cout << "[BINDLESS] Layout created with bindings 0,1,2\n";
 
-    // Don't pass variableDescriptorCount — we use fixed counts on both bindings.
     e->bindlessSet = e->globalDescriptorAllocator.allocate(e->device, e->bindlessLayout, 0);
-
-    std::cout << "[BINDLESS] Set allocated successfully: " << e->bindlessSet << "\n";
 
     e->mainDeletionQueue.push_function([=]() {
         vkDestroyDescriptorSetLayout(e->device, e->bindlessLayout, nullptr);

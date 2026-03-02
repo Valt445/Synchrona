@@ -54,6 +54,7 @@ if(EXISTS ${IMGUI_PATH})
         ${IMGUI_DIR}/imgui_draw.cpp
         ${IMGUI_DIR}/imgui_tables.cpp
         ${IMGUI_DIR}/imgui_widgets.cpp
+        ${IMGUI_DIR}/imgui_demo.cpp
         ${IMGUI_DIR}/backends/imgui_impl_glfw.cpp
         ${IMGUI_DIR}/backends/imgui_impl_vulkan.cpp
     )
@@ -130,6 +131,7 @@ set(ENGINE_SOURCES
     src/commands_and_sync.cpp
     src/immediate_submit.cpp
     src/imgui_integration.cpp
+   
     ${IMGUI_SOURCES}
     ${HEADER_FILES}  # ADD HEADERS HERE
 )

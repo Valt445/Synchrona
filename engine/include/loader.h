@@ -6,24 +6,39 @@
 #include <filesystem>
 #include "cgltf.h"
 
-struct GeoSurface
-{
-  uint32_t startIndex;
-  uint32_t count;
-  uint32_t materialIdx; // ADD THIS LINE
-  uint32_t albedoTextureIndex = 0;   // bindless index (0 = white fallback)
+// One draw call worth of geometry — all 5 PBR texture bindless indices
+struct GeoSurface {
+    uint32_t startIndex = 0;
+    uint32_t count = 0;
+
+    uint32_t albedoIndex = 1;
+    uint32_t normalIndex = 1;
+    uint32_t metallicRoughnessIndex = 1;
+    uint32_t aoIndex = 1;
+    uint32_t emissiveIndex = 1;
+
+    glm::vec4 colorFactor = glm::vec4(1.0f);
+
+    float metallicFactor = 1.0f;
+    float roughnessFactor = 1.0f;
+    glm::vec3 emissiveFactor = glm::vec3(0.0f);
 };
 
-struct MeshAsset
-{
-  std::string name;
-
-  std::vector<GeoSurface> surfaces;
-  GPUMeshBuffers meshBuffers;
+// One GLTF mesh node — all surfaces share the same vertex/index buffer
+struct MeshAsset {
+    std::string             name;
+    std::vector<GeoSurface> surfaces;
+    GPUMeshBuffers          meshBuffers;
+    glm::mat4               worldTransform = glm::mat4(1.0f);
 };
+
 struct Engine;
 
+static constexpr uint32_t INVALID_TEXTURE = 0xFFFFFFFFu;
+// Main loader entry point — matches the name engine.cpp calls
+std::optional<std::vector<std::shared_ptr<MeshAsset>>>
+loadgltfMeshes(Engine* e, std::filesystem::path filePath);
+AllocatedImage load_image_from_gltf(Engine* e, cgltf_image* img, bool isLinear);
 
-
-std::optional<std::vector<std::shared_ptr<MeshAsset>>> loadgltfMeshes(Engine* engine, std::filesystem::path filePath);
-void upload_texture_to_bindless_safe(Engine* e, AllocatedImage img, VkSampler sampler, uint32_t index);
+void upload_texture_to_bindless_safe(Engine* e, AllocatedImage img,
+    VkSampler sampler, uint32_t index);

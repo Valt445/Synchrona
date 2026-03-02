@@ -1,9 +1,5 @@
 ﻿#pragma once
 
-// ============================================================================
-// INCLUDES - EXACT SAME AS ORIGINAL (Keep dependencies identical)
-// ============================================================================
-
 #include <cstdint>
 #include <types.h>
 
@@ -17,316 +13,257 @@
 #include <cstddef>
 #include <iostream>
 #include <unordered_map>
+#include <string>
 
 #include <GLFW/glfw3.h>
 #include <glm/vec4.hpp>
+#include <glm/mat4x4.hpp>
 #include <loader.h>
 #include "camer.h"
+#include "debug_ui.h"
+#include "descriptors.h"
+#include "images.h"
+#include "helper.h"
+#include "graphics_pipeline.h"
 
-// ============================================================================
-// VULKAN ERROR CHECKING MACRO
-// ============================================================================
-
-#define VK_CHECK(x)                                                     \
-    do {                                                                \
-        VkResult err = x;                                               \
-        if (err != VK_SUCCESS) {                                        \
-            std::cerr << "Vulkan error in " << #x << ": " << err << std::endl; \
-            std::abort();                                               \
-        }                                                               \
+// ─── Vulkan error check ───────────────────────────────────────────────────────
+#define VK_CHECK(x)                                                         \
+    do {                                                                    \
+        VkResult err = x;                                                   \
+        if (err != VK_SUCCESS) {                                            \
+            std::cerr << "Vulkan error in " << #x << ": " << err << "\n";  \
+            std::abort();                                                   \
+        }                                                                   \
     } while (0)
 
-// ============================================================================
-// UTILITY STRUCTURES
-// ============================================================================
-
-struct DeletionQueue
-{
+// ─── DeletionQueue ────────────────────────────────────────────────────────────
+struct DeletionQueue {
     std::deque<std::function<void()>> deletors;
-
-    void push_function(std::function<void()>&& function) {
-        deletors.push_back(function);
-    }
-
+    void push_function(std::function<void()>&& fn) { deletors.push_back(fn); }
     void flush() {
-        // reverse iterate the deletion queue to execute all the functions
-        for (auto it = deletors.rbegin(); it != deletors.rend(); it++) {
-            (*it)(); //call functors
-        }
-
+        for (auto it = deletors.rbegin(); it != deletors.rend(); ++it) (*it)();
         deletors.clear();
     }
 };
 
-// Forward declarations
-struct DebugUIState;
-struct PipelineBuilder;
+// CameraData and MeshPushConstants are defined in types.h — do NOT redeclare here.
 
-// ============================================================================
-// PUSH CONSTANTS AND COMPUTE STRUCTURES
-// ============================================================================
-
-struct ScenePushConstants
-{
+// ─── Compute background push constants ───────────────────────────────────────
+struct ScenePushConstants {
     glm::vec4 data1;
     glm::vec4 data2;
     glm::vec4 data3;
     glm::vec4 data4;
 };
 
-struct ComputeEffect
-{
+// ─── Compute effect ───────────────────────────────────────────────────────────
+struct ComputeEffect {
     const char* name;
-    VkPipeline pipeline;
-    VkPipelineLayout layout;
+    VkPipeline         pipeline;
+    VkPipelineLayout   layout;
     ScenePushConstants effectData;
 };
 
-struct ComputePushConstants {
-    glm::mat4 worldMatrix;
-    VkDeviceAddress vertexBuffer;
-    uint32_t textureIndex;
-    uint32_t padding;
+// ─── Memory stats ─────────────────────────────────────────────────────────────
+struct MemoryStats {
+    size_t totalMemoryBytes = 0;
+    size_t imageMemoryBytes = 0;
+    size_t bufferMemoryBytes = 0;
+    size_t swapchainMemoryBytes = 0;
 };
 
-// ============================================================================
-// MEMORY STATISTICS
-// ============================================================================
-
-struct MemoryStats
-{
-    size_t totalMemoryBytes;
-    size_t imageMemoryBytes;
-    size_t bufferMemoryBytes;
-    size_t swapchainMemoryBytes;
-};
-
-// ============================================================================
-// PER-FRAME DATA (synchronization and resources for each frame)
-// ============================================================================
-
+// ─── Per-frame GPU resources ──────────────────────────────────────────────────
 struct FrameData {
-    VkCommandPool commandPool;
-    VkCommandBuffer mainCommandBuffer;
-    VkSemaphore swapchainSemaphore;
-    VkSemaphore renderSemaphore;
-    VkFence renderFence;
-    DeletionQueue deletionQueue;
+    VkCommandPool    commandPool;
+    VkCommandBuffer  mainCommandBuffer;
+    VkSemaphore      swapchainSemaphore;
+    VkSemaphore      renderSemaphore;
+    VkFence          renderFence;
+    DeletionQueue    deletionQueue;
     DescriptorAllocator frameDescriptors;
+
+    // Per-frame camera UBO — one per frame so triple-buffering doesn't race
+    AllocatedBuffer  cameraBuffer{};
 };
 
 constexpr unsigned int FRAME_OVERLAP = 3;
 
-// ============================================================================
-// CORE ENGINE STRUCTURE (organized by subsystem)
-// ============================================================================
-
-extern Engine* engine;  // Declaration
-
+// ─── Engine ───────────────────────────────────────────────────────────────────
 struct Engine {
+    int   width = 1720;
+    int   height = 1200;
+    int   frameNumber = 0;
+    float deltaTime = 0.0f;  // seconds since last frame
 
-    // === VULKAN CORE (from vulkan_core.cpp) ===
-    VkInstance instance;
-    VkPhysicalDevice physicalDevice;
-    VkDevice device;
-    VkQueue graphicsQueue;
-    uint32_t graphicsQueueFamily;
-    VkDebugUtilsMessengerEXT debug_messenger;
-    VmaAllocator allocator;
+    VkInstance               instance = VK_NULL_HANDLE;
+    VkPhysicalDevice         physicalDevice = VK_NULL_HANDLE;
+    VkDevice                 device = VK_NULL_HANDLE;
+    VkQueue                  graphicsQueue = VK_NULL_HANDLE;
+    VkSurfaceKHR             surface = VK_NULL_HANDLE;
+    GLFWwindow* window = nullptr;
+    VkDebugUtilsMessengerEXT debug_messenger = VK_NULL_HANDLE;
 
-    // === WINDOW & SURFACE ===
-    GLFWwindow* window;
-    VkSurfaceKHR surface;
-    int width = 1720;
-    int height = 1200;
+    VkSwapchainKHR             swapchain = VK_NULL_HANDLE;
+    std::vector<VkImage>       swapchainImages;
+    std::vector<VkImageView>   swapchainImageViews;
+    VkFormat                   swapchainImageFormat = VK_FORMAT_B8G8R8A8_UNORM;
+    VkExtent2D                 swapchainExtent{};
+    uint32_t                   graphicsQueueFamily = 0;
 
-    // === SWAPCHAIN (from swapchain.cpp) ===
-    VkSwapchainKHR swapchain;
-    std::vector<VkImage> swapchainImages;
-    std::vector<VkImageView> swapchainImageViews;
-    VkFormat swapchainImageFormat;
-    VkExtent2D swapchainExtent;
+    DeletionQueue mainDeletionQueue;
+    FrameData     frames[FRAME_OVERLAP];
+    VmaAllocator  allocator = VK_NULL_HANDLE;
+
+    std::vector<AllocatedImage> sceneTextures;
+    uint32_t nextBindlessTextureIndex = 0;
+
+    AllocatedImage drawImage{};
+    VkExtent2D     drawExtent{};
+
     std::vector<VkSemaphore> imageAvailableSemaphores;
     std::vector<VkSemaphore> renderFinishedSemaphores;
 
-    // === FRAME MANAGEMENT (from commands_and_sync.cpp) ===
-    FrameData frames[FRAME_OVERLAP];
-    int frameNumber = 0;
-    bool resize_requested;
-    DeletionQueue mainDeletionQueue;
+    DescriptorAllocator      globalDescriptorAllocator;
+    VkDescriptorSet          drawImageDescriptors = VK_NULL_HANDLE;
+    VkDescriptorSetLayout    drawImageDescriptorLayout = VK_NULL_HANDLE;
 
-    // === RENDERING TARGETS (from memory.cpp) ===
-    AllocatedImage drawImage;
-    VkExtent2D drawExtent;
-    AllocatedImage depthImage;
+    VkPipeline       gradientPipeline = VK_NULL_HANDLE;
+    VkPipelineLayout gradientPipelineLayout = VK_NULL_HANDLE;
 
-    // === DESCRIPTORS (from descriptors.cpp) ===
-    DescriptorAllocator globalDescriptorAllocator;
-    DescriptorAllocator frameDescriptors;   // per frame descriptor allocator
-    VkDescriptorSetLayout drawImageDescriptorLayout;
-    VkDescriptorSet drawImageDescriptors;
-    VkDescriptorPool bindlessPool = VK_NULL_HANDLE;
+    VkFence          immFence = VK_NULL_HANDLE;
+    VkCommandBuffer  immCommandBuffer = VK_NULL_HANDLE;
+    VkCommandPool    immCommandPool = VK_NULL_HANDLE;
+    VkDescriptorPool imguiDescriptorPool = VK_NULL_HANDLE;
+
+    std::vector<ComputeEffect> backgroundEffects;
+    int currentBackgroundEffect = 0;
+
+    MemoryStats memoryStats{};
+    Utils       util;
+
+    PipelineBuilder  pipelineBuilder;
+    VkPipelineLayout trianglePipelineLayout = VK_NULL_HANDLE;
+    VkPipeline       trianglePipeline = VK_NULL_HANDLE;
+    VkPipelineLayout meshPipelineLayout = VK_NULL_HANDLE;
+    VkPipeline       meshPipeline = VK_NULL_HANDLE;
+
+    GPUMeshBuffers   rectangle{};
+    AllocatedBuffer  vertexBuffer{};
+    AllocatedBuffer  indexBuffer{};
+
+    AllocatedImage whiteImage{};
+    AllocatedImage blackImage{};
+    AllocatedImage greyImage{};
+    AllocatedImage errrorImage{};
+    AllocatedImage depthImage{};
+
+    VkSampler defaultSamplerLinear = VK_NULL_HANDLE;
+    VkSampler defaultSamplerNearest = VK_NULL_HANDLE;
+
+    VkDescriptorSetLayout singleImageDescriptorSetLayout = VK_NULL_HANDLE;
+    VkDescriptorSet       singleImageDescriptorSet = VK_NULL_HANDLE;
+    
+    std::filesystem::path sceneBasePath;
+
+    uint32_t cubeIndexCount = 0;
+
+    DescriptorAllocator frameDescriptors;
+
+    VkDescriptorPool      bindlessPool = VK_NULL_HANDLE;
     VkDescriptorSetLayout bindlessLayout = VK_NULL_HANDLE;
-    VkDescriptorSet bindlessSet = VK_NULL_HANDLE;
-    VkDescriptorSetLayout singleImageDescriptorSetLayout;
-    VkDescriptorSet singleImageDescriptorSet;
+    VkDescriptorSet       bindlessSet = VK_NULL_HANDLE;
+
+    uint32_t nextTextureIndex = 0;
     VkDescriptorSet meshTextureSet = VK_NULL_HANDLE;
 
-    // === GRAPHICS PIPELINES (from pipelines.cpp) ===
-    PipelineBuilder pipelineBuilder;
-    VkPipelineLayout gradientPipelineLayout;
-    VkPipeline gradientPipeline;
-    VkPipelineLayout trianglePipelineLayout;
-    VkPipeline trianglePipeline;
-    VkPipelineLayout meshPipelineLayout;
-    VkPipeline meshPipeline;
-    std::vector<ComputeEffect> backgroundEffects;
-    int currentBackgroundEffect{ 0 };
-
-    // === MESHES (from mesh.cpp) ===
-    GPUMeshBuffers rectangle;
-    AllocatedBuffer vertexBuffer;
-    AllocatedBuffer indexBuffer;
-    uint32_t cubeIndexCount;
     std::vector<std::shared_ptr<MeshAsset>> testMeshes;
+    bool resize_requested = false;
 
-    // === TEXTURES & BINDLESS (from textures.cpp) ===
-    std::vector<AllocatedImage> sceneTextures;
-    uint32_t nextBindlessTextureIndex = 0;
-    uint32_t nextTextureIndex = 0;
-    uint32_t textureCount{ 0 };
+    uint32_t textureCount = 0;
     std::unordered_map<std::string, uint32_t> textureNameIndexMap;
 
-    // === DEFAULT TEXTURES (from init_default_data in engine.cpp) ===
-    AllocatedImage whiteImage;
-    AllocatedImage blackImage;
-    AllocatedImage greyImage;
-    AllocatedImage errrorImage;
-
-    // === SAMPLERS ===
-    VkSampler defaultSamplerLinear;
-    VkSampler defaultSamplerNearest;
-
-    // === IMMEDIATE SUBMIT (from immediate_submit.cpp) ===
-    VkFence immFence;
-    VkCommandBuffer immCommandBuffer;
-    VkCommandPool immCommandPool;
-
-    // === IMGUI (from imgui_integration.cpp) ===
-    VkDescriptorPool imguiDescriptorPool;
-
-    // === UTILITIES ===
-    Utils util;
-    MemoryStats memoryStats;
     Camera mainCamera;
-    bool keys[1024];
-};
+    bool   keys[1024]{};
 
-// ============================================================================
-// GLOBAL ENGINE POINTER
-// ============================================================================
+    // ── Per-frame draw stats — written by draw_geometry, read by debug UI
+    uint32_t lastDrawCalls = 0;
+    uint32_t lastTriangles = 0;
+};
 
 extern Engine* engine;
 
-// ============================================================================
-// INITIALIZATION & CLEANUP (engine.cpp)
-// ============================================================================
+// ─── Function declarations ────────────────────────────────────────────────────
 
-void init(Engine* engine, uint32_t width, uint32_t height);
-void engine_cleanup(Engine* engine);
-void engine_draw_frame(Engine* engine);
+// Init
+void init(Engine* e, uint32_t width, uint32_t height);
+void init_vulkan(Engine* e);
+void init_swapchain(Engine* e, uint32_t width, uint32_t height);
+void init_descriptors(Engine* e);
+void init_samplers(Engine* e);
+void init_commands(Engine* e);
+void init_camera_buffers(Engine* e);
+void init_sync_structures(Engine* e);
+void init_pipelines(Engine* e);
+void init_background_pipelines(Engine* e);
+void init_mesh_pipelines(Engine* e);
+void init_imgui(Engine* e);
 void init_default_data(Engine* e);
-void create_draw_image(Engine* e, uint32_t width, uint32_t height);
-void destroy_draw_image(Engine* e);
+void init_debug_ui(Engine* e);
+void init_depth_image(Engine* e, uint32_t width, uint32_t height);
 
-// ============================================================================
-// VULKAN CORE INITIALIZATION (vulkan_core.cpp)
-// ============================================================================
+// Frame
+FrameData& get_current_frame(Engine* e);
+void engine_draw_frame(Engine* e);
+void update_uniform_buffers(Engine* e);
 
-void init_vulkan(Engine* engine);
+// Draw
+void draw_geometry(Engine* e, VkCommandBuffer cmd);
+void draw_background(VkCommandBuffer cmd, Engine* e);
+void draw_imgui(VkCommandBuffer cmd, VkImageView targetImageView, Engine* e);
 
-// ============================================================================
-// SWAPCHAIN MANAGEMENT (swapchain.cpp)
-// ============================================================================
-
-void init_swapchain(Engine* engine, uint32_t width, uint32_t height);
+// Swapchain
 void create_swapchain(Engine* e, uint32_t width, uint32_t height);
 void destroy_swapchain(Engine* e);
 void resize_swapchain(Engine* e);
 
-// ============================================================================
-// COMMANDS & SYNCHRONIZATION (commands_and_sync.cpp)
-// ============================================================================
+// Draw image
+void create_draw_image(Engine* e, uint32_t width, uint32_t height);
+void destroy_draw_image(Engine* e);
+void destroy_depth_image(Engine* e);
 
-void init_commands(Engine* engine);
-void init_sync_structures(Engine* engine);
-FrameData& get_current_frame(Engine* engine);
+// Cleanup
+void engine_cleanup(Engine* e);
 
+// Buffers
+AllocatedBuffer create_buffer(VmaAllocator allocator, size_t allocSize,
+    VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage);
+void destroy_buffer(const AllocatedBuffer& buffer, Engine* e);
+// destroy_buffer(VmaAllocator) is defined in vulkan_core.cpp
+GPUMeshBuffers uploadMesh(Engine* e, std::span<uint32_t> indices, std::span<Vertex> vertices);
+
+// Images
+AllocatedImage create_image(Engine* e, VkExtent3D size, VkFormat format,
+    VkImageUsageFlags usage, bool mipmapped = false);
+AllocatedImage create_image(void* data, Engine* e, VkExtent3D size, VkFormat format,
+    VkImageUsageFlags usage, bool mipmapped = false);
+void destroy_image(const AllocatedImage& image, Engine* e);
+void upload_texture_to_bindless(Engine* e, AllocatedImage img, VkSampler sampler, uint32_t index);
+
+// Helpers
 VkCommandBufferBeginInfo command_buffer_info(VkCommandBufferUsageFlags flags);
-VkFenceCreateInfo fence_create_info(VkFenceCreateFlags flags);
-VkSemaphoreCreateInfo semaphore_create_info(VkSemaphoreCreateFlags flags);
-VkSemaphoreSubmitInfo semaphore_submit_info(VkPipelineStageFlags2 stageMask, VkSemaphore semaphore);
+VkFenceCreateInfo        fence_create_info(VkFenceCreateFlags flags);
+VkSemaphoreCreateInfo    semaphore_create_info(VkSemaphoreCreateFlags flags);
+VkSemaphoreSubmitInfo    semaphore_submit_info(VkPipelineStageFlags2 stageMask, VkSemaphore semaphore);
 VkCommandBufferSubmitInfo command_buffer_submit_info(VkCommandBuffer cmd);
 VkSubmitInfo2 submit_info(VkCommandBufferSubmitInfo* cmd,
     VkSemaphoreSubmitInfo* signalSemaphoreInfo,
     VkSemaphoreSubmitInfo* waitSemaphoreInfo);
-
-// ============================================================================
-// MEMORY & BUFFER/IMAGE MANAGEMENT (memory.cpp)
-// ============================================================================
-
-AllocatedBuffer create_buffer(VmaAllocator allocator, size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage);
-void destroy_buffer(const AllocatedBuffer& buffer, VmaAllocator allocator);
-
-AllocatedImage create_image(Engine* e, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped = false);
-AllocatedImage create_image(void* data, Engine* e, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped = false);
-void destroy_image(const AllocatedImage& image, Engine* e);
-
 VkRenderingAttachmentInfo attachment_info(VkImageView view, VkClearValue* clear, VkImageLayout layout);
-
-// ============================================================================
-// DESCRIPTORS (descriptors.cpp)
-// ============================================================================
-
-void init_descriptors(Engine* engine);
-
-// ============================================================================
-// PIPELINES (pipelines.cpp)
-// ============================================================================
-
-void init_pipelines(Engine* engine);
-void init_background_pipelines(Engine* engine);
-void init_mesh_pipelines(Engine* e);
-
-
-// ============================================================================
-// MESH MANAGEMENT (mesh.cpp)
-// ============================================================================
-
-GPUMeshBuffers uploadMesh(Engine* e, std::span<uint32_t> indices, std::span<Vertex> vertices);
-
-// ============================================================================
-// TEXTURES & BINDLESS (textures.cpp)
-// ============================================================================
-
-void upload_texture_to_bindless(Engine* e, AllocatedImage img, VkSampler sampler, uint32_t index);
-
-// ============================================================================
-// RENDERING (rendering.cpp)
-// ============================================================================
-
-void draw_background(VkCommandBuffer cmd, Engine* engine);
-void draw_geometry(Engine* e, VkCommandBuffer cmd);
-void draw_imgui(VkCommandBuffer cmd, VkImageView targetImageView, Engine* e);
-
-// ============================================================================
-// IMMEDIATE COMMAND SUBMISSION (immediate_submit.cpp)
-// ============================================================================
-
 void immediate_submit(std::function<void(VkCommandBuffer cmd)>&& function, Engine* e);
 
-// ============================================================================
-// IMGUI INTEGRATION (imgui_integration.cpp)
-// ============================================================================
+void calculateTangents(std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices);
 
-void init_imgui(Engine* e);
+// Misc
+VkFormat find_depth_format(VkPhysicalDevice physicalDevice);
+void init_triangle_pipeline(Engine* e);
+void CreateShaderModule(const char* filePath, Engine* e, VkShaderModule shaderName);

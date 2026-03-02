@@ -66,32 +66,52 @@ void init_vulkan(Engine* e) {
         std::exit(1);
     }
 
-    VkPhysicalDeviceVulkan12Features features12{
-         .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
-         .pNext = nullptr,
-         .descriptorIndexing = VK_TRUE,
-         .shaderInputAttachmentArrayDynamicIndexing = VK_FALSE,
-         .shaderUniformTexelBufferArrayDynamicIndexing = VK_FALSE,
-         .shaderStorageTexelBufferArrayDynamicIndexing = VK_FALSE,
-         .shaderUniformBufferArrayNonUniformIndexing = VK_FALSE,
-         .shaderSampledImageArrayNonUniformIndexing = VK_TRUE,
-         .shaderStorageBufferArrayNonUniformIndexing = VK_FALSE,
-         .shaderStorageImageArrayNonUniformIndexing = VK_FALSE,
-         .shaderInputAttachmentArrayNonUniformIndexing = VK_FALSE,
-         .shaderUniformTexelBufferArrayNonUniformIndexing = VK_FALSE,
-         .shaderStorageTexelBufferArrayNonUniformIndexing = VK_FALSE,
-         .descriptorBindingUniformBufferUpdateAfterBind = VK_TRUE,
-         .descriptorBindingSampledImageUpdateAfterBind = VK_TRUE,
-         .descriptorBindingStorageImageUpdateAfterBind = VK_TRUE,
-         .descriptorBindingStorageBufferUpdateAfterBind = VK_TRUE,
-         .descriptorBindingUniformTexelBufferUpdateAfterBind = VK_FALSE,
-         .descriptorBindingUpdateUnusedWhilePending = VK_TRUE,
-         .descriptorBindingPartiallyBound = VK_TRUE,
-         .descriptorBindingVariableDescriptorCount = VK_TRUE,
-         .runtimeDescriptorArray = VK_TRUE,
-         .bufferDeviceAddress = VK_TRUE,
-
-    };
+    VkPhysicalDeviceVulkan12Features features12{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES };
+    features12.pNext = nullptr;
+    features12.samplerMirrorClampToEdge = VK_FALSE;
+    features12.drawIndirectCount = VK_FALSE;
+    features12.storageBuffer8BitAccess = VK_FALSE;
+    features12.uniformAndStorageBuffer8BitAccess = VK_FALSE;
+    features12.storagePushConstant8 = VK_FALSE;
+    features12.shaderBufferInt64Atomics = VK_FALSE;
+    features12.shaderSharedInt64Atomics = VK_FALSE;
+    features12.descriptorIndexing = VK_TRUE;
+    features12.shaderInputAttachmentArrayDynamicIndexing = VK_FALSE;
+    features12.shaderUniformTexelBufferArrayDynamicIndexing = VK_FALSE;
+    features12.shaderStorageTexelBufferArrayDynamicIndexing = VK_FALSE;
+    features12.shaderUniformBufferArrayNonUniformIndexing = VK_FALSE;
+    features12.shaderSampledImageArrayNonUniformIndexing = VK_TRUE;
+    features12.shaderStorageBufferArrayNonUniformIndexing = VK_FALSE;
+    features12.shaderStorageImageArrayNonUniformIndexing = VK_FALSE;
+    features12.shaderInputAttachmentArrayNonUniformIndexing = VK_FALSE;
+    features12.shaderUniformTexelBufferArrayNonUniformIndexing = VK_FALSE;
+    features12.shaderStorageTexelBufferArrayNonUniformIndexing = VK_FALSE;
+    features12.descriptorBindingUniformBufferUpdateAfterBind = VK_TRUE;
+    features12.descriptorBindingSampledImageUpdateAfterBind = VK_TRUE;
+    features12.descriptorBindingStorageImageUpdateAfterBind = VK_TRUE;
+    features12.descriptorBindingStorageBufferUpdateAfterBind = VK_TRUE;
+    features12.descriptorBindingUniformTexelBufferUpdateAfterBind = VK_FALSE;
+    features12.descriptorBindingUpdateUnusedWhilePending = VK_TRUE;
+    features12.descriptorBindingPartiallyBound = VK_TRUE;
+    features12.descriptorBindingVariableDescriptorCount = VK_TRUE;
+    features12.runtimeDescriptorArray = VK_TRUE;
+    features12.samplerFilterMinmax = VK_FALSE;
+    features12.scalarBlockLayout = VK_TRUE; // This is the one we added!
+    features12.imagelessFramebuffer = VK_FALSE;
+    features12.uniformBufferStandardLayout = VK_FALSE;
+    features12.shaderSubgroupExtendedTypes = VK_FALSE;
+    features12.separateDepthStencilLayouts = VK_FALSE;
+    features12.hostQueryReset = VK_FALSE;
+    features12.timelineSemaphore = VK_FALSE;
+    features12.bufferDeviceAddress = VK_TRUE;
+    features12.shaderOutputViewportIndex = VK_FALSE;
+    features12.shaderOutputLayer = VK_FALSE;
+    features12.vulkanMemoryModel = VK_FALSE;
+    features12.vulkanMemoryModelDeviceScope = VK_FALSE;
+    features12.vulkanMemoryModelAvailabilityVisibilityChains = VK_FALSE;
+    features12.shaderOutputViewportIndex = VK_FALSE;
+    features12.shaderOutputLayer = VK_FALSE;
+    features12.subgroupBroadcastDynamicId = VK_FALSE;
 
     VkPhysicalDeviceVulkan13Features features13{
         .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES,
@@ -136,7 +156,4 @@ void init_vulkan(Engine* e) {
             e->allocator = VK_NULL_HANDLE;
         }
         });
-}
-void destroy_buffer(const AllocatedBuffer& buffer, VmaAllocator allocator) {
-    vmaDestroyBuffer(allocator, buffer.buffer, buffer.allocation);
 }

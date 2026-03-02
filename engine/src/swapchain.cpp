@@ -200,34 +200,99 @@ void init_swapchain(Engine* e, uint32_t width, uint32_t height) {
     std::printf("Swapchain initialized with %zu images\n", e->swapchainImages.size());
 }
 
+
 void resize_swapchain(Engine* e) {
     if (!e->resize_requested) return;
 
+    std::printf("\n");
+    std::printf("🔄 ════════════════════════════════════════════════════════════\n");
     std::printf("🔄 RESIZE SWAPCHAIN: %ux%u\n", e->swapchainExtent.width, e->swapchainExtent.height);
+    std::printf("🔄 ════════════════════════════════════════════════════════════\n");
 
-    // Store the requested size
+    // Store requested size
     uint32_t newWidth = e->swapchainExtent.width;
     uint32_t newHeight = e->swapchainExtent.height;
 
-    // Reset flag immediately to prevent recursion
+    std::printf("📏 Requested dimensions: %ux%u\n", newWidth, newHeight);
+
+    // Reset flag FIRST to prevent recursion
     e->resize_requested = false;
 
-    // Complete GPU sync - CRITICAL!
+    // Sync GPU - CRITICAL!
+    std::printf("⏳ Waiting for GPU idle...\n");
     vkDeviceWaitIdle(e->device);
+    std::printf("✅ GPU idle\n");
 
-    // Destroy old swapchain AND draw image
+    // ==================== DESTROY OLD RESOURCES ====================
+    std::printf("🧹 Destroying old swapchain resources...\n");
+
     destroy_swapchain(e);
-    destroy_draw_image(e);
+    std::printf("  ✓ Swapchain destroyed\n");
 
+    destroy_draw_image(e);
+    std::printf("  ✓ Draw image destroyed\n");
+
+    destroy_depth_image(e);
+    // CRITICAL: Destroy depth image explicitly
     if (e->depthImage.image != VK_NULL_HANDLE) {
+        std::printf("  ✓ Destroying old depth image (handle: %p)\n", (void*)e->depthImage.image);
         destroy_image(e->depthImage, e);
-        e->depthImage = {}; // Zero-initialize after destruction
+        e->depthImage = {};  // Zero-initialize
+        std::printf("  ✓ Old depth image destroyed and zeroed\n");
+    }
+    else {
+        std::printf("  ⚠️  Depth image was already NULL\n");
     }
 
-    // Create new swapchain AND draw image
-    create_swapchain(e, newWidth, newHeight);
-    // Re-create draw image at the new size
-    create_draw_image(e, newWidth, newHeight);
+    // ==================== CREATE NEW RESOURCES ====================
+    std::printf("🔨 Creating new swapchain resources...\n");
 
-    std::printf("✅ Resize complete\n");
+    create_swapchain(e, newWidth, newHeight);
+    std::printf("  ✓ New swapchain created: %ux%u\n", e->swapchainExtent.width, e->swapchainExtent.height);
+
+    create_draw_image(e, newWidth, newHeight);
+    std::printf("  ✓ New draw image created\n");
+
+	init_depth_image(e, e->swapchainExtent.width, e->swapchainExtent.height);
+
+    // ==================== 🔴 CRITICAL: RECREATE DEPTH IMAGE 🔴 ====================
+    std::printf("🎯 Creating NEW DEPTH IMAGE...\n");
+
+    if (e->swapchainExtent.width > 0 && e->swapchainExtent.height > 0) {
+        VkExtent3D depthExtent = { e->swapchainExtent.width, e->swapchainExtent.height, 1 };
+
+        std::printf("   → Dimensions: %ux%u\n", depthExtent.width, depthExtent.height);
+        std::printf("   → Format: VK_FORMAT_D32_SFLOAT\n");
+        std::printf("   → Usage: VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT\n");
+
+        e->depthImage = create_image(e, depthExtent, VK_FORMAT_D32_SFLOAT,
+            VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, false);
+
+        if (e->depthImage.image != VK_NULL_HANDLE) {
+            std::printf("   ✅ Depth image created successfully!\n");
+            std::printf("   ✅ Handle: %p\n", (void*)e->depthImage.image);
+        }
+        else {
+            std::printf("   ❌ FATAL: Depth image creation FAILED! Got NULL handle!\n");
+            std::printf("   ❌ This will cause crashes during rendering!\n");
+        }
+    }
+    else {
+        std::printf("   ❌ FATAL: Invalid swapchain dimensions: %ux%u\n",
+            e->swapchainExtent.width, e->swapchainExtent.height);
+        e->depthImage = {};
+    }
+
+    // Final verification
+    std::printf("\n");
+    std::printf("✅ ════════════════════════════════════════════════════════════\n");
+    std::printf("✅ RESIZE COMPLETE\n");
+    std::printf("✅ Swapchain:  %ux%u (%zu images)\n",
+        e->swapchainExtent.width, e->swapchainExtent.height, e->swapchainImages.size());
+    std::printf("✅ Draw image: %ux%u (%p)\n",
+        e->drawImage.imageExtent.width, e->drawImage.imageExtent.height, (void*)e->drawImage.image);
+    std::printf("✅ Depth image: %ux%u (%p)\n",
+        e->depthImage.imageExtent.width, e->depthImage.imageExtent.height, (void*)e->depthImage.image);
+    std::printf("✅ ════════════════════════════════════════════════════════════\n");
+    std::printf("\n");
 }

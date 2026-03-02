@@ -2,46 +2,65 @@
 #include "graphics_pipeline.h"
 #include "imgui.h"
 #include <glm/ext/matrix_transform.hpp>
+#include <chrono>
 
-// Note: For complete code, see REFACTORING_DETAILED.md with line numbers
-// This file contains: draw_background, draw_geometry, draw_imgui, engine_draw_frame, attachment_info
+// ─── update_uniform_buffers ───────────────────────────────────────────────────
+// Called every frame before draw_geometry.
+// Writes camera data to the CURRENT frame's buffer and updates the descriptor
+// to point to that buffer. UPDATE_AFTER_BIND makes this safe even after binding.
+void update_uniform_buffers(Engine* e)
+{
+    FrameData& frame = get_current_frame(e);
+    float      aspect = (float)e->drawExtent.width / (float)e->drawExtent.height;
 
-// Copy from engine_original.cpp the functions listed in REFACTORING_DETAILED.md:
-// - attachment_info() - lines 819-833
-// - draw_geometry() - lines 1217-1279
-// - draw_background() - lines 1413-1433
-// - draw_imgui() - lines 1434-1451
-// - engine_draw_frame() - lines 1454-1567
+    CameraData cam{};
+    cam.view = e->mainCamera.getViewMatrix();
+    cam.projection = e->mainCamera.getProjectionMatrix(aspect);
+    cam.projection[1][1] *= -1.0f;                          // Vulkan Y-flip
+    cam.viewProjection = cam.projection * cam.view;
+    cam.worldPosition = glm::vec4(e->mainCamera.position, 1.0f);
 
-// These functions handle:
-// - Main frame rendering loop
-// - Command buffer recording
-// - Image layout transitions
-// - Drawing geometry and effects
-// - ImGui rendering
+    // Write to this frame's persistently mapped buffer
+    memcpy(frame.cameraBuffer.info.pMappedData, &cam, sizeof(CameraData));
 
-FrameData& get_current_frame(Engine* e) {
-    return engine->frames[engine->frameNumber % FRAME_OVERLAP];
+    // Update the descriptor to point to THIS frame's buffer.
+    // bindlessSet has UPDATE_AFTER_BIND so this is safe after binding.
+    VkDescriptorBufferInfo bufInfo{};
+    bufInfo.buffer = frame.cameraBuffer.buffer;
+    bufInfo.offset = 0;
+    bufInfo.range = sizeof(CameraData);
+
+    VkWriteDescriptorSet write{};
+    write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    write.dstSet = e->bindlessSet;
+    write.dstBinding = 2;
+    write.dstArrayElement = 0;
+    write.descriptorCount = 1;
+    write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    write.pBufferInfo = &bufInfo;
+
+    vkUpdateDescriptorSets(e->device, 1, &write, 0, nullptr);
 }
 
-
-void draw_geometry(Engine* e, VkCommandBuffer cmd) {
-    // 1. Setup Rendering Info
-    VkRenderingAttachmentInfo colorAttachment = { .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO };
+// ─── draw_geometry ────────────────────────────────────────────────────────────
+void draw_geometry(Engine* e, VkCommandBuffer cmd)
+{
+    // ── Rendering setup ───────────────────────────────────────────────────
+    VkRenderingAttachmentInfo colorAttachment{ .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO };
     colorAttachment.imageView = e->drawImage.imageView;
     colorAttachment.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-    colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD; // Keep the compute stars/background
+    colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;  // keep compute background
     colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 
-    VkRenderingAttachmentInfo depthAttachment = { .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO };
+    VkRenderingAttachmentInfo depthAttachment{ .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO };
     depthAttachment.imageView = e->depthImage.imageView;
-    depthAttachment.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    depthAttachment.imageLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL_KHR;
     depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
     depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-    depthAttachment.clearValue.depthStencil.depth = 1.0f; // Clear to "Far"
+    depthAttachment.clearValue.depthStencil.depth = 1.0f;
 
-    VkRenderingInfo renderInfo = { .sType = VK_STRUCTURE_TYPE_RENDERING_INFO };
-    renderInfo.renderArea = { 0, 0, (uint32_t)e->drawExtent.width, (uint32_t)e->drawExtent.height };
+    VkRenderingInfo renderInfo{ .sType = VK_STRUCTURE_TYPE_RENDERING_INFO };
+    renderInfo.renderArea = { {0, 0}, {e->drawExtent.width, e->drawExtent.height} };
     renderInfo.layerCount = 1;
     renderInfo.colorAttachmentCount = 1;
     renderInfo.pColorAttachments = &colorAttachment;
@@ -49,212 +68,231 @@ void draw_geometry(Engine* e, VkCommandBuffer cmd) {
 
     vkCmdBeginRendering(cmd, &renderInfo);
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, e->meshPipeline);
-
     vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS,
         e->meshPipelineLayout, 0, 1, &e->bindlessSet, 0, nullptr);
-    // ── Camera matrices ───────────────────────────────────────────────────
-    float aspect = (float)e->drawExtent.width / (float)e->drawExtent.height;
-    glm::mat4 view = e->mainCamera.getViewMatrix();
-    glm::mat4 projection = e->mainCamera.getProjectionMatrix(aspect);
-    projection[1][1] *= -1;   // Vulkan Y-flip
 
-    glm::mat4 viewProj = projection * view;
-
-    // Dynamic State
-    VkViewport viewport = { 0, 0, (float)e->drawExtent.width, (float)e->drawExtent.height, 0, 1 };
+    // ── Dynamic state ─────────────────────────────────────────────────────
+    VkViewport viewport{ 0, 0,
+        (float)e->drawExtent.width, (float)e->drawExtent.height, 0.0f, 1.0f };
     vkCmdSetViewport(cmd, 0, 1, &viewport);
-    VkRect2D scissor = { {0, 0}, {e->drawExtent.width, e->drawExtent.height} };
+
+    VkRect2D scissor{ {0, 0}, {e->drawExtent.width, e->drawExtent.height} };
     vkCmdSetScissor(cmd, 0, 1, &scissor);
 
+    // ── Draw meshes ───────────────────────────────────────────────────────
+    uint32_t drawCalls = 0;
+    uint32_t triangles = 0;
+
     for (auto& asset : e->testMeshes) {
+        VkDeviceSize offset = 0;
+        vkCmdBindVertexBuffers(cmd, 0, 1, &asset->meshBuffers.vertexBuffer.buffer, &offset);
+        vkCmdBindIndexBuffer(cmd, asset->meshBuffers.indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
         for (auto& surface : asset->surfaces) {
-            MeshPushConstants push;
-
-            // Static model matrix — orbit the camera instead of spinning the model.
-            // To add per-object transforms later, store them in MeshAsset.
-            glm::mat4 model = glm::mat4(1.0f);
-
-            push.worldMatrix = projection * view * model;
-            push.vertexBuffer = asset->meshBuffers.vertexBufferAddress;
-            push.textureIndex = surface.albedoTextureIndex;
+            MeshPushConstants push{};
+            push.modelMatrix = asset->worldTransform;
+            push.albedoIndex = surface.albedoIndex;
+            push.normalIndex = surface.normalIndex;
+            push.metalRoughIndex = surface.metallicRoughnessIndex;
+            push.aoIndex = surface.aoIndex;
+            push.emissiveIndex = surface.emissiveIndex;
+            push.metallicFactor = 1.0f;  // Keep low for non-metal
+            push.roughnessFactor = 1.0f; // ← FIXED: LOWER = SHINY/LESS GREY DIFFUSE
+            push.pad = 0.0f;
+            push.colorFactor = surface.colorFactor;
+            push.sunDirection = normalize(glm::vec3(0.3f, 1.0f, 0.4f));
+            push.sunColor = glm::vec3(1.0f, 0.98f, 0.95f); // ← FIXED: WARM WHITE (not dark blue)
+            push.sunIntensity = 3.0f; // ← FIXED: HIGHER = BRIGHTER (play up to 100 if needed)
+            push.normalStrength = 1.0f; // ← FIXED: STRONGER BUMPS
             vkCmdPushConstants(cmd, e->meshPipelineLayout,
                 VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
                 0, sizeof(MeshPushConstants), &push);
-
-            vkCmdBindIndexBuffer(cmd, asset->meshBuffers.indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
             vkCmdDrawIndexed(cmd, surface.count, 1, surface.startIndex, 0, 0);
+            std::cout << "Draw call: albedoIdx=" << push.albedoIndex
+                << " normalIdx=" << push.normalIndex
+                << " metalRoughIdx=" << push.metalRoughIndex
+                << " aoIdx=" << push.aoIndex
+                << " emissiveIdx=" << push.emissiveIndex << "\n";
+            drawCalls++;
+            triangles += surface.count / 3;
         }
     }
 
+    // Expose stats to debug UI
+    e->lastDrawCalls = drawCalls;
+    e->lastTriangles = triangles;
+
     vkCmdEndRendering(cmd);
 }
-void draw_background(VkCommandBuffer cmd, Engine* e) {
+
+// ─── draw_background ─────────────────────────────────────────────────────────
+void draw_background(VkCommandBuffer cmd, Engine* e)
+{
     ComputeEffect& effect = e->backgroundEffects[e->currentBackgroundEffect];
 
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, effect.pipeline);
-
-    // FIX: Bind 'bindlessSet', not 'drawImageDescriptors'
     vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE,
-        e->gradientPipelineLayout, 0, 1,
-        &e->bindlessSet, 0, nullptr);
+        e->gradientPipelineLayout, 0, 1, &e->bindlessSet, 0, nullptr);
+    vkCmdPushConstants(cmd, e->gradientPipelineLayout,
+        VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(ScenePushConstants), &effect.effectData);
 
-    vkCmdPushConstants(cmd,
-        e->gradientPipelineLayout,
-        VK_SHADER_STAGE_COMPUTE_BIT,
-        0,
-        sizeof(ScenePushConstants),
-        &effect.effectData);
-
-    uint32_t dispatchX = (e->drawImage.imageExtent.width + 15) / 16;
-    uint32_t dispatchY = (e->drawImage.imageExtent.height + 15) / 16;
-    vkCmdDispatch(cmd, dispatchX, dispatchY, 1);
+    uint32_t dx = (e->drawImage.imageExtent.width + 15) / 16;
+    uint32_t dy = (e->drawImage.imageExtent.height + 15) / 16;
+    vkCmdDispatch(cmd, dx, dy, 1);
 }
 
+// ─── draw_imgui ───────────────────────────────────────────────────────────────
 void draw_imgui(VkCommandBuffer cmd, VkImageView targetImageView, Engine* e)
 {
     ImGui_ImplVulkan_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-
-    debug_ui_render();
+    debug_ui_render(e);
 
     ImGui::Render();
 
-    VkRenderingAttachmentInfo colorAttachment = attachment_info(targetImageView, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-    VkRenderingInfo renderInfo = e->util.rendering_info(e->swapchainExtent, &colorAttachment, nullptr);
+    VkRenderingAttachmentInfo colorAttachment = attachment_info(
+        targetImageView, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+    VkRenderingInfo renderInfo = e->util.rendering_info(
+        e->swapchainExtent, &colorAttachment, nullptr);
 
     vkCmdBeginRendering(cmd, &renderInfo);
     ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cmd);
     vkCmdEndRendering(cmd);
 }
 
-void engine_draw_frame(Engine* e) {
-    // ── Update camera first — computes delta time and FPS movement ─────────
+// ─── engine_draw_frame ────────────────────────────────────────────────────────
+void engine_draw_frame(Engine* e)
+{
+    // Delta time
+    static auto lastTime = std::chrono::high_resolution_clock::now();
+    auto  now = std::chrono::high_resolution_clock::now();
+    e->deltaTime = std::chrono::duration<float>(now - lastTime).count();
+    lastTime = now;
+
+    debug_ui_update(e->deltaTime);
     e->mainCamera.update(e->window);
 
-    // Handle resize BEFORE anything else
     if (e->resize_requested) {
         resize_swapchain(e);
-        // If we just resized, skip this frame to avoid sync issues
         if (e->resize_requested) return;
     }
-
-    // If swapchain is invalid (minimized), skip frame
-    if (e->swapchain == VK_NULL_HANDLE || e->swapchainImages.empty()) {
-        return;
-    }
+    if (e->swapchain == VK_NULL_HANDLE || e->swapchainImages.empty()) return;
 
     FrameData& frame = get_current_frame(e);
 
-    // Wait for previous frame to complete
     VK_CHECK(vkWaitForFences(e->device, 1, &frame.renderFence, VK_TRUE, UINT64_MAX));
     VK_CHECK(vkResetFences(e->device, 1, &frame.renderFence));
     VK_CHECK(vkResetCommandPool(e->device, frame.commandPool, 0));
 
     uint32_t swapchainImageIndex;
     VkResult acquireResult = vkAcquireNextImageKHR(
-        e->device,
-        e->swapchain,
-        UINT64_MAX,
-        frame.swapchainSemaphore,  // Use frame semaphore, not global
-        VK_NULL_HANDLE,
-        &swapchainImageIndex
-    );
+        e->device, e->swapchain, UINT64_MAX,
+        frame.swapchainSemaphore, VK_NULL_HANDLE, &swapchainImageIndex);
 
-    // Handle swapchain out-of-date immediately
-    if (acquireResult == VK_ERROR_OUT_OF_DATE_KHR || acquireResult == VK_SUBOPTIMAL_KHR) {
+    if (acquireResult == VK_ERROR_OUT_OF_DATE_KHR ||
+        acquireResult == VK_SUBOPTIMAL_KHR) {
         e->resize_requested = true;
-        std::printf("🔄 Acquire indicated resize needed\n");
         return;
     }
-    else if (acquireResult != VK_SUCCESS) {
-        std::printf("❌ Acquire failed: %d\n", acquireResult);
-        return;
-    }
+    if (acquireResult != VK_SUCCESS) return;
 
     VkCommandBuffer cmd = frame.mainCommandBuffer;
     VK_CHECK(vkResetCommandBuffer(cmd, 0));
 
-    VkCommandBufferBeginInfo cmdBeginInfo = command_buffer_info(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
-    VK_CHECK(vkBeginCommandBuffer(cmd, &cmdBeginInfo));
+    VkCommandBufferBeginInfo beginInfo = command_buffer_info(
+        VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+    VK_CHECK(vkBeginCommandBuffer(cmd, &beginInfo));
 
-    // ... thy existing rendering code here (UNCHANGED) ...
-    transition_image(cmd, e->drawImage.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
+    // ── Upload uniforms ───────────────────────────────────────────────────
+    update_uniform_buffers(e);
+
+    // ── Render ───────────────────────────────────────────────────────────
+    transition_image(cmd, e->drawImage.image,
+        VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
+
     draw_background(cmd, e);
-    transition_image(cmd, e->drawImage.image, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-    VkImageMemoryBarrier2 depthBarrier = { .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2 };
+
+    transition_image(cmd, e->drawImage.image,
+        VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
+    // Depth barrier
+    VkImageMemoryBarrier2 depthBarrier{ .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2 };
     depthBarrier.image = e->depthImage.image;
     depthBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    depthBarrier.newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-    depthBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT; // Required for Depth formats
-    depthBarrier.subresourceRange.levelCount = 1;
-    depthBarrier.subresourceRange.layerCount = 1;
+    depthBarrier.newLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL_KHR;
+    depthBarrier.srcStageMask = VK_PIPELINE_STAGE_2_NONE;
+    depthBarrier.dstStageMask = VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT;
+    depthBarrier.srcAccessMask = 0;
+    depthBarrier.dstAccessMask = VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_READ_BIT
+        | VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+    depthBarrier.subresourceRange = { VK_IMAGE_ASPECT_DEPTH_BIT, 0, 1, 0, 1 };
 
-    VkDependencyInfo dep = { .sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO };
-    dep.pImageMemoryBarriers = &depthBarrier;
+    VkDependencyInfo dep{ .sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO };
     dep.imageMemoryBarrierCount = 1;
+    dep.pImageMemoryBarriers = &depthBarrier;
     vkCmdPipelineBarrier2(cmd, &dep);
 
     draw_geometry(e, cmd);
-    transition_image(cmd, e->drawImage.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-    transition_image(cmd, e->swapchainImages[swapchainImageIndex], VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-    copy_image_to_image(cmd, e->drawImage.image, e->swapchainImages[swapchainImageIndex],
-        VkExtent3D{ e->drawImage.imageExtent.width, e->drawImage.imageExtent.height, 1 },
-        e->swapchainExtent);
-    transition_image(cmd, e->swapchainImages[swapchainImageIndex], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
+    // ── Blit to swapchain ─────────────────────────────────────────────────
+    transition_image(cmd, e->drawImage.image,
+        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+    transition_image(cmd, e->swapchainImages[swapchainImageIndex],
+        VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+    copy_image_to_image(cmd,
+        e->drawImage.image, e->swapchainImages[swapchainImageIndex],
+        e->drawImage.imageExtent, e->swapchainExtent);
+
+    transition_image(cmd, e->swapchainImages[swapchainImageIndex],
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
     draw_imgui(cmd, e->swapchainImageViews[swapchainImageIndex], e);
-    transition_image(cmd, e->swapchainImages[swapchainImageIndex], VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+
+    transition_image(cmd, e->swapchainImages[swapchainImageIndex],
+        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
     VK_CHECK(vkEndCommandBuffer(cmd));
 
-    // Submit using FRAME semaphores, not global ones
+    // ── Submit ────────────────────────────────────────────────────────────
     VkCommandBufferSubmitInfo cmdInfo = command_buffer_submit_info(cmd);
-    VkSemaphoreSubmitInfo waitInfo = semaphore_submit_info(
-        VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
-        frame.swapchainSemaphore  // Wait on acquire
-    );
-    VkSemaphoreSubmitInfo signalInfo = semaphore_submit_info(
-        VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT,
-        frame.renderSemaphore     // Signal when done
-    );
+    VkSemaphoreSubmitInfo     waitInfo = semaphore_submit_info(
+        VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT, frame.swapchainSemaphore);
+    VkSemaphoreSubmitInfo     signalInfo = semaphore_submit_info(
+        VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT, frame.renderSemaphore);
 
-    VkSubmitInfo2 submit = submit_info(&cmdInfo, &signalInfo, &waitInfo);
-    VK_CHECK(vkQueueSubmit2(e->graphicsQueue, 1, &submit, frame.renderFence));
+    VkSubmitInfo2 submitInfo = submit_info(&cmdInfo, &signalInfo, &waitInfo);
+    VK_CHECK(vkQueueSubmit2(e->graphicsQueue, 1, &submitInfo, frame.renderFence));
 
-    // Present
+    // ── Present ───────────────────────────────────────────────────────────
     VkPresentInfoKHR presentInfo{};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
     presentInfo.waitSemaphoreCount = 1;
-    presentInfo.pWaitSemaphores = &frame.renderSemaphore;  // Wait on render complete
+    presentInfo.pWaitSemaphores = &frame.renderSemaphore;
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = &e->swapchain;
     presentInfo.pImageIndices = &swapchainImageIndex;
 
     VkResult presentResult = vkQueuePresentKHR(e->graphicsQueue, &presentInfo);
-
-    if (presentResult == VK_ERROR_OUT_OF_DATE_KHR || presentResult == VK_SUBOPTIMAL_KHR) {
+    if (presentResult == VK_ERROR_OUT_OF_DATE_KHR ||
+        presentResult == VK_SUBOPTIMAL_KHR) {
         e->resize_requested = true;
-        std::printf("🔄 Present indicated resize needed\n");
-    }
-    else if (presentResult != VK_SUCCESS) {
-        std::printf("❌ Present failed: %d\n", presentResult);
     }
 
     e->frameNumber++;
 }
 
-VkRenderingAttachmentInfo attachment_info(VkImageView view, VkClearValue* clear, VkImageLayout layout)
+// ─── attachment_info ─────────────────────────────────────────────────────────
+VkRenderingAttachmentInfo attachment_info(VkImageView view, VkClearValue* clear,
+    VkImageLayout layout)
 {
-    VkRenderingAttachmentInfo colorAttachment{};
-    colorAttachment.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
-    colorAttachment.pNext = nullptr;
-    colorAttachment.imageView = view;
-    colorAttachment.imageLayout = layout;
-    colorAttachment.loadOp = clear ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD;
-    colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-    if (clear) {
-        colorAttachment.clearValue = *clear;
-    }
-    return colorAttachment;
+    VkRenderingAttachmentInfo info{};
+    info.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
+    info.imageView = view;
+    info.imageLayout = layout;
+    info.loadOp = clear ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD;
+    info.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    if (clear) info.clearValue = *clear;
+    return info;
 }
