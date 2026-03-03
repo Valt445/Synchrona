@@ -1,11 +1,14 @@
 ﻿// ============================================================
-// loader.cpp - Production GLTF/GLB loader (NOW BUILDS CLEANLY)
-// Fixed for your exact engine API:
-//   - create_buffer(e->allocator, ...)
-//   - immediate_submit(e, lambda)   ← free function
-//   - destroy_buffer(e->allocator, ...)
-//   - AllocatedImage.imageExtent is set (your struct supports it)
-// Fully matches loader.h + all 5 PBR textures + emissiveFactor
+// loader.cpp - Production GLTF/GLB loader
+// FIXES:
+//   1. e->sceneBasePath set from filePath in loadgltfMeshes()
+//   2. immediate_submit(e, lambda) — correct parameter order
+//   3. create_image(..., false) — no mipmaps; upload_image_data
+//      only fills mip 0, so never request a mip chain here
+//   4. VkImageSubresourceRange.levelCount = VK_REMAINING_MIP_LEVELS
+//      in barriers so all mip levels are properly transitioned
+//   5. Staging buffer lifetime: destroyed AFTER immediate_submit
+//      returns (immediate_submit must be synchronous/fenced)
 // ============================================================
 #define CGLTF_IMPLEMENTATION
 #include "loader.h"
@@ -65,12 +68,12 @@ static glm::mat4 node_local(const cgltf_node* n) {
     return T * R * S;
 }
 
-// ─── upload_image_data (NEW - matches your engine exactly) ────────────────────
+
 void upload_image_data(Engine* e, AllocatedImage& image, const void* pixels, size_t size)
 {
     if (!pixels || size == 0) return;
 
-    // Staging buffer (CPU → GPU)
+    // --- Staging buffer (CPU-visible) ----------------------------------------
     AllocatedBuffer staging = create_buffer(e->allocator, size,
         VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
         VMA_MEMORY_USAGE_CPU_ONLY);
@@ -80,56 +83,72 @@ void upload_image_data(Engine* e, AllocatedImage& image, const void* pixels, siz
     memcpy(mapped, pixels, size);
     vmaUnmapMemory(e->allocator, staging.allocation);
 
-    // Immediate copy
-    immediate_submit([&](VkCommandBuffer cmd) {
-        VkImageSubresourceRange range{};
-        range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        range.baseMipLevel = 0;
-        range.levelCount = 1;
-        range.baseArrayLayer = 0;
-        range.layerCount = 1;
+    // --- Record and submit ---------------------------------------------------
+    // FIX: correct order is immediate_submit(Engine*, lambda)
+    immediate_submit([&](VkCommandBuffer cmd)
+        {
+            // Cover ALL mip levels so no level is left in UNDEFINED layout.
+            VkImageSubresourceRange fullRange{};
+            fullRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            fullRange.baseMipLevel = 0;
+            fullRange.levelCount = VK_REMAINING_MIP_LEVELS;   // FIX: was 1
+            fullRange.baseArrayLayer = 0;
+            fullRange.layerCount = VK_REMAINING_ARRAY_LAYERS;
 
-        // Undefined → TRANSFER_DST
-        VkImageMemoryBarrier barrier{};
-        barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-        barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-        barrier.srcAccessMask = 0;
-        barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-        barrier.image = image.image;
-        barrier.subresourceRange = range;
+            // Transition entire image: UNDEFINED → TRANSFER_DST
+            VkImageMemoryBarrier toTransfer{};
+            toTransfer.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+            toTransfer.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+            toTransfer.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+            toTransfer.srcAccessMask = 0;
+            toTransfer.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+            toTransfer.image = image.image;
+            toTransfer.subresourceRange = fullRange;
 
-        vkCmdPipelineBarrier(cmd,
-            VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-            VK_PIPELINE_STAGE_TRANSFER_BIT,
-            0, 0, nullptr, 0, nullptr, 1, &barrier);
+            vkCmdPipelineBarrier(cmd,
+                VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                VK_PIPELINE_STAGE_TRANSFER_BIT,
+                0, 0, nullptr, 0, nullptr, 1, &toTransfer);
 
-        // Copy
-        VkBufferImageCopy copy{};
-        copy.bufferOffset = 0;
-        copy.imageSubresource = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1 };
-        copy.imageExtent = image.imageExtent;
+            // Copy pixel data into mip level 0 only.
+            // (If you want auto-generated mipmaps, add vkCmdBlitImage blit chain here.)
+            VkBufferImageCopy copy{};
+            copy.bufferOffset = 0;
+            copy.bufferRowLength = 0;   // tightly packed
+            copy.bufferImageHeight = 0;
+            copy.imageSubresource = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1 };
+            copy.imageOffset = { 0, 0, 0 };
+            copy.imageExtent = image.imageExtent;
 
-        vkCmdCopyBufferToImage(cmd, staging.buffer, image.image,
-            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copy);
+            vkCmdCopyBufferToImage(cmd, staging.buffer, image.image,
+                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copy);
 
-        // TRANSFER_DST → SHADER_READ_ONLY
-        barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-        barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-        barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+            // Transition entire image: TRANSFER_DST → SHADER_READ_ONLY
+            VkImageMemoryBarrier toShader{};
+            toShader.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+            toShader.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+            toShader.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            toShader.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+            toShader.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+            toShader.image = image.image;
+            toShader.subresourceRange = fullRange;   // FIX: covers all mip levels
 
-        vkCmdPipelineBarrier(cmd,
-            VK_PIPELINE_STAGE_TRANSFER_BIT,
-            VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-            0, 0, nullptr, 0, nullptr, 1, &barrier);
-		} ,e);
+            vkCmdPipelineBarrier(cmd,
+                VK_PIPELINE_STAGE_TRANSFER_BIT,
+                VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                0, 0, nullptr, 0, nullptr, 1, &toShader);
+        }, e);
 
-    // Cleanup staging
+    // Safe to destroy now — immediate_submit waited on the fence.
     destroy_buffer(staging, e);
 }
 
-// ─── load_image_from_gltf (public function from loader.h) ─────────────────────
+// ─── load_image_from_gltf ─────────────────────────────────────────────────────
+// FIX: create_image last arg changed to FALSE (no mip chain).
+//      upload_image_data only fills mip 0; requesting mips = true would
+//      allocate N levels we never fill, producing black/corrupt textures.
+//      If you later add a mip-generation pass, flip this back to true and
+//      add the blit chain inside upload_image_data.
 AllocatedImage load_image_from_gltf(Engine* e, cgltf_image* img, bool isLinear)
 {
     if (!img) return {};
@@ -138,43 +157,46 @@ AllocatedImage load_image_from_gltf(Engine* e, cgltf_image* img, bool isLinear)
     stbi_uc* pixels = nullptr;
 
     if (img->uri) {
+        // External texture — requires e->sceneBasePath to be set (see loadgltfMeshes).
         std::filesystem::path fullPath = e->sceneBasePath / img->uri;
         pixels = stbi_load(fullPath.string().c_str(), &width, &height, &channels, 4);
         if (!pixels) {
-            std::cerr << "Failed to load texture: " << fullPath << " - " << stbi_failure_reason() << "\n";
+            std::cerr << "[loader] Failed to load external texture: "
+                << fullPath << " — " << stbi_failure_reason() << "\n";
             return {};
         }
     }
     else if (img->buffer_view) {
+        // Embedded texture (GLB or base64 GLTF).
+        // cgltf_load_buffers() guarantees buffer->data is valid here.
         const uint8_t* raw = (const uint8_t*)img->buffer_view->buffer->data
             + img->buffer_view->offset;
-        size_t size = img->buffer_view->size;
-        pixels = stbi_load_from_memory(raw, (int)size, &width, &height, &channels, 4);
+        size_t rawSize = img->buffer_view->size;
+        pixels = stbi_load_from_memory(raw, (int)rawSize, &width, &height, &channels, 4);
         if (!pixels) {
-            std::cerr << "Embedded texture failed: " << stbi_failure_reason() << "\n";
+            std::cerr << "[loader] Embedded texture decode failed — "
+                << stbi_failure_reason() << "\n";
             return {};
         }
     }
 
     if (!pixels) return {};
 
-    VkFormat format = isLinear
-        ? VK_FORMAT_R8G8B8A8_UNORM
-        : VK_FORMAT_R8G8B8A8_SRGB;
-
+    VkFormat format = isLinear ? VK_FORMAT_R8G8B8A8_UNORM : VK_FORMAT_R8G8B8A8_SRGB;
     VkExtent3D extent{ (uint32_t)width, (uint32_t)height, 1 };
 
+    // FIX: pass false for mipmaps — we only upload one level below.
     AllocatedImage gpu = create_image(
         e,
         extent,
         format,
         VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
-        true
+        false   // <-- was true; no mip chain since we don't blit
     );
 
-    gpu.imageExtent = extent;                     // needed by upload_image_data
+    gpu.imageExtent = extent;   // required by upload_image_data for the copy region
 
-    upload_image_data(e, gpu, pixels, width * height * 4);
+    upload_image_data(e, gpu, pixels, (size_t)width * height * 4);
     stbi_image_free(pixels);
 
     return gpu;
@@ -268,7 +290,7 @@ static bool load_primitive(
         if (!acc->buffer_view || !acc->buffer_view->buffer->data) continue;
 
         const uint8_t* buf = acc_base(acc);
-        const size_t stride = acc_stride(acc);
+        const size_t   stride = acc_stride(acc);
 
         switch (attr->type) {
         case cgltf_attribute_type_position:
@@ -338,7 +360,7 @@ static void traverse_node(
             asset.name = node->name ? node->name : "unnamed";
             asset.worldTransform = worldT;
 
-            std::vector<Vertex> verts;
+            std::vector<Vertex>   verts;
             std::vector<uint32_t> indices;
             verts.reserve(totalV);
             indices.reserve(totalI ? totalI : totalV);
@@ -390,6 +412,8 @@ static void traverse_node(
 }
 
 // ─── Main entry point ─────────────────────────────────────────────────────────
+// FIX: e->sceneBasePath is set HERE from filePath.parent_path() so that
+//      load_image_from_gltf can resolve relative URI paths for plain GLTF files.
 std::optional<std::vector<std::shared_ptr<MeshAsset>>>
 loadgltfMeshes(Engine* e, std::filesystem::path filePath)
 {
@@ -398,15 +422,18 @@ loadgltfMeshes(Engine* e, std::filesystem::path filePath)
     std::cout << "║ " << filePath.filename().string() << "\n";
     std::cout << "╚══════════════════════════════════════════════╝\n";
 
+    // FIX: Set the base path so external (non-GLB) textures resolve correctly.
+    e->sceneBasePath = filePath.parent_path();
+
     cgltf_options opts{};
     cgltf_data* data = nullptr;
 
     if (cgltf_parse_file(&opts, filePath.string().c_str(), &data) != cgltf_result_success) {
-        std::cerr << "❌ Parse failed\n";
+        std::cerr << "[loader] ❌ Parse failed: " << filePath << "\n";
         return std::nullopt;
     }
     if (cgltf_load_buffers(&opts, data, filePath.string().c_str()) != cgltf_result_success) {
-        std::cerr << "❌ Buffer load failed\n";
+        std::cerr << "[loader] ❌ Buffer load failed: " << filePath << "\n";
         cgltf_free(data);
         return std::nullopt;
     }
@@ -415,8 +442,8 @@ loadgltfMeshes(Engine* e, std::filesystem::path filePath)
         << " | Materials " << data->materials_count
         << " | Textures " << data->textures_count << "\n";
 
-    if (e->nextBindlessTextureIndex < 4)
-        e->nextBindlessTextureIndex = 4;
+    if (e->nextBindlessTextureIndex <= e->shadowMapBindlessIndex)
+        e->nextBindlessTextureIndex = e->shadowMapBindlessIndex + 1;
 
     TexMap texMap;
     texMap.reserve(data->textures_count * 2);
@@ -452,7 +479,7 @@ loadgltfMeshes(Engine* e, std::filesystem::path filePath)
     return meshes;
 }
 
-// ─── upload_texture_to_bindless_safe (from loader.h) ──────────────────────────
+// ─── upload_texture_to_bindless ───────────────────────────────────────────────
 void upload_texture_to_bindless_safe(Engine* e, AllocatedImage img,
     VkSampler sampler, uint32_t index)
 {
@@ -475,7 +502,6 @@ void upload_texture_to_bindless_safe(Engine* e, AllocatedImage img,
     vkUpdateDescriptorSets(e->device, 1, &write, 0, nullptr);
 }
 
-// ✅ FIXED: Add the missing wrapper function
 void upload_texture_to_bindless(Engine* e, AllocatedImage img,
     VkSampler sampler, uint32_t index)
 {

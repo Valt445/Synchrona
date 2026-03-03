@@ -1,23 +1,278 @@
-#version 450
-layout (local_size_x = 16, local_size_y = 16) in;
+﻿// ============================================================
+// sky_atmo.comp  —  Physically-based atmospheric sky
+//
+// Implements:
+//   • Rayleigh scattering   (wavelength-dependent blue sky)
+//   • Mie scattering        (sun halo / glow, slightly off-white)
+//   • Ozone absorption      (desaturates the zenith toward teal)
+//   • Sun disk              (hard limb with soft corona)
+//   • Horizon haze gradient (aerial perspective fog bank)
+//   • Night sky fade        (smooth dusk/dawn transition)
+//
+// Push constants (reuses your existing ScenePushConstants):
+//   data1.xyz  = sunDirection  (normalised world-space, Y = up)
+//   data1.w    = sunIntensity  (1.0 = Earth noon)
+//   data2.x    = turbidity     (2.0 = crystal clear, 10.0 = hazy)
+//   data2.y    = exposure      (1.0 default)
+//   data2.z    = horizonBlend  (0.0–1.0 haze thickness)
+//   data2.w    = time          (unused, reserved)
+// ============================================================
+#version 460
 
-// Use Binding 1 for Storage (Writing)
-layout(set = 0, binding = 1, rgba16f) uniform image2D image;
+layout(local_size_x = 16, local_size_y = 16) in;
 
-layout(push_constant) uniform constants {
-    vec4 data1;
-    vec4 data2;
-    vec4 data3;
-    vec4 data4;
+// Bindless set — drawImage is at binding 1 (storage image, slot 0 in your engine)
+layout(set = 0, binding = 1, rgba16f) uniform image2D outImage;
+
+layout(push_constant) uniform PushConstants {
+    vec4 data1;   // xyz = sunDir, w = sunIntensity
+    vec4 data2;   // x = turbidity, y = exposure, z = horizonBlend, w = time
+    vec4 data3;   // reserved
+    vec4 data4;   // reserved
 } pc;
 
-void main() {
-    ivec2 pixel = ivec2(gl_GlobalInvocationID.xy);
-    ivec2 size  = imageSize(image);
-    
-    if(pixel.x < size.x && pixel.y < size.y) {
-        float background = float(pixel.y) / float(size.y);
-        vec3 color = pc.data1.xyz * background;
-        imageStore(image, pixel, vec4(color, 1.0));
+// ─── Constants ────────────────────────────────────────────────────────────────
+const float PI      = 3.14159265359;
+const float PI2     = PI * 2.0;
+const float iPI     = 1.0 / PI;
+
+// Rayleigh scattering coefficients at sea level for RGB (λ = 680, 550, 440 nm)
+const vec3  RAYLEIGH_BETA   = vec3(5.8e-6, 13.5e-6, 33.1e-6);
+// Mie scattering coefficient — tweakable via turbidity
+const float MIE_BETA_BASE   = 2.0e-5;
+// Ozone absorption (approximate)
+const vec3  OZONE_BETA      = vec3(3.426e-7, 8.298e-7, 0.356e-7);
+
+// Atmosphere shell
+const float EARTH_RADIUS    = 6371e3;        // metres
+const float ATM_RADIUS      = 6471e3;        // top of atmosphere
+const float H_RAYLEIGH      = 8500.0;        // scale height Rayleigh
+const float H_MIE           = 1200.0;        // scale height Mie
+const float H_OZONE_CENTER  = 25000.0;       // ozone layer peak
+const float H_OZONE_WIDTH   = 15000.0;       // ozone layer half-width
+
+const int   STEPS           = 16;            // primary ray samples
+const int   LIGHT_STEPS     = 8;             // secondary (sun) ray samples
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+// Ray–sphere intersection. Returns (tMin, tMax). tMin < 0 means behind origin.
+vec2 raySphere(vec3 ro, vec3 rd, float radius) {
+    float b = dot(ro, rd);
+    float c = dot(ro, ro) - radius * radius;
+    float d = b * b - c;
+    if (d < 0.0) return vec2(1e10, -1e10);   // no intersection
+    float s = sqrt(d);
+    return vec2(-b - s, -b + s);
+}
+
+// Atmosphere density at altitude h (metres)
+void atmosphere_density(float h, out float rho_r, out float rho_m, out float rho_o) {
+    rho_r = exp(-h / H_RAYLEIGH);
+    rho_m = exp(-h / H_MIE);
+    // Ozone: tent function centered at H_OZONE_CENTER
+    rho_o = max(0.0, 1.0 - abs(h - H_OZONE_CENTER) / H_OZONE_WIDTH);
+}
+
+// Mie phase function (Cornette-Shanks)
+float phaseMie(float cosTheta, float g) {
+    float g2  = g * g;
+    float num = (1.0 - g2) * (1.0 + cosTheta * cosTheta);
+    float den = (2.0 + g2) * pow(abs(1.0 + g2 - 2.0 * g * cosTheta), 1.5);
+    return (3.0 / (8.0 * PI)) * num / den;
+}
+
+// Rayleigh phase function
+float phaseRayleigh(float cosTheta) {
+    return (3.0 / (16.0 * PI)) * (1.0 + cosTheta * cosTheta);
+}
+
+// ─── Main scattering integration ──────────────────────────────────────────────
+vec3 computeSky(vec3 rayDir, vec3 sunDir, float sunIntensity, float turbidity) {
+
+    float cosTheta    = dot(rayDir, sunDir);
+    float g           = 0.76;  // Mie asymmetry — controls how tight the halo is
+
+    vec3  mieBeta     = vec3(MIE_BETA_BASE * turbidity);
+    vec3  sunIrr      = vec3(sunIntensity);  // white sunlight (spectral split below)
+
+    // Camera sits on Earth's surface
+    vec3  ro          = vec3(0.0, EARTH_RADIUS + 1.0, 0.0);
+    vec2  atmHit      = raySphere(ro, rayDir, ATM_RADIUS);
+
+    // Ray doesn't hit atmosphere (shouldn't happen for upward rays, guard anyway)
+    if (atmHit.x > atmHit.y) return vec3(0.0);
+
+    float tMin = max(atmHit.x, 0.0);
+    float tMax = atmHit.y;
+
+    // Primary ray march
+    float segLen       = (tMax - tMin) / float(STEPS);
+    float t            = tMin + segLen * 0.5;
+
+    vec3  accumR       = vec3(0.0);   // Rayleigh in-scatter
+    vec3  accumM       = vec3(0.0);   // Mie in-scatter
+    vec3  optDepthR    = vec3(0.0);   // optical depth accumulators
+    vec3  optDepthM    = vec3(0.0);
+    vec3  optDepthO    = vec3(0.0);
+
+    for (int i = 0; i < STEPS; i++) {
+        vec3  pos  = ro + rayDir * t;
+        float h    = length(pos) - EARTH_RADIUS;
+
+        float rho_r, rho_m, rho_o;
+        atmosphere_density(h, rho_r, rho_m, rho_o);
+
+        // Accumulate optical depth for this segment
+        vec3  segR = RAYLEIGH_BETA * rho_r * segLen;
+        vec3  segM = mieBeta       * rho_m * segLen;
+        vec3  segO = OZONE_BETA    * rho_o * segLen;
+        optDepthR += segR;
+        optDepthM += segM;
+        optDepthO += segO;
+
+        // Secondary ray toward the sun
+        vec2  sunHit = raySphere(pos, sunDir, ATM_RADIUS);
+        float sunSegLen = sunHit.y / float(LIGHT_STEPS);
+        float ts        = sunSegLen * 0.5;
+
+        vec3 optDepthSunR = vec3(0.0);
+        vec3 optDepthSunM = vec3(0.0);
+        vec3 optDepthSunO = vec3(0.0);
+
+        for (int j = 0; j < LIGHT_STEPS; j++) {
+            vec3  sunPos = pos + sunDir * ts;
+            float sunH   = length(sunPos) - EARTH_RADIUS;
+            if (sunH < 0.0) { optDepthSunR = vec3(1e10); break; } // below horizon
+
+            float sr, sm, so;
+            atmosphere_density(sunH, sr, sm, so);
+            optDepthSunR += RAYLEIGH_BETA * sr * sunSegLen;
+            optDepthSunM += mieBeta       * sm * sunSegLen;
+            optDepthSunO += OZONE_BETA    * so * sunSegLen;
+            ts           += sunSegLen;
+        }
+
+        // Transmittance along primary + secondary path
+        vec3 tau     = optDepthR + optDepthSunR
+                     + optDepthM + optDepthSunM
+                     + optDepthO + optDepthSunO;
+        vec3 transmit = exp(-tau);
+
+        accumR += transmit * rho_r * segLen;
+        accumM += transmit * rho_m * segLen;
+
+        t += segLen;
     }
+
+    // Phase functions
+    float phR = phaseRayleigh(cosTheta);
+    float phM = phaseMie(cosTheta, g);
+
+    vec3 scatter = sunIrr * (
+        phR * RAYLEIGH_BETA * accumR +
+        phM * mieBeta       * accumM
+    );
+
+    return scatter;
+}
+
+// ─── Sun disk ─────────────────────────────────────────────────────────────────
+vec3 sunDisk(vec3 rayDir, vec3 sunDir, float sunIntensity) {
+    float cosTheta   = dot(rayDir, sunDir);
+    float sunAngSize = 0.9998;   // cos(0.27°) — angular radius of the sun
+
+    // Hard disk
+    float disk = smoothstep(sunAngSize - 0.0002, sunAngSize + 0.0001, cosTheta);
+
+    // Soft corona (Mie forward-scatter glow)
+    float corona = pow(max(cosTheta, 0.0), 256.0) * 0.4;
+
+    // Limb darkening on the disk itself
+    float limbAngle    = 1.0 - smoothstep(sunAngSize - 0.001, sunAngSize, cosTheta);
+    float limbDarken   = 1.0 - 0.4 * pow(limbAngle, 0.5);
+
+    vec3  sunColor = vec3(1.0, 0.97, 0.88) * sunIntensity * 80.0;
+    return sunColor * (disk * limbDarken + corona);
+}
+
+// ─── Horizon haze ─────────────────────────────────────────────────────────────
+vec3 horizonHaze(vec3 rayDir, vec3 sunDir, float horizonBlend, float sunIntensity) {
+    // Haze band near the horizon — fades with altitude
+    float horizon  = pow(clamp(1.0 - abs(rayDir.y), 0.0, 1.0), 8.0);
+
+    // Haze colour: warm near the sun, cool away from it
+    float sunAlign = dot(vec2(rayDir.x, rayDir.z), normalize(vec2(sunDir.x, sunDir.z)));
+    sunAlign        = sunAlign * 0.5 + 0.5;
+
+    vec3 hazeWarm  = vec3(0.85, 0.72, 0.55) * sunIntensity * 0.6;
+    vec3 hazeCool  = vec3(0.65, 0.75, 0.85) * sunIntensity * 0.3;
+    vec3 hazeColor = mix(hazeCool, hazeWarm, sunAlign);
+
+    return hazeColor * horizon * horizonBlend;
+}
+
+// ─── ACES tone map ────────────────────────────────────────────────────────────
+vec3 ACESFilm(vec3 x) {
+    return clamp((x * (2.51 * x + 0.03)) / (x * (2.43 * x + 0.59) + 0.14), 0.0, 1.0);
+}
+
+// ─── Main ─────────────────────────────────────────────────────────────────────
+void main() {
+    ivec2 pixelCoord = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 imgSize    = imageSize(outImage);
+
+    if (pixelCoord.x >= imgSize.x || pixelCoord.y >= imgSize.y) return;
+
+    // Reconstruct view ray from pixel coordinate.
+    // Assumes a ~90° vertical FOV — matches typical camera setup.
+    vec2  uv       = (vec2(pixelCoord) + 0.5) / vec2(imgSize);
+    vec2  ndc      = uv * 2.0 - 1.0;
+    float aspect   = float(imgSize.x) / float(imgSize.y);
+
+    // Tangent-space ray
+    vec3 rayDir = normalize(vec3(ndc.x * aspect, -ndc.y, -1.8));
+    // Note: -ndc.y because Vulkan NDC Y is down.
+
+    // Unpack push constants
+    vec3  sunDir       = normalize(pc.data1.xyz);
+    float sunIntensity = max(pc.data1.w, 0.0);
+    float turbidity    = clamp(pc.data2.x, 1.5, 10.0);
+    float exposure     = max(pc.data2.y,  0.1);
+    float horizonBlend = clamp(pc.data2.z, 0.0, 1.0);
+
+    // Below-horizon: early out with a dark ground colour
+    if (rayDir.y < -0.02) {
+        vec3 ground = vec3(0.05, 0.04, 0.03) * sunIntensity * 0.1;
+        imageStore(outImage, pixelCoord, vec4(ground, 1.0));
+        return;
+    }
+
+    // Clamp the ray slightly above horizon to avoid artefacts at y=0
+    rayDir.y = max(rayDir.y, 0.001);
+    rayDir   = normalize(rayDir);
+
+    // Fade sun below horizon gracefully
+    float sunAboveHorizon = smoothstep(-0.05, 0.05, sunDir.y);
+    float effectiveSunI   = sunIntensity * sunAboveHorizon;
+
+    // Sky scattering
+    vec3 sky  = computeSky(rayDir, sunDir, effectiveSunI, turbidity);
+
+    // Sun disk (only draw if above horizon)
+    if (sunDir.y > -0.05)
+        sky  += sunDisk(rayDir, sunDir, effectiveSunI);
+
+    // Horizon haze
+    sky      += horizonHaze(rayDir, sunDir, horizonBlend, effectiveSunI);
+
+    // Dusk/dawn tint: warms the whole sky when sun is near horizon
+    float dawnDusk  = pow(1.0 - abs(sunDir.y), 4.0) * sunAboveHorizon;
+    sky            *= mix(vec3(1.0), vec3(1.15, 0.95, 0.75), dawnDusk * 0.5);
+
+    // Tone map + gamma
+    sky  = ACESFilm(sky * exposure);
+    sky  = pow(sky, vec3(1.0 / 2.2));
+
+    imageStore(outImage, pixelCoord, vec4(sky, 1.0));
 }

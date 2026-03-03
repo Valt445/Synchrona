@@ -93,12 +93,28 @@ VkPipeline build_pipeline(VkDevice device, PipelineBuilder& pb)
     return newPipeline;
 }
 
-void set_shaders(VkShaderModule vertexShader, VkShaderModule fragmentShader, PipelineBuilder& pb)
+void set_shaders(VkShaderModule vert, VkShaderModule frag, PipelineBuilder& pb)
 {
     pb.shaderStages.clear();
-    const char* entry = "main";
-    pb.shaderStages.push_back(utils.pipeline_shader_stage_create_info(VK_SHADER_STAGE_VERTEX_BIT, vertexShader, entry));
-    pb.shaderStages.push_back(utils.pipeline_shader_stage_create_info(VK_SHADER_STAGE_FRAGMENT_BIT, fragmentShader, entry));
+
+    VkPipelineShaderStageCreateInfo vertStage{};
+    vertStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    vertStage.stage = VK_SHADER_STAGE_VERTEX_BIT;
+    vertStage.module = vert;
+    vertStage.pName = "main";
+
+    pb.shaderStages.push_back(vertStage);
+
+    if (frag != VK_NULL_HANDLE)
+    {
+        VkPipelineShaderStageCreateInfo fragStage{};
+        fragStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        fragStage.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+        fragStage.module = frag;
+        fragStage.pName = "main";
+
+        pb.shaderStages.push_back(fragStage);
+    }
 }
 
 void set_input_topology(VkPrimitiveTopology topology, PipelineBuilder& pb)

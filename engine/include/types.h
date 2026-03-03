@@ -30,68 +30,81 @@
 #include "graphics_pipeline.h"
 #include <array>
 #include <stb_image.h>
+
+// ============================================================
+// Logging — use LOG for debug info, LOG_ERROR for fatal errors.
+// In release builds (NDEBUG defined) LOG compiles to nothing.
+// LOG_ERROR always prints regardless of build type.
+// ============================================================
+#ifdef NDEBUG
+#define LOG(...)      // stripped in release
+#else
+#define LOG(...) std::cout << __VA_ARGS__ << "\n"
+#endif
+#define LOG_ERROR(...) std::cerr << "ERROR: " << __VA_ARGS__ << "\n"
+
 // ============================================================
 // AllocatedBuffer
 // ============================================================
-struct AllocatedBuffer
-{
-    VkBuffer        buffer = VK_NULL_HANDLE;
-    VmaAllocation   allocation = VK_NULL_HANDLE;
+struct AllocatedBuffer {
+    VkBuffer          buffer = VK_NULL_HANDLE;
+    VmaAllocation     allocation = VK_NULL_HANDLE;
     VmaAllocationInfo info = {};
-    VkDeviceAddress address = 0;
+    VkDeviceAddress   address = 0;
 };
 
 // ============================================================
 // Vertex
-// Layout matches GL_EXT_scalar_block_layout in the vertex shader.
-// With scalar layout, vec3 is packed (12 bytes, no padding).
-// Total: 12 + 12 + 8 + 16 = 48 bytes.
-// DO NOT add getBindingDescription / getAttributeDescriptions —
-// this engine uses buffer device address vertex pulling.
-// The pipeline has zero vertex input state.
+// Field order must match vertex attribute locations in pipelines.cpp:
+//   location 0 → position  (vec3, 12 bytes)
+//   location 1 → uv        (vec2,  8 bytes)  ← NOTE: uv before normal
+//   location 2 → normal    (vec3, 12 bytes)
+//   location 3 → color     (vec4, 16 bytes)
+//   location 4 → tangent   (vec4, 16 bytes)
+// Total stride: 64 bytes
 // ============================================================
-
-// types.h
-
-// 1. Updated Vertex with explicit padding for 16-byte alignment
-
-// types.h
 struct Vertex {
-    glm::vec3 position; // 12 bytes
-    glm::vec3 normal;   // 12 bytes
-    glm::vec2 uv;       // 8 bytes
-    glm::vec4 color;
-    glm::vec4 tangent;    // 16 bytes
-}; // Total Stride: 48 bytes
+    glm::vec3 position; // 12 bytes — location 0
+    glm::vec3 normal;   // 12 bytes — location 2 (stored here, bound by offsetof)
+    glm::vec2 uv;       //  8 bytes — location 1
+    glm::vec4 color;    // 16 bytes — location 3
+    glm::vec4 tangent;  // 16 bytes — location 4
+};                      // Total stride: 64 bytes
 
 // ============================================================
-// Push constants — must stay <= 128 bytes (Vulkan minimum guarantee)
-// mat4 = 64, uint64 = 8, 5x uint32 = 20, pad 4 = 4 -> 100 bytes total, aligned.
+// MeshPushConstants
+// Matches fragment shader scalar push_constant block exactly.
+// Total: 140 bytes — within Vulkan's 128-byte minimum guarantee? NO.
+// sunColor ends at offset 136 + 4 = 140. Check your device's maxPushConstantsSize.
 // ============================================================
-
-// 2. Updated Push Constants (Total: 112 bytes)
-// types.h
-// types.h
-// Matches shader push_constant block EXACTLY — scalar layout, 112 bytes total.
-// DO NOT add viewProj here — camera data comes from the CameraData UBO (binding 2).
 struct MeshPushConstants {
-    glm::mat4 modelMatrix;      
-    uint32_t  albedoIndex;      
-    uint32_t  normalIndex;     
-    uint32_t  metalRoughIndex;  
-    uint32_t  aoIndex;          
-    uint32_t  emissiveIndex;   
-    float     metallicFactor;  
-    float     roughnessFactor;  
-    float     pad;              
-    glm::vec4 colorFactor;
-    glm::vec3 sunDirection;
-	glm::vec3 sunColor;
-	float    sunIntensity;
-	float     normalStrength;
-};                              // = 112 bytes — matches pushRange.size in pipelines.cpp
+    glm::mat4 modelMatrix;    // offset   0  (64 bytes)
+    uint32_t  albedoIndex;    // offset  64
+    uint32_t  normalIndex;    // offset  68
+    uint32_t  metalRoughIndex;// offset  72
+    uint32_t  aoIndex;        // offset  76
+    uint32_t  emissiveIndex;  // offset  80
+    float     metallicFactor; // offset  84
+    float     roughnessFactor;// offset  88
+    float     normalStrength; // offset  92
+    glm::vec4 colorFactor;    // offset  96  (16 bytes)
+    glm::vec3 sunDirection;   // offset 112  (12 bytes)
+    glm::vec3 sunColor;       // offset 124  (12 bytes)
+    float     sunIntensity; 
+    
+    uint32_t  shadowMapIndex;    // offset 140 — bindless slot of the shadow map
+    float     shadowBias;        // offset 144 — per-material bias tweak
+      
+};                            // = 140 bytes
+
+
+struct ShadowPushConstants {
+    glm::mat4 lightViewProj;  // offset  0 (64 bytes)
+    glm::mat4 modelMatrix;    // offset 64 (64 bytes)
+};
+
 // ============================================================
-// GPU mesh buffers — uploaded once, never changed
+// GPUMeshBuffers
 // ============================================================
 struct GPUMeshBuffers {
     AllocatedBuffer indexBuffer;
@@ -100,21 +113,19 @@ struct GPUMeshBuffers {
     uint32_t        indexCount = 0;
 };
 
-
 // ============================================================
-// Camera UBO — uploaded every frame via update_uniform_buffers()
-// Matches layout(binding = 2) uniform CameraData in shaders.
+// CameraData UBO — uploaded every frame, binding 2
 // ============================================================
 struct CameraData {
-    glm::mat4 view;            // 64 bytes
-    glm::mat4 projection;      // 64 bytes
-    glm::mat4 viewProjection;  // 64 bytes
-    glm::vec4 worldPosition;   // 16 bytes — w unused, required for alignment
-};                             // = 208 bytes
+    glm::mat4 view;           // 64 bytes
+    glm::mat4 projection;     // 64 bytes
+    glm::mat4 viewProjection; // 64 bytes
+    glm::vec4 worldPosition;
+    glm::mat4 lightViewProj;    // 16 bytes (w unused)
+};                            // = 208 bytes
 
 // ============================================================
-// PBR material — one per GLTF material primitive
-// Indices refer to bindless texture slots (uint32_t max = no texture).
+// GPUMaterial
 // ============================================================
 struct GPUMaterial {
     uint32_t  albedoIndex = UINT32_MAX;
@@ -130,31 +141,21 @@ struct GPUMaterial {
 };
 
 // ============================================================
-// GeoSurface — one draw call worth of geometry inside a MeshAsset
-// ============================================================
-
-// ============================================================
 // Node — GLTF scene graph node
 // ============================================================
 struct Node {
-    std::string         name;
+    std::string        name;
     Node* parent = nullptr;
-    std::vector<Node*>  children;
+    std::vector<Node*> children;
 
-    // Local transform components (from GLTF TRS or matrix)
-    glm::vec3           translation = glm::vec3(0.0f);
-    glm::quat           rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
-    glm::vec3           scale = glm::vec3(1.0f);
-    glm::mat4           matrix = glm::mat4(1.0f); // base matrix from GLTF node.matrix
+    glm::vec3 translation = glm::vec3(0.0f);
+    glm::quat rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+    glm::vec3 scale = glm::vec3(1.0f);
+    glm::mat4 matrix = glm::mat4(1.0f);
 
-    // Cached world transform — updated by update_uniform_buffers() every frame
-    glm::mat4           worldTransform = glm::mat4(1.0f);
-
-    // Index into the nodeBuffer on the GPU — assigned during init
-    uint32_t            gpuIndex = 0;
-
-    // Mesh index this node owns (-1 = no mesh, just a transform node)
-    int32_t             meshIndex = -1;
+    glm::mat4 worldTransform = glm::mat4(1.0f);
+    uint32_t  gpuIndex = 0;
+    int32_t   meshIndex = -1;
 
     glm::mat4 getLocalMatrix() const {
         return glm::translate(glm::mat4(1.0f), translation)
@@ -163,15 +164,10 @@ struct Node {
             * matrix;
     }
 
-    // Walks parent chain — only call during init or when hierarchy changes.
-    // For per-frame updates use the cached worldTransform instead.
     glm::mat4 getGlobalMatrix() const {
         glm::mat4 m = getLocalMatrix();
         const Node* p = parent;
-        while (p) {
-            m = p->getLocalMatrix() * m;
-            p = p->parent;
-        }
+        while (p) { m = p->getLocalMatrix() * m; p = p->parent; }
         return m;
     }
 };
@@ -181,47 +177,42 @@ struct Node {
 // ============================================================
 struct AnimationSampler {
     enum class InterpolationType { LINEAR, STEP, CUBICSPLINE };
-    InterpolationType       interpolation = InterpolationType::LINEAR;
-    std::vector<float>      inputs;        // timestamps
-    std::vector<glm::vec4>  outputsVec4;   // rotation keyframes
-    std::vector<glm::vec3>  outputsVec3;   // translation / scale keyframes
+    InterpolationType      interpolation = InterpolationType::LINEAR;
+    std::vector<float>     inputs;
+    std::vector<glm::vec4> outputsVec4;
+    std::vector<glm::vec3> outputsVec3;
 };
 
 struct AnimationChannel {
     enum class PathType { TRANSLATION, ROTATION, SCALE };
-    PathType   path;
+    PathType path;
     Node* node = nullptr;
-    uint32_t   samplerIndex = 0;
+    uint32_t samplerIndex = 0;
 };
 
 struct Animation {
-    std::string                     name;
-    std::vector<AnimationSampler>   samplers;
-    std::vector<AnimationChannel>   channels;
-    float   start = std::numeric_limits<float>::max();
-    float   end = std::numeric_limits<float>::lowest();
-    float   currentTime = 0.0f;
+    std::string                    name;
+    std::vector<AnimationSampler>  samplers;
+    std::vector<AnimationChannel>  channels;
+    float start = std::numeric_limits<float>::max();
+    float end = std::numeric_limits<float>::lowest();
+    float currentTime = 0.0f;
 };
 
 // ============================================================
-// Model — top-level GLTF scene container
+// Model
 // ============================================================
 struct Model {
-    std::vector<Node*>      nodes;       // root nodes only
-    std::vector<Node*>      linearNodes; // all nodes flat, for iteration
+    std::vector<Node*>       nodes;
+    std::vector<Node*>       linearNodes;
     std::vector<GPUMaterial> materials;
-    std::vector<Animation>  animations;
+    std::vector<Animation>   animations;
 
-    ~Model() {
-        for (auto* node : linearNodes) delete node;
-    }
+    ~Model() { for (auto* n : linearNodes) delete n; }
 
-    // Find a node by name. Returns nullptr if not found.
     Node* findNode(const std::string& name) {
         auto it = std::find_if(linearNodes.begin(), linearNodes.end(),
-            [&name](const Node* node) {
-                return node->name == name;
-            });
+            [&name](const Node* n) { return n->name == name; });
         return (it != linearNodes.end()) ? *it : nullptr;
     }
 
@@ -233,7 +224,6 @@ struct Model {
 
         for (auto& channel : anim.channels) {
             AnimationSampler& sampler = anim.samplers[channel.samplerIndex];
-
             auto keyIt = std::lower_bound(sampler.inputs.begin(), sampler.inputs.end(), anim.currentTime);
             if (keyIt == sampler.inputs.end() || keyIt == sampler.inputs.begin()) continue;
 

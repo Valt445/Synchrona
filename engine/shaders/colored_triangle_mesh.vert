@@ -24,6 +24,7 @@ layout(set = 0, binding = 2) uniform CameraData {
     mat4 projection;
     mat4 viewProjection;
     vec4 worldPosition;
+    mat4 lightViewProj;   // ← ADD THIS
 } cam;
 
 void main() {

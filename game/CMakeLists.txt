@@ -80,7 +80,7 @@ else()
             
             add_custom_command(
                 OUTPUT ${spv_file}
-                COMMAND ${GLSL_VALIDATOR} -V ${shader} -o ${spv_file} --target-env vulkan1.3
+                COMMAND ${GLSL_VALIDATOR} -V --target-env vulkan1.3 ${shader} -o ${spv_file} --target-env vulkan1.3
                 DEPENDS ${shader}
                 COMMENT "Compiling ${shader_name}${shader_ext} to SPIR-V"
                 VERBATIM

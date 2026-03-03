@@ -1,43 +1,35 @@
 ﻿#include "engine.h"
 #include "graphics_pipeline.h"
-#include <cstdio>
 
-void init_pipelines(Engine* e) {
+void init_pipelines(Engine* e)
+{
     init_background_pipelines(e);
 }
 
 void init_background_pipelines(Engine* e)
 {
-    std::cout << "🛡️ 1. Starting pipeline initialization..." << std::endl;
-
-    if (!e || e->device == VK_NULL_HANDLE) {
-        std::cout << "❌ Engine or device is null\n"; std::exit(1);
-    }
-    std::cout << "✅ Engine and device are valid" << std::endl;
-    std::cout << "🛡️ 2. Loading shader..." << std::endl;
-
-    std::cout << "   Looking for: shaders/gradient.comp.spv" << std::endl;
+    // ── Load all compute shaders ──────────────────────────────────────────────
     VkShaderModule computeDrawShader;
-    auto loadResult1 = e->util.load_shader_module("shaders/gradient.comp.spv", e->device, &computeDrawShader);
-    std::cout << "   Gradient shader load result: " << (loadResult1 ? "SUCCESS" : "FAILED") << std::endl;
-    if (!loadResult1) { std::cout << "❌ GRADIENT SHADER LOAD FAILED!\n"; std::exit(1); }
+    if (!e->util.load_shader_module("shaders/gradient.comp.spv", e->device, &computeDrawShader)) {
+        LOG_ERROR("Failed to load gradient.comp.spv");
+        std::exit(1);
+    }
 
-    std::cout << "   Looking for: shaders/sky.comp.spv" << std::endl;
-    VkShaderModule skyShader;
-    auto loadResult2 = e->util.load_shader_module("shaders/sky.comp.spv", e->device, &skyShader);
-    std::cout << "   Sky shader load result: " << (loadResult2 ? "SUCCESS" : "FAILED") << std::endl;
-    if (!loadResult2) { std::cout << "❌ SKY SHADER LOAD FAILED!\n"; std::exit(1); }
 
-    std::cout << "✅ Shaders loaded successfully!" << std::endl;
-    std::cout << "🛡️ 3. Creating pipeline layout..." << std::endl;
+    VkShaderModule skyAtmoShader;
+    if (!e->util.load_shader_module("shaders/sky.comp.spv", e->device, &skyAtmoShader)) {
+        LOG_ERROR("Failed to load sky_atmo.comp.spv");
+        std::exit(1);
+    }
 
-    VkPushConstantRange push_constant_range = {
+    // ── Pipeline layout (shared by all compute effects) ───────────────────────
+    VkPushConstantRange push_constant_range{
         .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
         .offset = 0,
-        .size = 64
+        .size = sizeof(ScenePushConstants)
     };
 
-    VkPipelineLayoutCreateInfo pipelineLayoutInfo = {
+    VkPipelineLayoutCreateInfo pipelineLayoutInfo{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
         .setLayoutCount = 1,
         .pSetLayouts = &e->bindlessLayout,
@@ -45,33 +37,33 @@ void init_background_pipelines(Engine* e)
         .pPushConstantRanges = &push_constant_range
     };
 
-    if (e->bindlessLayout == VK_NULL_HANDLE) {
-        std::cout << "❌ DESCRIPTOR LAYOUT IS NULL!\n"; std::exit(1);
-    }
+    VK_CHECK(vkCreatePipelineLayout(e->device, &pipelineLayoutInfo, nullptr,
+        &e->gradientPipelineLayout));
 
-    VK_CHECK(vkCreatePipelineLayout(e->device, &pipelineLayoutInfo, nullptr, &e->gradientPipelineLayout));
-    std::cout << "✅ Pipeline layout created!" << std::endl;
-    std::cout << "🛡️ 4. Creating compute pipeline..." << std::endl;
+    // ── Helper lambda: build one compute pipeline from a shader module ────────
+    auto makeComputePipeline = [&](VkShaderModule mod) -> VkPipeline {
+        VkPipelineShaderStageCreateInfo stage{
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+            .stage = VK_SHADER_STAGE_COMPUTE_BIT,
+            .module = mod,
+            .pName = "main"
+        };
+        VkComputePipelineCreateInfo info{
+            .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
+            .stage = stage,
+            .layout = e->gradientPipelineLayout
+        };
+        VkPipeline pipeline;
+        VK_CHECK(vkCreateComputePipelines(e->device, VK_NULL_HANDLE, 1, &info, nullptr, &pipeline));
+        return pipeline;
+        };
 
-    VkPipelineShaderStageCreateInfo stageinfo = {
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-        .stage = VK_SHADER_STAGE_COMPUTE_BIT,
-        .module = computeDrawShader,
-        .pName = "main"
-    };
+    // ── Build the three compute pipelines ─────────────────────────────────────
+    e->gradientPipeline = makeComputePipeline(computeDrawShader);
+  
+    VkPipeline skyAtmoPipeline = makeComputePipeline(skyAtmoShader);
 
-    VkComputePipelineCreateInfo computePipelineCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
-        .stage = stageinfo,
-        .layout = e->gradientPipelineLayout
-    };
-
-    VK_CHECK(vkCreateComputePipelines(e->device, VK_NULL_HANDLE, 1, &computePipelineCreateInfo, nullptr, &e->gradientPipeline));
-
-    computePipelineCreateInfo.stage.module = skyShader;
-    VkPipeline skyPipeline;
-    VK_CHECK(vkCreateComputePipelines(e->device, VK_NULL_HANDLE, 1, &computePipelineCreateInfo, nullptr, &skyPipeline));
-
+    // ── Effect 0: gradient ────────────────────────────────────────────────────
     ComputeEffect gradient;
     gradient.pipeline = e->gradientPipeline;
     gradient.layout = e->gradientPipelineLayout;
@@ -80,18 +72,38 @@ void init_background_pipelines(Engine* e)
     gradient.effectData.data1 = glm::vec4(1, 0, 0, 1);
     gradient.effectData.data2 = glm::vec4(0, 0, 1, 1);
 
-    ComputeEffect sky;
-    sky.pipeline = skyPipeline;
-    sky.layout = e->gradientPipelineLayout;
-    sky.name = "sky";
-    sky.effectData = {};
-    sky.effectData.data1 = glm::vec4(0.1, 0.2, 0.4, 0.97);
+    // ── Effect 1: simple sky ──────────────────────────────────────────────────
+    
 
-    e->backgroundEffects.push_back(gradient);
-    e->backgroundEffects.push_back(sky);
+    // ── Effect 2: atmospheric sky ─────────────────────────────────────────────
+    // data1.xyz = sunDirection (normalised world space, Y = up)
+    // data1.w   = sunIntensity (3.0 = bright noon sun)
+    // data2.x   = turbidity   (2.0 = crystal clear  →  10.0 = hazy/smoggy)
+    // data2.y   = exposure    (overall brightness multiplier)
+    // data2.z   = horizonBlend (0.0 = no haze  →  1.0 = thick horizon haze)
+    ComputeEffect skyAtmo;
+    skyAtmo.pipeline = skyAtmoPipeline;
+    skyAtmo.layout = e->gradientPipelineLayout;
+    skyAtmo.name = "sky_atmo";
+    skyAtmo.effectData = {};
+    skyAtmo.effectData.data1 = glm::vec4(
+        glm::normalize(glm::vec3(0.3f, 0.6f, 0.4f)),  // sun direction
+        3.0f                                            // sun intensity
+    );
+    skyAtmo.effectData.data2 = glm::vec4(
+        3.5f,   // turbidity
+        1.2f,   // exposure
+        0.8f,   // horizonBlend
+        0.0f    // reserved
+    );
 
-    std::cout << "✅ Compute pipelines created!" << std::endl;
+    e->backgroundEffects.push_back(gradient);   // index 0        // index 1
+    e->backgroundEffects.push_back(skyAtmo);     // index 2
 
+    // Use the atmospheric sky by default
+    e->currentBackgroundEffect = e->currentBackgroundEffect = (uint32_t)e->backgroundEffects.size() - 1;
+
+    // ── Deletion ──────────────────────────────────────────────────────────────
     e->mainDeletionQueue.push_function([=]() {
         for (auto& effect : e->backgroundEffects)
             if (effect.pipeline != VK_NULL_HANDLE)
@@ -102,29 +114,29 @@ void init_background_pipelines(Engine* e)
         });
 
     vkDestroyShaderModule(e->device, computeDrawShader, nullptr);
-    vkDestroyShaderModule(e->device, skyShader, nullptr);
+  
+    vkDestroyShaderModule(e->device, skyAtmoShader, nullptr);
 
-    std::cout << "✅ Pipeline initialization complete!" << std::endl;
+    LOG("Background pipelines created: gradient | sky | sky_atmo");
 }
 
 void init_mesh_pipelines(Engine* e)
 {
-    std::cout << "Initializing mesh pipelines...\n";
-
     VkShaderModule meshVertShader;
     if (!e->util.load_shader_module("shaders/colored_triangle_mesh.vert.spv", e->device, &meshVertShader)) {
-        std::cerr << "Failed to load vertex shader\n"; std::exit(1);
+        LOG_ERROR("Failed to load vertex shader");
+        std::exit(1);
     }
 
     VkShaderModule meshFragShader;
     if (!e->util.load_shader_module("shaders/tex_image.frag.spv", e->device, &meshFragShader)) {
-        std::cerr << "Failed to load fragment shader\n"; std::exit(1);
+        LOG_ERROR("Failed to load fragment shader");
+        std::exit(1);
     }
 
-    // Push constant range — must match sizeof(MeshPushConstants) = 112 bytes exactly
     VkPushConstantRange pushRange{};
     pushRange.offset = 0;
-    pushRange.size = sizeof(MeshPushConstants); // modelMatrix(64) + 5xuint(20) + 2xfloat(8) + pad(4) + vec4(16)
+    pushRange.size = sizeof(MeshPushConstants);
     pushRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
 
     VkPipelineLayoutCreateInfo layoutInfo = e->util.pipeline_layout_create_info();
@@ -136,18 +148,23 @@ void init_mesh_pipelines(Engine* e)
 
     VK_CHECK(vkCreatePipelineLayout(e->device, &layoutInfo, nullptr, &e->meshPipelineLayout));
 
-    // Vertex input — matches Vertex struct: position(12) + normal(12) + uv(8) + color(16) = 48 bytes
+    // Vertex attribute locations — MUST match the vertex shader exactly:
+    //   location 0 → position (vec3)
+    //   location 1 → uv       (vec2)  ← uv before normal
+    //   location 2 → normal   (vec3)
+    //   location 3 → color    (vec4)
+    //   location 4 → tangent  (vec4)
     VkVertexInputBindingDescription binding{};
     binding.binding = 0;
-    binding.stride = sizeof(Vertex); // 48 bytes
+    binding.stride = sizeof(Vertex);
     binding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
     std::vector<VkVertexInputAttributeDescription> attributes = {
         { 0, 0, VK_FORMAT_R32G32B32_SFLOAT,    (uint32_t)offsetof(Vertex, position) },
-        { 1, 0, VK_FORMAT_R32G32B32_SFLOAT,    (uint32_t)offsetof(Vertex, normal)   },
-        { 2, 0, VK_FORMAT_R32G32_SFLOAT,       (uint32_t)offsetof(Vertex, uv)       },
+        { 1, 0, VK_FORMAT_R32G32_SFLOAT,        (uint32_t)offsetof(Vertex, uv)       },
+        { 2, 0, VK_FORMAT_R32G32B32_SFLOAT,    (uint32_t)offsetof(Vertex, normal)   },
         { 3, 0, VK_FORMAT_R32G32B32A32_SFLOAT, (uint32_t)offsetof(Vertex, color)    },
-		{ 4, 0, VK_FORMAT_R32G32B32A32_SFLOAT, (uint32_t)offsetof(Vertex, tangent)  },
+        { 4, 0, VK_FORMAT_R32G32B32A32_SFLOAT, (uint32_t)offsetof(Vertex, tangent)  },
     };
 
     VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
@@ -168,12 +185,13 @@ void init_mesh_pipelines(Engine* e)
     set_color_attachment_format(e->drawImage.imageFormat, pb);
     set_depth_format(e->depthImage.imageFormat, pb);
 
-    pb.vertexInputInfo = vertexInputInfo; // assign ONCE — do NOT touch it again after this
+    pb.vertexInputInfo = vertexInputInfo;
     pb.pipelineLayout = e->meshPipelineLayout;
 
     e->meshPipeline = build_pipeline(e->device, pb);
     if (e->meshPipeline == VK_NULL_HANDLE) {
-        std::cerr << "❌ Failed to create mesh pipeline\n"; std::exit(1);
+        LOG_ERROR("Failed to create mesh pipeline");
+        std::exit(1);
     }
 
     vkDestroyShaderModule(e->device, meshVertShader, nullptr);
@@ -184,5 +202,82 @@ void init_mesh_pipelines(Engine* e)
         vkDestroyPipeline(e->device, e->meshPipeline, nullptr);
         });
 
-    std::cout << "✅ Mesh pipeline created with bindless layout\n";
+    LOG("Mesh pipeline created");
+}
+
+void init_shadow_pipeline(Engine* e)
+{
+    VkShaderModule shadowVertShader;
+    if (!e->util.load_shader_module("shaders/shadow.vert.spv", e->device, &shadowVertShader)) {
+        LOG_ERROR("Failed to load shadow.vert.spv");
+        std::exit(1);
+    }
+
+    // Push constants — just lightViewProj + modelMatrix
+    VkPushConstantRange pushRange{};
+    pushRange.offset = 0;
+    pushRange.size = sizeof(ShadowPushConstants);  // 128 bytes
+    pushRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;   // vertex only, no frag shader
+
+    VkPipelineLayoutCreateInfo layoutInfo{};
+    layoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    layoutInfo.setLayoutCount = 0;       // no descriptors needed
+    layoutInfo.pushConstantRangeCount = 1;
+    layoutInfo.pPushConstantRanges = &pushRange;
+
+    VK_CHECK(vkCreatePipelineLayout(e->device, &layoutInfo, nullptr,
+        &e->shadowPipelineLayout));
+
+    // Same vertex layout as mesh pipeline
+    VkVertexInputBindingDescription binding{};
+    binding.binding = 0;
+    binding.stride = sizeof(Vertex);
+    binding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+    // Only need position — location 0
+    VkVertexInputAttributeDescription posAttr{};
+    posAttr.location = 0;
+    posAttr.binding = 0;
+    posAttr.format = VK_FORMAT_R32G32B32_SFLOAT;
+    posAttr.offset = offsetof(Vertex, position);
+
+    VkPipelineVertexInputStateCreateInfo vertexInput{};
+    vertexInput.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+    vertexInput.vertexBindingDescriptionCount = 1;
+    vertexInput.pVertexBindingDescriptions = &binding;
+    vertexInput.vertexAttributeDescriptionCount = 1;     // position only
+    vertexInput.pVertexAttributeDescriptions = &posAttr;
+
+    PipelineBuilder pb;
+    set_shaders(shadowVertShader, VK_NULL_HANDLE, pb);   // NO fragment shader
+    set_input_topology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, pb);
+    set_polygon_mode(VK_POLYGON_MODE_FILL, pb);
+
+    // FRONT face culling — fixes peter panning (shadow gap at base of objects)
+    set_cull_mode(VK_CULL_MODE_FRONT_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE, pb);
+
+    set_multisampling_none(pb);
+    enable_depthtest(pb, VK_COMPARE_OP_LESS_OR_EQUAL);
+
+    // No color attachment — depth only
+    // set_color_attachment_format NOT called
+    set_depth_format(e->shadowMapImage.imageFormat, pb);
+
+    pb.vertexInputInfo = vertexInput;
+    pb.pipelineLayout = e->shadowPipelineLayout;
+
+    e->shadowPipeline = build_pipeline(e->device, pb);
+    if (e->shadowPipeline == VK_NULL_HANDLE) {
+        LOG_ERROR("Failed to create shadow pipeline");
+        std::exit(1);
+    }
+
+    vkDestroyShaderModule(e->device, shadowVertShader, nullptr);
+
+    e->mainDeletionQueue.push_function([=]() {
+        vkDestroyPipelineLayout(e->device, e->shadowPipelineLayout, nullptr);
+        vkDestroyPipeline(e->device, e->shadowPipeline, nullptr);
+        });
+
+    LOG("Shadow pipeline created");
 }

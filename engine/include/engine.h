@@ -141,6 +141,21 @@ struct Engine {
     MemoryStats memoryStats{};
     Utils       util;
 
+    bool displayShadowMap = false;
+    bool filterPCF = true;
+    float zNear = 1.0f;
+    float zFar = 96.0f;
+    std::vector<std::string> sceneNames;
+    int32_t sceneIndex = 0;
+
+    AllocatedImage   shadowMapImage{};
+    VkSampler        shadowMapSampler = VK_NULL_HANDLE;
+    VkPipeline       shadowPipeline = VK_NULL_HANDLE;
+    VkPipelineLayout shadowPipelineLayout = VK_NULL_HANDLE;
+    uint32_t       shadowMapBindlessIndex = 5;  // slots 0-4 reserved
+    glm::mat4        lightViewProj = glm::mat4(1.0f);  // updated every frame
+
+
     PipelineBuilder  pipelineBuilder;
     VkPipelineLayout trianglePipelineLayout = VK_NULL_HANDLE;
     VkPipeline       trianglePipeline = VK_NULL_HANDLE;
@@ -172,6 +187,8 @@ struct Engine {
     VkDescriptorPool      bindlessPool = VK_NULL_HANDLE;
     VkDescriptorSetLayout bindlessLayout = VK_NULL_HANDLE;
     VkDescriptorSet       bindlessSet = VK_NULL_HANDLE;
+    glm::vec3 sunDirection = glm::normalize(glm::vec3(0.3f, 0.6f, 0.4f));
+    float     sunIntensity = 3.0f;
 
     uint32_t nextTextureIndex = 0;
     VkDescriptorSet meshTextureSet = VK_NULL_HANDLE;
@@ -262,6 +279,12 @@ VkRenderingAttachmentInfo attachment_info(VkImageView view, VkClearValue* clear,
 void immediate_submit(std::function<void(VkCommandBuffer cmd)>&& function, Engine* e);
 
 void calculateTangents(std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices);
+
+//shadow
+void  init_shadow_map(Engine* e, uint32_t width, uint32_t height);
+void init_shadow_pipeline(Engine* e);
+void draw_shadow_pass(Engine* e, VkCommandBuffer cmd);
+
 
 // Misc
 VkFormat find_depth_format(VkPhysicalDevice physicalDevice);

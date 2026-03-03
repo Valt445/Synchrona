@@ -34,9 +34,6 @@ VkDescriptorSetLayout DescriptorLayoutBuilder::build(
 {
     for (auto& b : bindings) b.stageFlags |= shaderStages;
 
-    // All bindings get UPDATE_AFTER_BIND + PARTIALLY_BOUND.
-    // We do NOT use VARIABLE_DESCRIPTOR_COUNT — we use fixed counts declared
-    // in the layout, so no VkDescriptorSetVariableDescriptorCountAllocateInfo needed.
     std::vector<VkDescriptorBindingFlags> bindingFlags(bindings.size(),
         VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT |
         VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT);
@@ -45,7 +42,6 @@ VkDescriptorSetLayout DescriptorLayoutBuilder::build(
     flagsInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO_EXT;
     flagsInfo.bindingCount = static_cast<uint32_t>(bindingFlags.size());
     flagsInfo.pBindingFlags = bindingFlags.data();
-    // Caller passes nullptr for pNext — we own the flags chain entirely.
     flagsInfo.pNext = pNext;
 
     VkDescriptorSetLayoutCreateInfo info{};
@@ -60,19 +56,16 @@ VkDescriptorSetLayout DescriptorLayoutBuilder::build(
     return set;
 }
 
-// DescriptorAllocator
 void DescriptorAllocator::init_pool(VkDevice device, uint32_t maxSets, std::span<PoolSizeRatio> poolRatios)
 {
-    std::cout << "[INIT_POOL] Called on allocator instance at " << this << " with maxSets=" << maxSets << "\n";
-
     std::vector<VkDescriptorPoolSize> poolSizes;
-    for (auto ratio : poolRatios) {
+    for (auto ratio : poolRatios)
         poolSizes.push_back({ ratio.type, static_cast<uint32_t>(ratio.ratio * maxSets) });
-    }
 
     VkDescriptorPoolCreateInfo pool_info{};
     pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    pool_info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT | VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT;
+    pool_info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT
+        | VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT;
     pool_info.maxSets = maxSets;
     pool_info.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
     pool_info.pPoolSizes = poolSizes.data();
@@ -96,10 +89,11 @@ VkDescriptorSet DescriptorAllocator::allocate(VkDevice device, VkDescriptorSetLa
     return allocate(device, layout, 0);
 }
 
-VkDescriptorSet DescriptorAllocator::allocate(VkDevice device, VkDescriptorSetLayout layout, uint32_t variableDescriptorCount)
+VkDescriptorSet DescriptorAllocator::allocate(VkDevice device, VkDescriptorSetLayout layout,
+    uint32_t variableDescriptorCount)
 {
     if (pool == VK_NULL_HANDLE) {
-        std::cerr << "[FATAL] Pool not initialized!\n";
+        LOG_ERROR("DescriptorAllocator: pool not initialized");
         std::abort();
     }
 
@@ -120,10 +114,10 @@ VkDescriptorSet DescriptorAllocator::allocate(VkDevice device, VkDescriptorSetLa
     return ds;
 }
 
-// DescriptorWriter (unchanged from your version)
 void DescriptorWriter::write_buffer(int binding, VkBuffer buffer, size_t size, size_t offset, VkDescriptorType type)
 {
-    VkDescriptorBufferInfo& info = bufferInfos.emplace_back(VkDescriptorBufferInfo{ .buffer = buffer, .offset = offset, .range = size });
+    VkDescriptorBufferInfo& info = bufferInfos.emplace_back(
+        VkDescriptorBufferInfo{ .buffer = buffer, .offset = offset, .range = size });
     VkWriteDescriptorSet write{};
     write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     write.dstBinding = binding;
@@ -134,9 +128,11 @@ void DescriptorWriter::write_buffer(int binding, VkBuffer buffer, size_t size, s
     writes.push_back(write);
 }
 
-void DescriptorWriter::write_image(int binding, VkImageView image, VkSampler sampler, VkImageLayout layout, VkDescriptorType type)
+void DescriptorWriter::write_image(int binding, VkImageView image, VkSampler sampler,
+    VkImageLayout layout, VkDescriptorType type)
 {
-    VkDescriptorImageInfo& info = imageInfos.emplace_back(VkDescriptorImageInfo{ .sampler = sampler, .imageView = image, .imageLayout = layout });
+    VkDescriptorImageInfo& info = imageInfos.emplace_back(
+        VkDescriptorImageInfo{ .sampler = sampler, .imageView = image, .imageLayout = layout });
     VkWriteDescriptorSet write{};
     write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     write.dstBinding = binding;
@@ -149,16 +145,13 @@ void DescriptorWriter::write_image(int binding, VkImageView image, VkSampler sam
 
 void DescriptorWriter::update_set_at_index(VkDevice device, VkDescriptorSet set, uint32_t index)
 {
-    for (auto& w : writes) {
-        w.dstSet = set;
-        w.dstArrayElement = index;
-    }
+    for (auto& w : writes) { w.dstSet = set; w.dstArrayElement = index; }
     vkUpdateDescriptorSets(device, static_cast<uint32_t>(writes.size()), writes.data(), 0, nullptr);
 }
 
 void DescriptorWriter::update_set(VkDevice device, VkDescriptorSet set)
 {
-    for (auto& write : writes) write.dstSet = set;
+    for (auto& w : writes) w.dstSet = set;
     vkUpdateDescriptorSets(device, static_cast<uint32_t>(writes.size()), writes.data(), 0, nullptr);
 }
 
@@ -169,31 +162,27 @@ void DescriptorWriter::clear()
     writes.clear();
 }
 
-void init_descriptors(Engine* e) {
-    std::cout << "Initializing high-performance bindless system (Dual-Mode)...\n";
+void init_descriptors(Engine* e)
+{
+    LOG("Initializing bindless descriptor system...");
 
     std::vector<DescriptorAllocator::PoolSizeRatio> sizes = {
         { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 4096.0f },
-        { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 16.0f },
-        { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 16.0f }   // ← added for camera
+        { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,          16.0f   },
+        { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,         16.0f   },
     };
     e->globalDescriptorAllocator.init_pool(e->device, 10, sizes);
 
     DescriptorLayoutBuilder builder;
     builder.add_bindless_array(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 4096);
     builder.add_binding(1, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1);
-
-    // ←←← CAMERA UBO (binding 2) — this was missing!
     builder.add_binding(2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1);
 
     e->bindlessLayout = builder.build(
         e->device,
         VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT,
         nullptr,
-        VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT
-    );
-
-    std::cout << "[BINDLESS] Layout created with bindings 0,1,2\n";
+        VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT);
 
     e->bindlessSet = e->globalDescriptorAllocator.allocate(e->device, e->bindlessLayout, 0);
 
@@ -201,4 +190,6 @@ void init_descriptors(Engine* e) {
         vkDestroyDescriptorSetLayout(e->device, e->bindlessLayout, nullptr);
         vkFreeDescriptorSets(e->device, e->globalDescriptorAllocator.pool, 1, &e->bindlessSet);
         });
+
+    LOG("Bindless descriptor system ready (bindings 0, 1, 2)");
 }
