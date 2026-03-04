@@ -14,7 +14,7 @@ int main()
     //   - setupCameraCallbacks()   ← registers all GLFW input callbacks
     //   - mainCamera.focusOn()     ← positions camera on the model
     init(engine, 1280, 720);
-
+    glfwSwapInterval(0);
     while (!glfwWindowShouldClose(engine->window))
     {
         glfwPollEvents();

@@ -282,7 +282,6 @@ static bool load_primitive(
     for (size_t i = 0; i < vcount; ++i)
         verts[vtxBase + i].color = glm::vec4(1.0f);
 
-    glm::mat3 normalMat = glm::transpose(glm::inverse(glm::mat3(localTransform)));
 
     for (size_t a = 0; a < prim->attributes_count; ++a) {
         const cgltf_attribute* attr = &prim->attributes[a];
@@ -297,9 +296,10 @@ static bool load_primitive(
             for (size_t i = 0; i < vcount; ++i)
                 verts[vtxBase + i].position = read_v3(buf, stride, i);
             break;
+
         case cgltf_attribute_type_normal:
             for (size_t i = 0; i < vcount; ++i)
-                verts[vtxBase + i].normal = normalMat * read_v3(buf, stride, i);
+                verts[vtxBase + i].normal = read_v3(buf, stride, i); // raw, no transform
             break;
         case cgltf_attribute_type_texcoord:
             if (attr->index == 0)

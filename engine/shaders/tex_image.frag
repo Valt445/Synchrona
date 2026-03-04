@@ -133,6 +133,7 @@ void main() {
 
     vec3 albedo = albedoSample.rgb * inColor.rgb * pc.colorFactor.rgb;
     float alpha = albedoSample.a  * inColor.a   * pc.colorFactor.a;
+    if (alpha < 0.5) discard;
 
     // -------------------------------------------------------------------------
     // METALLIC / ROUGHNESS

@@ -18,7 +18,7 @@ void init(Engine* e, uint32_t x, uint32_t y)
 {
     *e = Engine{};
     ::engine = e;
-    e->sceneBasePath = "assets/Sponza/gLTF/";
+    e->sceneBasePath = "assets/san-miguel/san-miguel";
     e->shadowMapBindlessIndex = 5;  // add this line in init(), before init_shadow_map
     init_vulkan(e);
     init_swapchain(e, x, y);
@@ -297,7 +297,7 @@ void init_default_data(Engine* e)
     upload_texture_to_bindless(e, e->blackImage, e->defaultSamplerLinear, 3);
     e->nextBindlessTextureIndex = e->shadowMapBindlessIndex + 1;
 
-    auto testMeshes = loadgltfMeshes(e, "assets/Sponza/gLTF/Sponza.gltf");
+    auto testMeshes = loadgltfMeshes(e, "assets/san-miguel/san-miguel/san-miguel.gltf");
     if (testMeshes.has_value()) {
         e->testMeshes = std::move(testMeshes.value());
         LOG("Loaded " << e->testMeshes.size() << " meshes");
