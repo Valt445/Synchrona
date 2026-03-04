@@ -1,79 +1,96 @@
-# ⚡ Vulkan Renderer
+# ⚡ Vulkan Game Engine
 
-A handcrafted real-time PBR renderer built from scratch in C++ and Vulkan. No engine. No shortcuts. Just raw GPU metal.
-
----
-
-## What it is
-
-This is a personal rendering engine built to understand how modern renderers actually work under the hood — every system written by hand, every bug hunted down to the instruction level. It runs on Vulkan 1.3 with dynamic rendering, bindless resources, and a fully custom asset pipeline.
-
-It currently chews through scenes like Sponza and San Miguel at 60fps locked on mid-range hardware without frustum culling — purely brute forcing 7+ million triangles a frame while the real work gets built out underneath.
+A handcrafted game engine built from scratch in C++ and Vulkan. No Unity. No Unreal. No shortcuts. Just raw GPU metal and the ambition to build something that can compete with both.
 
 ---
 
-## What's in it right now
+## The Vision
+
+This engine exists because modern game engines are black boxes. You press buttons, something happens, you don't know why. This is the opposite of that — every system written by hand, every bug hunted down to the instruction level, full ownership of everything from the GPU command buffer to the game loop.
+
+The goal is an engine that matches Unity in graphical capability, surpasses it in rendering quality, and gets out of your way when you're making a game. Minimal UI code burden on the developer. Pure C++. No scripting layer tax. No bloat.
+
+The graphics target is path traced, physically correct light — where what you see on screen is what light actually does in the real world. RTX hardware acceleration. The kind of visuals that make you stop and look.
+
+The gameplay target is simplicity. A clean ECS, physics, audio, input — everything you need to ship a real game and nothing you don't.
+
+---
+
+## Current State
+
+The rendering foundation is solid and running. It currently chews through scenes like Sponza and San Miguel at 60fps locked on mid-range hardware — 7+ million triangles, full PBR materials, shadows, atmospheric sky, all running on a raw Vulkan renderer with no engine scaffolding yet.
 
 - **Vulkan 1.3** — dynamic rendering, synchronization2, timeline semaphores
 - **Bindless descriptor system** — single global descriptor set, all textures in one array
 - **PBR shading** — Cook-Torrance BRDF, GGX distribution, Schlick fresnel, Smith geometry
-- **PCF shadow mapping** — 2048×2048 depth map, 3×3 kernel soft shadows, configurable bias
+- **PCF shadow mapping** — 2048×2048 depth map, 3×3 kernel soft shadows
 - **Normal mapping** — TBN matrix, Gram-Schmidt re-orthogonalization, per-material strength
 - **glTF 2.0 loader** — full scene graph traversal, PBR material binding, tangent generation
 - **ACES tone mapping** — filmic curve with configurable exposure
-- **Atmospheric sky** — compute shader background with turbidity and sun direction controls
+- **Atmospheric sky** — compute shader with turbidity, sun direction and intensity controls
+- **Alpha cutout** — foliage and masked materials
 - **VMA memory management** — GPU-only resources, persistent mapped upload buffers
-- **Dear ImGui** — debug UI with live pipeline switching and performance counters
-- **Alpha cutout** — foliage and masked materials via discard threshold
+- **Dear ImGui debug UI** — live pipeline switching, performance counters
 
 ---
 
-## The vision
+## Rendering Roadmap
 
-The goal is a renderer that can stand next to modern production engines in visual quality while staying small enough that one person can understand every line of it. No magic. No black boxes.
-
-The north star is physically correct light — where what you see on screen is what light actually does in the real world. Not approximations stacked on approximations but a genuine simulation of how photons interact with surfaces.
-
----
-
-## The road ahead
-
-### Next — Image Based Lighting
-Replace the hardcoded hemisphere ambient with real environment lighting. HDR cubemap capture, diffuse irradiance convolution, GGX prefiltered specular, BRDF LUT. The jump in visual quality from this alone is enormous — proper sky reflections on metal, coloured bounce light in archways, the full split-sum approximation the split-sum approximation from Epic's 2013 paper.
-
-### GPU-driven rendering
-Move draw call generation entirely to the GPU. `vkCmdDrawIndexedIndirect` with a compute shader culling pass. The CPU currently submits every draw call manually — that's fine for now but it's the ceiling. GPU-driven removes that ceiling entirely and opens the door to massive scene complexity.
-
-### Frustum + occlusion culling
-Bounding volume hierarchy on the CPU for frustum culling, GPU occlusion queries for the rest. Currently everything in the scene gets drawn unconditionally. This is the next big performance unlock.
+### Image Based Lighting — next
+HDR environment capture, diffuse irradiance convolution, GGX prefiltered specular map, BRDF LUT. The single biggest visual quality jump available right now. Proper sky reflections on metal, coloured bounce light, the full split-sum approximation.
 
 ### Mipmap generation
-Full mip chain generation via `vkCmdBlitImage` at load time. Currently all textures are single level which means aliasing and shimmer at distance and worse GPU cache utilisation. This is a 30-line fix with a visible quality impact.
+Full mip chain via `vkCmdBlitImage` at load time. Eliminates aliasing and shimmer at distance.
 
 ### Screen Space Ambient Occlusion
-Sample the depth buffer in a hemisphere around each fragment, estimate how occluded it is. Darkens corners, crevices, contact shadows. Makes scenes feel grounded and real without the cost of ray tracing.
-
-### Bloom
-Downsample the HDR framebuffer, threshold bright pixels, gaussian blur, composite back. Makes emissive surfaces and specular highlights glow naturally. A huge part of why modern games look the way they do.
-
-### Temporal Anti-Aliasing
-Jitter the projection matrix sub-pixel each frame, accumulate history with exponential blending, reject disoccluded samples with velocity buffer reprojection. Best quality-to-cost ratio of any AA technique.
-
-### Ray Traced Ambient Occlusion
-Use Vulkan ray tracing extensions to trace short AO rays directly from the GBuffer. The RTX 3060 has dedicated RT cores that make this viable at full resolution. Real geometric occlusion instead of the screen-space approximation.
+Hemisphere depth sampling, contact shadows, makes scenes feel grounded. Huge perceived quality jump at low cost.
 
 ### Cascaded Shadow Maps
-Replace the single shadow map with 3-4 cascades covering different distance ranges. The current single frustum has to cover the entire scene which wastes resolution on distant shadows. Cascades give sharp shadows up close and smooth coverage at distance.
+3-4 depth cascades covering different distance ranges. Sharp shadows up close, smooth coverage at distance.
 
-### Point and spot lights
-A light list, tiled or clustered light assignment, multiple shadow-casting lights. The current single directional sun is a stepping stone.
+### Temporal Anti-Aliasing
+Sub-pixel projection jitter, history accumulation, velocity buffer reprojection. Best quality-to-cost AA available.
 
-### Lumen-style dynamic GI
-The endgame. Radiance caching, world-space probes, screen-space irradiance. This is where it gets genuinely hard and genuinely interesting.
+### Bloom
+HDR downsample, bright pixel threshold, gaussian blur, composite. A large part of why modern games look the way they do.
+
+### GPU-driven rendering
+`vkCmdDrawIndexedIndirect` with a GPU-side compute culling pass. Removes the CPU submission bottleneck entirely and opens the door to massive scene complexity.
+
+### Ray Traced Ambient Occlusion
+Vulkan ray tracing extensions, short AO rays from the GBuffer, real geometric occlusion. The RTX 3060 has dedicated RT cores — might as well use them.
+
+### Full Path Tracing
+The endgame for the renderer. Hardware RTX acceleration, unbiased light transport, caustics, interreflections, the works. The kind of image quality that is currently only possible offline — made realtime.
 
 ---
 
-## Built with
+## Engine Roadmap
+
+### Entity Component System
+Clean data-oriented ECS. Fast iteration, cache-friendly component storage, no inheritance hell. The backbone everything else plugs into.
+
+### Physics
+Rigid body simulation, collision detection, raycasts. Enough to make real games. Probably integrating a proven library rather than writing a physics engine from scratch — that's a different project entirely.
+
+### Audio
+3D positional audio, streaming, effects. The part everyone forgets until the game feels completely empty without it.
+
+### Input system
+Keyboard, mouse, gamepad. Event driven and polling both. Simple.
+
+### Minimal developer UI
+The engine provides a thin layer for in-game UI — enough to build menus, HUDs, debug overlays. Pure C++, no markup language, no retained mode nightmare. You write code, UI appears.
+
+### Scene management
+Scene graph, serialization, asset hot-reloading. Load a scene, change a file, see it update without restarting.
+
+### Developer tooling
+An editor — eventually. Not soon. The renderer has to be worth editing things in first.
+
+---
+
+## Built With
 
 - C++23
 - Vulkan 1.3
@@ -87,6 +104,8 @@ The endgame. Radiance caching, world-space probes, screen-space irradiance. This
 
 ---
 
-*Built to understand rendering. Not to ship a product.*
+*Built to understand how everything works. Built to eventually beat the engines that don't let you.*
 
-YES IT IS WRITTEN BY AI BUT WHY DO EXTRA WORK FOR THIS TYPE OF THING
+---
+
+THIS README WAS WRITTEN BY AI. THE HUMAN WAS BUSY ACTUALLY BUILDING THE ENGINE.
