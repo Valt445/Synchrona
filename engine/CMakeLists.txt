@@ -14,7 +14,7 @@ add_compile_definitions(_CRT_SECURE_NO_WARNINGS NOMINMAX WIN32_LEAN_AND_MEAN)
 
 find_package(Vulkan REQUIRED)
 
-# ----------------------------------------------------------------------------- 
+# -----------------------------------------------------------------------------
 # DEPENDENCIES - WITH DEBUG OUTPUT
 # -----------------------------------------------------------------------------
 
@@ -32,7 +32,7 @@ else()
     message(FATAL_ERROR "✗ GLFW not found at: ${GLFW_PATH}")
 endif()
 
-# GLM - Check with debug output  
+# GLM - Check with debug output
 set(GLM_PATH ${CMAKE_CURRENT_SOURCE_DIR}/external/glm/glm/glm.hpp)
 message(STATUS "Looking for GLM at: ${GLM_PATH}")
 
@@ -102,7 +102,7 @@ endif()
 
 message(STATUS "=== ALL DEPENDENCIES CHECKED ===")
 
-# ----------------------------------------------------------------------------- 
+# -----------------------------------------------------------------------------
 # ENGINE LIBRARY
 # -----------------------------------------------------------------------------
 
@@ -120,8 +120,8 @@ set(ENGINE_SOURCES
     src/loader.cpp
     src/texture_loader.cpp         # <-- texture loader TU (implements load_texture_from_file)
     src/stb_image_impl.cpp
-    src/camer.cpp             
-    src/pipelines.cpp 
+    src/camer.cpp
+    src/pipelines.cpp
     src/swapchain.cpp
     src/textures.cpp
     src/vulkan_core.cpp
@@ -131,7 +131,7 @@ set(ENGINE_SOURCES
     src/commands_and_sync.cpp
     src/immediate_submit.cpp
     src/imgui_integration.cpp
-   
+
     ${IMGUI_SOURCES}
     ${HEADER_FILES}  # ADD HEADERS HERE
 )
@@ -167,7 +167,7 @@ target_include_directories(Engine PUBLIC
     $<IF:$<BOOL:${STB_INCLUDE_DIR}>,${STB_INCLUDE_DIR},>
 )
 
-target_include_directories(Engine PUBLIC 
+target_include_directories(Engine PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
@@ -197,11 +197,11 @@ if(WIN32)
 endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    target_compile_definitions(Engine PUBLIC 
+    target_compile_definitions(Engine PUBLIC
         VULKAN_DEBUG=1
         _DEBUG
     )
-    
+
     if(MSVC)
         target_compile_options(Engine PRIVATE /Zi /Od /W4)
         target_link_options(Engine PRIVATE /DEBUG)
@@ -209,12 +209,18 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 endif()
 
 # Copy assets and shaders
+# --- FIXED ASSET DEPLOYMENT ---
+# We use CMAKE_BINARY_DIR to ensure it goes directly into your 'build' folder
 add_custom_command(TARGET Engine POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:Engine>/assets"
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/assets/" "$<TARGET_FILE_DIR:Engine>/assets/"
-    COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:Game>/shaders"
-    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/engine/shaders" "$<TARGET_FILE_DIR:Game>/shaders"
-    COMMENT "Copying assets and shaders to build directory"
+    # Create the directories first
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/assets"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/shaders"
+
+    # Copy the actual files
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/assets" "${CMAKE_BINARY_DIR}/assets"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/shaders" "${CMAKE_BINARY_DIR}/shaders"
+
+    COMMENT "🎉 Fixed: Copying assets and shaders to build directory without --config error"
 )
 
 message(STATUS "🎉 Engine configured successfully!")
