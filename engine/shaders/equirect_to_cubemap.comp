@@ -1,0 +1,53 @@
+#version 460
+
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+// Input: HDR equirectangular panorama
+layout(set = 0, binding = 0) uniform sampler2D equirectMap;
+
+// Output: cubemap (6 faces as array layers)
+layout(set = 0, binding = 1, rgba32f) uniform writeonly imageCube envCubemap;
+
+const vec2 INV_ATAN = vec2(0.1591, 0.3183); // 1/(2*PI), 1/PI
+
+// Convert a direction vector to equirectangular UV
+vec2 sampleSphericalMap(vec3 dir)
+{
+    vec2 uv = vec2(atan(dir.z, dir.x), asin(dir.y));
+    uv *= INV_ATAN;
+    uv += 0.5;
+    return uv;
+}
+
+// Convert cubemap face + texel coordinate to a direction vector
+vec3 getCubeDirection(ivec3 coord, ivec2 faceSize)
+{
+    // Normalise to [-1, 1]
+    vec2 uv = (vec2(coord.xy) + 0.5) / vec2(faceSize);
+    uv = uv * 2.0 - 1.0;
+
+    switch (coord.z)
+    {
+        case 0: return normalize(vec3( 1.0,  -uv.y, -uv.x)); // +X
+        case 1: return normalize(vec3(-1.0,  -uv.y,  uv.x)); // -X
+        case 2: return normalize(vec3( uv.x,  1.0,   uv.y)); // +Y
+        case 3: return normalize(vec3( uv.x, -1.0,  -uv.y)); // -Y
+        case 4: return normalize(vec3( uv.x, -uv.y,  1.0));  // +Z
+        case 5: return normalize(vec3(-uv.x, -uv.y, -1.0));  // -Z
+    }
+    return vec3(0.0);
+}
+
+void main()
+{
+    ivec3 coord    = ivec3(gl_GlobalInvocationID);
+    ivec2 faceSize = imageSize(envCubemap);
+
+    if (coord.x >= faceSize.x || coord.y >= faceSize.y) return;
+
+    vec3 dir = getCubeDirection(coord, faceSize);
+    vec2 uv  = sampleSphericalMap(dir);
+
+    vec3 colour = texture(equirectMap, uv).rgb;
+    imageStore(envCubemap, coord, vec4(colour, 1.0));
+}

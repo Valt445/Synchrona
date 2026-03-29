@@ -122,6 +122,7 @@ void init_background_pipelines(Engine* e)
 
 void init_mesh_pipelines(Engine* e)
 {
+    LOG("Building mesh pipeline...");
     VkShaderModule meshVertShader;
     if (!e->util.load_shader_module("shaders/colored_triangle_mesh.vert.spv", e->device, &meshVertShader)) {
         LOG_ERROR("Failed to load vertex shader");
@@ -179,7 +180,7 @@ void init_mesh_pipelines(Engine* e)
     set_input_topology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, pb);
     set_polygon_mode(VK_POLYGON_MODE_FILL, pb);
     set_cull_mode(VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE, pb);
-    set_multisampling_none(pb);
+	set_multisampling(e->msaaSamples, pb);
     enable_blending_alphablend(pb);
     enable_depthtest(pb, VK_COMPARE_OP_LESS_OR_EQUAL);
     set_color_attachment_format(e->drawImage.imageFormat, pb);

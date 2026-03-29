@@ -39,6 +39,10 @@ static constexpr uint32_t INVALID_TEXTURE = 0xFFFFFFFFu;
 std::optional<std::vector<std::shared_ptr<MeshAsset>>>
 loadgltfMeshes(Engine* e, std::filesystem::path filePath);
 AllocatedImage load_image_from_gltf(Engine* e, cgltf_image* img, bool isLinear);
+void upload_image_data(Engine* e, AllocatedImage& image, const void* pixels, size_t size);
 
+void generate_mipmaps(Engine* e, VkCommandBuffer cmd, VkImage img, uint32_t mipLevels, uint32_t width, uint32_t height);
 void upload_texture_to_bindless_safe(Engine* e, AllocatedImage img,
+    VkSampler sampler, uint32_t index);
+inline void upload_texture_to_bindless(Engine* e, AllocatedImage img,
     VkSampler sampler, uint32_t index);

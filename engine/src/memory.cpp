@@ -32,6 +32,37 @@ AllocatedBuffer create_buffer(
     return newBuffer;
 }
 
+AllocatedImage create_msaa_image(Engine* e, VkExtent3D size, VkFormat format,
+    VkImageUsageFlags usage)
+{
+    AllocatedImage newImage{};
+    newImage.imageFormat = format;
+    newImage.imageExtent = size;
+    newImage.mipLevels = 1;
+
+    VkImageCreateInfo img_info = image_create_info(format, usage, size);
+    img_info.samples = e->msaaSamples; // ← hardcoded 4x
+    img_info.mipLevels = 1;
+
+    VmaAllocationCreateInfo alloc_info{};
+    alloc_info.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+    alloc_info.requiredFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+
+    VK_CHECK(vmaCreateImage(e->allocator, &img_info, &alloc_info,
+        &newImage.image, &newImage.allocation, nullptr));
+
+    VkImageAspectFlags aspectFlags = (format == VK_FORMAT_D32_SFLOAT)
+        ? VK_IMAGE_ASPECT_DEPTH_BIT
+        : VK_IMAGE_ASPECT_COLOR_BIT;
+
+    VkImageViewCreateInfo view_info = imageview_create_info(format, newImage.image, aspectFlags);
+    view_info.subresourceRange.levelCount = 1;
+
+    VK_CHECK(vkCreateImageView(e->device, &view_info, nullptr, &newImage.imageView));
+
+    return newImage;
+}
+
 void destroy_buffer(const AllocatedBuffer& buffer, Engine* e)
 {
     vmaDestroyBuffer(e->allocator, buffer.buffer, buffer.allocation);
@@ -48,6 +79,7 @@ AllocatedImage create_image(Engine* e, VkExtent3D size, VkFormat format,
     if (mipmapped)
         img_info.mipLevels = static_cast<uint32_t>(
             std::floor(std::log2(std::max(size.width, size.height)))) + 1;
+        newImage.mipLevels = img_info.mipLevels;  // ← ADD THIS, was missing
 
     VmaAllocationCreateInfo alloc_info{};
     alloc_info.usage = VMA_MEMORY_USAGE_GPU_ONLY;

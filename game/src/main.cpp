@@ -4,16 +4,19 @@
 #include "backends/imgui_impl_vulkan.h"
 #include <imgui.h>
 
+
 int main()
 {
     Engine engineInstance;
     engine = &engineInstance;
-
+     
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    // then create window at 2560x1440
     // init() handles everything:
     //   - Vulkan + swapchain + pipelines
     //   - setupCameraCallbacks()   ← registers all GLFW input callbacks
     //   - mainCamera.focusOn()     ← positions camera on the model
-    init(engine, 1280, 720);
+    init(engine, 2560, 1440);
     glfwSwapInterval(0);
     while (!glfwWindowShouldClose(engine->window))
     {

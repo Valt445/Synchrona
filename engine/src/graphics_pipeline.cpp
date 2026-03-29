@@ -15,6 +15,7 @@ PipelineBuilder::PipelineBuilder()
     multisampling = {};
     depthStencil = {};
     renderInfo = {};
+    vertexInputInfo = {};  // ← ADD THIS
 
     // Set sType for all structs that have one
     inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -28,6 +29,7 @@ PipelineBuilder::PipelineBuilder()
     multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
     colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
     colorBlendAttachment.blendEnable = VK_FALSE;
+    vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 }
 
 // You can now delete your `clear` function.
@@ -64,7 +66,6 @@ VkPipeline build_pipeline(VkDevice device, PipelineBuilder& pb)
     pipelineInfo.pNext = &pb.renderInfo;
     pipelineInfo.stageCount = static_cast<uint32_t>(pb.shaderStages.size());
     pipelineInfo.pStages = pb.shaderStages.data();
-    pipelineInfo.pVertexInputState = &vertexInputInfo;
     pipelineInfo.pInputAssemblyState = &pb.inputAssembly;
     pipelineInfo.pViewportState = &viewportState;
     pipelineInfo.pRasterizationState = &pb.rasterizer;
@@ -79,6 +80,12 @@ VkPipeline build_pipeline(VkDevice device, PipelineBuilder& pb)
         std::cerr << "❌ Pipeline layout is NULL!" << std::endl;
     }
     std::cout << "Creating pipeline with " << pb.shaderStages.size() << " shader stages" << std::endl;
+
+    // In build_pipeline, right before vkCreateGraphicsPipelines:
+    std::cout << "pipelineLayout: " << pb.pipelineLayout << std::endl;
+    std::cout << "renderInfo sType: " << pb.renderInfo.sType << std::endl;
+    std::cout << "colorAttachmentCount: " << pb.renderInfo.colorAttachmentCount << std::endl;
+    std::cout << "depthFormat: " << pb.renderInfo.depthAttachmentFormat << std::endl;
 
     VkPipeline newPipeline = VK_NULL_HANDLE;
     VkResult result = vkCreateGraphicsPipelines(
@@ -189,6 +196,15 @@ void enable_depthtest(PipelineBuilder& pb, VkCompareOp compareOp)
 	pb.depthStencil.stencilTestEnable = VK_FALSE;
 }
 
+void set_multisampling(VkSampleCountFlagBits samples, PipelineBuilder& pb)
+{
+    pb.multisampling.sampleShadingEnable = VK_FALSE;
+    pb.multisampling.rasterizationSamples = samples;
+    pb.multisampling.minSampleShading = 1.0f;
+    pb.multisampling.pSampleMask = nullptr;
+    pb.multisampling.alphaToCoverageEnable = VK_FALSE;
+    pb.multisampling.alphaToOneEnable = VK_FALSE;
+}
 void enable_blending_additive(PipelineBuilder& pb)
 {
     pb.colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;

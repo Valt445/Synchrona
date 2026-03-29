@@ -112,6 +112,7 @@ void init_vulkan(Engine* e) {
     features12.shaderOutputViewportIndex = VK_FALSE;
     features12.shaderOutputLayer = VK_FALSE;
     features12.subgroupBroadcastDynamicId = VK_FALSE;
+    
 
     VkPhysicalDeviceVulkan13Features features13{
         .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES,
@@ -121,7 +122,9 @@ void init_vulkan(Engine* e) {
     };
 
     VkPhysicalDeviceFeatures coreFeatures{
-        .shaderInt64 = VK_TRUE
+        .samplerAnisotropy = VK_TRUE, 
+        .shaderStorageImageMultisample = VK_TRUE,
+        .shaderInt64 = VK_TRUE,
     };
 
     vkb::PhysicalDeviceSelector selector{ vkb_inst };
