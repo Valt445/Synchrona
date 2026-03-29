@@ -25,6 +25,7 @@
 #include "images.h"
 #include "helper.h"
 #include "graphics_pipeline.h"
+#include "ibl.h"
 
 // ─── Vulkan error check ───────────────────────────────────────────────────────
 #define VK_CHECK(x)                                                         \
@@ -90,8 +91,8 @@ constexpr unsigned int FRAME_OVERLAP = 3;
 
 // ─── Engine ───────────────────────────────────────────────────────────────────
 struct Engine {
-    int   width = 1720;
-    int   height = 1200;
+    int width = 2560;
+    int height = 1440;
     int   frameNumber = 0;
     float deltaTime = 0.0f;  // seconds since last frame
 
@@ -115,7 +116,7 @@ struct Engine {
     VmaAllocator  allocator = VK_NULL_HANDLE;
 
     std::vector<AllocatedImage> sceneTextures;
-    uint32_t nextBindlessTextureIndex = 0;
+    uint32_t nextBindlessTextureIndex = 13;
 
     AllocatedImage drawImage{};
     VkExtent2D     drawExtent{};
@@ -202,9 +203,59 @@ struct Engine {
     Camera mainCamera;
     bool   keys[1024]{};
 
+    //IBL
+    AllocatedImage hdrImage{};
+    AllocatedImage envCubemap{};
+    AllocatedImage irradianceMap{};   // ← was irradiancemap, fix the typo
+    AllocatedImage prefilterMap{};
+    AllocatedImage brdfLUT{};
+
+    // equirect → cubemap
+    VkPipeline           equirectPipeline = VK_NULL_HANDLE;
+    VkPipelineLayout     equirectLayout = VK_NULL_HANDLE;
+    VkDescriptorSet      equirectSet = VK_NULL_HANDLE;
+    VkDescriptorSetLayout equirectSetLayout = VK_NULL_HANDLE;
+
+    // irradiance
+    VkPipeline           irradiancePipeline = VK_NULL_HANDLE;
+    VkPipelineLayout     irradianceLayout = VK_NULL_HANDLE;
+    VkDescriptorSet      irradianceSet = VK_NULL_HANDLE;
+    VkDescriptorSetLayout irradianceSetLayout = VK_NULL_HANDLE;
+
+    // prefilter — one descriptor set per mip level
+    VkPipeline            prefilterPipeline = VK_NULL_HANDLE;
+    VkPipelineLayout      prefilterLayout = VK_NULL_HANDLE;
+    VkDescriptorSetLayout prefilterSetLayout = VK_NULL_HANDLE;
+    VkDescriptorSet       prefilterSets[5] = {};
+    VkImageView           prefilterMipViews[5] = {}; // one view per mip
+
+    // brdf lut
+    VkPipeline            brdfLutPipeline = VK_NULL_HANDLE;
+    VkPipelineLayout      brdfLutLayout = VK_NULL_HANDLE;
+    VkDescriptorSet       brdfLutSet = VK_NULL_HANDLE;
+    VkDescriptorSetLayout brdfLutSetLayout = VK_NULL_HANDLE;
+
+    // bindless slots for IBL textures
+    uint32_t iblIrradianceIndex = 0;
+    uint32_t iblPrefilterIndex = 1;
+    uint32_t iblBrdfLutIndex = 12;
+
+
+    //skybox 
+    VkPipeline       skyboxPipeline = VK_NULL_HANDLE;
+    VkPipelineLayout skyboxPipelineLayout = VK_NULL_HANDLE;
+    float            skyTime = 0.0f;
+    float            cloudCoverage = 0.6f;
+    float            cloudSpeed = 1.0f;
+
+    AllocatedImage msaaImage{};
+    VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_4_BIT;
+
     // ── Per-frame draw stats — written by draw_geometry, read by debug UI
     uint32_t lastDrawCalls = 0;
     uint32_t lastTriangles = 0;
+
+    uint32_t mipLevels = 1;
 };
 
 extern Engine* engine;
@@ -265,7 +316,8 @@ AllocatedImage create_image(void* data, Engine* e, VkExtent3D size, VkFormat for
     VkImageUsageFlags usage, bool mipmapped = false);
 void destroy_image(const AllocatedImage& image, Engine* e);
 void upload_texture_to_bindless(Engine* e, AllocatedImage img, VkSampler sampler, uint32_t index);
-
+AllocatedImage create_msaa_image(Engine* e, VkExtent3D size, VkFormat format,
+    VkImageUsageFlags usage);
 // Helpers
 VkCommandBufferBeginInfo command_buffer_info(VkCommandBufferUsageFlags flags);
 VkFenceCreateInfo        fence_create_info(VkFenceCreateFlags flags);
@@ -284,7 +336,7 @@ void calculateTangents(std::vector<Vertex>& vertices, const std::vector<uint32_t
 void  init_shadow_map(Engine* e, uint32_t width, uint32_t height);
 void init_shadow_pipeline(Engine* e);
 void draw_shadow_pass(Engine* e, VkCommandBuffer cmd);
-
+void draw_skybox(Engine* e, VkCommandBuffer cmd);
 
 // Misc
 VkFormat find_depth_format(VkPhysicalDevice physicalDevice);

@@ -35,7 +35,7 @@ void update_uniform_buffers(Engine* e)
     lightProj[1][1] *= -1.0f;    // Vulkan Y-flip — same as camera projection
 
     e->lightViewProj = lightProj * lightView;
-    
+
     // store on engine for shadow pass
     cam.lightViewProj = e->lightViewProj;        // upload to UBO for PBR shader
 
@@ -61,11 +61,17 @@ void update_uniform_buffers(Engine* e)
 
 void draw_geometry(Engine* e, VkCommandBuffer cmd)
 {
+    // Render geometry into 4x MSAA image, resolve into drawImage
+    // Background (compute) already wrote into drawImage; geometry resolves on top
     VkRenderingAttachmentInfo colorAttachment{ .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO };
-    colorAttachment.imageView = e->drawImage.imageView;
+    colorAttachment.imageView = e->msaaImage.imageView;
     colorAttachment.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-    colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-    colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;  // clear msaaImage each frame
+    colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    colorAttachment.clearValue = { {0.0f, 0.0f, 0.0f, 0.0f} };
+    colorAttachment.resolveMode = VK_RESOLVE_MODE_AVERAGE_BIT;
+    colorAttachment.resolveImageView = e->drawImage.imageView;
+    colorAttachment.resolveImageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
     VkRenderingAttachmentInfo depthAttachment{ .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO };
     depthAttachment.imageView = e->depthImage.imageView;
@@ -82,6 +88,7 @@ void draw_geometry(Engine* e, VkCommandBuffer cmd)
     renderInfo.pDepthAttachment = &depthAttachment;
 
     vkCmdBeginRendering(cmd, &renderInfo);
+    draw_skybox(e, cmd);
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, e->meshPipeline);
     vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS,
         e->meshPipelineLayout, 0, 1, &e->bindlessSet, 0, nullptr);
@@ -100,7 +107,7 @@ void draw_geometry(Engine* e, VkCommandBuffer cmd)
         VkDeviceSize offset = 0;
         vkCmdBindVertexBuffers(cmd, 0, 1, &asset->meshBuffers.vertexBuffer.buffer, &offset);
         vkCmdBindIndexBuffer(cmd, asset->meshBuffers.indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
-       
+
 
 
         for (auto& surface : asset->surfaces) {
@@ -115,11 +122,14 @@ void draw_geometry(Engine* e, VkCommandBuffer cmd)
             push.roughnessFactor = surface.roughnessFactor;
             push.normalStrength = 1.0f;
             push.colorFactor = surface.colorFactor;
-            push.sunDirection = normalize(glm::vec3(0.3f, 1.0f, 0.4f));
-            push.sunColor = glm::vec3(1.0f, 0.98f, 0.95f);
-            push.sunIntensity = 3.0f;
+            push.sunDirection = normalize(glm::vec3(0.8f, 1.0f, 0.3f));
+            push.sunIntensity = 2.5f;
+            push.sunColor = glm::vec3(1.0f, 0.92f, 0.75f);
             push.shadowMapIndex = e->shadowMapBindlessIndex;  // = 5
             push.shadowBias = 0.003f;
+            push.iblIrradianceIndex = e->iblIrradianceIndex;
+            push.iblPrefilterIndex = e->iblPrefilterIndex;
+            push.iblBrdfLutIndex = e->iblBrdfLutIndex;
 
             vkCmdPushConstants(cmd, e->meshPipelineLayout,
                 VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
@@ -134,6 +144,7 @@ void draw_geometry(Engine* e, VkCommandBuffer cmd)
     e->lastDrawCalls = drawCalls;
     e->lastTriangles = triangles;
 
+    
     vkCmdEndRendering(cmd);
 }
 
@@ -150,6 +161,34 @@ void draw_background(VkCommandBuffer cmd, Engine* e)
     uint32_t dy = (e->drawImage.imageExtent.height + 15) / 16;
     vkCmdDispatch(cmd, dx, dy, 1);
 }
+
+void draw_skybox(Engine* e, VkCommandBuffer cmd)
+{
+    VkViewport viewport{ 0, 0,
+        (float)e->drawExtent.width, (float)e->drawExtent.height, 0.0f, 1.0f };
+    vkCmdSetViewport(cmd, 0, 1, &viewport);
+
+    VkRect2D scissor{ {0, 0}, {e->drawExtent.width, e->drawExtent.height} };
+    vkCmdSetScissor(cmd, 0, 1, &scissor);
+
+    SkyPushConstants push{};
+    push.sunDirection = normalize(glm::vec3(0.8f, 0.6f, 0.3f)); // match your sun
+    push.time = e->skyTime;
+    push.resolution = glm::vec2(e->drawExtent.width, e->drawExtent.height);
+    push.cloudCoverage = e->cloudCoverage;
+    push.cloudSpeed = e->cloudSpeed;
+    
+
+    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, e->skyboxPipeline);
+    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS,
+        e->skyboxPipelineLayout, 0, 1, &e->bindlessSet, 0, nullptr);
+    vkCmdPushConstants(cmd, e->skyboxPipelineLayout,
+        VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+        0, sizeof(SkyPushConstants), &push);
+    vkCmdDraw(cmd, 3, 1, 0, 0); 
+    
+}
+
 
 void draw_imgui(VkCommandBuffer cmd, VkImageView targetImageView, Engine* e)
 {
@@ -171,10 +210,14 @@ void draw_imgui(VkCommandBuffer cmd, VkImageView targetImageView, Engine* e)
 
 void engine_draw_frame(Engine* e)
 {
+    e->drawExtent.width  = e->swapchainExtent.width;
+    e->drawExtent.height = e->swapchainExtent.height;
+
     static auto lastTime = std::chrono::high_resolution_clock::now();
     auto  now = std::chrono::high_resolution_clock::now();
     e->deltaTime = std::chrono::duration<float>(now - lastTime).count();
     lastTime = now;
+    e->skyTime += e->deltaTime;
 
     debug_ui_update(e->deltaTime);
     e->mainCamera.update(e->window);
@@ -209,9 +252,9 @@ void engine_draw_frame(Engine* e)
     update_uniform_buffers(e);
 
     draw_shadow_pass(e, cmd);
-    transition_image(cmd, e->drawImage.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
-    draw_background(cmd, e);
-    transition_image(cmd, e->drawImage.image, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
+    transition_image(cmd, e->drawImage.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+   
 
     VkImageMemoryBarrier2 depthBarrier{ .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2 };
     depthBarrier.image = e->depthImage.image;

@@ -69,6 +69,77 @@ static glm::mat4 node_local(const cgltf_node* n) {
 }
 
 
+void generate_mipmaps(Engine* e, VkCommandBuffer cmd, VkImage img,
+    uint32_t mipLevels, int32_t width, int32_t height)
+{
+    for (int32_t i = 1; i < (int32_t)mipLevels; ++i)
+    {
+        // ── transition mip i-1: TRANSFER_DST → TRANSFER_SRC ─────────────────
+        VkImageMemoryBarrier barrier{};
+        barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+        barrier.image = img;
+        barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT,
+                                        (uint32_t)(i - 1), 1, 0, 1 }; // ONE mip only
+        barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+        barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+        barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+
+        vkCmdPipelineBarrier(cmd,
+            VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
+            0, 0, nullptr, 0, nullptr, 1, &barrier);
+
+        // ── blit ─────────────────────────────────────────────────────────────
+        VkImageBlit blit{};
+        blit.srcSubresource = { VK_IMAGE_ASPECT_COLOR_BIT, (uint32_t)(i - 1), 0, 1 };
+        blit.srcOffsets[0] = { 0, 0, 0 };
+        blit.srcOffsets[1] = { width >> (i - 1), height >> (i - 1), 1 };
+        blit.dstSubresource = { VK_IMAGE_ASPECT_COLOR_BIT, (uint32_t)i, 0, 1 };
+        blit.dstOffsets[0] = { 0, 0, 0 };
+        blit.dstOffsets[1] = { width >> i, height >> i, 1 };
+
+        // clamp to 1 so we never get a 0-size mip
+        blit.srcOffsets[1].x = std::max(blit.srcOffsets[1].x, 1);
+        blit.srcOffsets[1].y = std::max(blit.srcOffsets[1].y, 1);
+        blit.dstOffsets[1].x = std::max(blit.dstOffsets[1].x, 1);
+        blit.dstOffsets[1].y = std::max(blit.dstOffsets[1].y, 1);
+
+        vkCmdBlitImage(cmd,
+            img, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+            img, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            1, &blit, VK_FILTER_LINEAR);
+
+        // ── transition mip i-1: TRANSFER_SRC → SHADER_READ — done forever ───
+        barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+        barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+        barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+        vkCmdPipelineBarrier(cmd,
+            VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+            0, 0, nullptr, 0, nullptr, 1, &barrier);
+    }
+
+    // ── final mip never got transitioned in the loop — do it now ─────────────
+    VkImageMemoryBarrier finalBarrier{};
+    finalBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    finalBarrier.image = img;
+    finalBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    finalBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    finalBarrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT,
+                                         mipLevels - 1, 1, 0, 1 };
+    finalBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+    finalBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    finalBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+    finalBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+    vkCmdPipelineBarrier(cmd,
+        VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+        0, 0, nullptr, 0, nullptr, 1, &finalBarrier);
+}
+
 void upload_image_data(Engine* e, AllocatedImage& image, const void* pixels, size_t size)
 {
     if (!pixels || size == 0) return;
@@ -124,19 +195,13 @@ void upload_image_data(Engine* e, AllocatedImage& image, const void* pixels, siz
                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copy);
 
             // Transition entire image: TRANSFER_DST → SHADER_READ_ONLY
-            VkImageMemoryBarrier toShader{};
-            toShader.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-            toShader.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-            toShader.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            toShader.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-            toShader.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-            toShader.image = image.image;
-            toShader.subresourceRange = fullRange;   // FIX: covers all mip levels
+            generate_mipmaps(e, cmd, image.image,
+                image.mipLevels,                    // make sure this is set on AllocatedImage
+                (int32_t)image.imageExtent.width,
+                (int32_t)image.imageExtent.height);
 
-            vkCmdPipelineBarrier(cmd,
-                VK_PIPELINE_STAGE_TRANSFER_BIT,
-                VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-                0, 0, nullptr, 0, nullptr, 1, &toShader);
+
+
         }, e);
 
     // Safe to destroy now — immediate_submit waited on the fence.
@@ -190,8 +255,8 @@ AllocatedImage load_image_from_gltf(Engine* e, cgltf_image* img, bool isLinear)
         e,
         extent,
         format,
-        VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
-        false   // <-- was true; no mip chain since we don't blit
+        VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
+        true   // <-- was true; no mip chain since we don't blit
     );
 
     gpu.imageExtent = extent;   // required by upload_image_data for the copy region
@@ -411,6 +476,8 @@ static void traverse_node(
         traverse_node(node->children[i], worldT, e, texMap, out);
 }
 
+
+
 // ─── Main entry point ─────────────────────────────────────────────────────────
 // FIX: e->sceneBasePath is set HERE from filePath.parent_path() so that
 //      load_image_from_gltf can resolve relative URI paths for plain GLTF files.
@@ -442,8 +509,8 @@ loadgltfMeshes(Engine* e, std::filesystem::path filePath)
         << " | Materials " << data->materials_count
         << " | Textures " << data->textures_count << "\n";
 
-    if (e->nextBindlessTextureIndex <= e->shadowMapBindlessIndex)
-        e->nextBindlessTextureIndex = e->shadowMapBindlessIndex + 1;
+    if (e->nextBindlessTextureIndex <= e->iblBrdfLutIndex)
+        e->nextBindlessTextureIndex = e->iblBrdfLutIndex + 1; // = 13, never overwrite IBL slots
 
     TexMap texMap;
     texMap.reserve(data->textures_count * 2);
@@ -480,7 +547,7 @@ loadgltfMeshes(Engine* e, std::filesystem::path filePath)
 }
 
 // ─── upload_texture_to_bindless ───────────────────────────────────────────────
-void upload_texture_to_bindless_safe(Engine* e, AllocatedImage img,
+inline void upload_texture_to_bindless_safe(Engine* e, AllocatedImage img,
     VkSampler sampler, uint32_t index)
 {
     if (img.image == VK_NULL_HANDLE) return;
@@ -502,7 +569,7 @@ void upload_texture_to_bindless_safe(Engine* e, AllocatedImage img,
     vkUpdateDescriptorSets(e->device, 1, &write, 0, nullptr);
 }
 
-void upload_texture_to_bindless(Engine* e, AllocatedImage img,
+inline void upload_texture_to_bindless(Engine* e, AllocatedImage img,
     VkSampler sampler, uint32_t index)
 {
     upload_texture_to_bindless_safe(e, img, sampler, index);

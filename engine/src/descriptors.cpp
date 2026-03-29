@@ -177,6 +177,7 @@ void init_descriptors(Engine* e)
     builder.add_bindless_array(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 4096);
     builder.add_binding(1, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1);
     builder.add_binding(2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1);
+    builder.add_bindless_array(3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 8);    // ← ADD: samplerCube
 
     e->bindlessLayout = builder.build(
         e->device,
@@ -191,5 +192,5 @@ void init_descriptors(Engine* e)
         vkFreeDescriptorSets(e->device, e->globalDescriptorAllocator.pool, 1, &e->bindlessSet);
         });
 
-    LOG("Bindless descriptor system ready (bindings 0, 1, 2)");
+    LOG("Bindless descriptor system ready (bindings 0, 1, 2, 3)");
 }

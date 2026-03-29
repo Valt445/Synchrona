@@ -1,0 +1,103 @@
+#version 460
+
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+layout(set = 0, binding = 0) uniform samplerCube envMap;
+layout(set = 0, binding = 1, rgba32f) uniform writeonly imageCube prefilterMap;
+
+// Push constant — roughness for this mip level
+layout(push_constant) uniform PrefilterPC {
+    float roughness;
+    uint  numSamples;  // typically 1024
+} pc;
+
+const float PI = 3.14159265359;
+
+// ── Low-discrepancy sequence (Hammersley) ─────────────────────────────────────
+// Gives well-distributed sample points — better than random
+float radicalInverse_VdC(uint bits)
+{
+    bits = (bits << 16u) | (bits >> 16u);
+    bits = ((bits & 0x55555555u) << 1u) | ((bits & 0xAAAAAAAAu) >> 1u);
+    bits = ((bits & 0x33333333u) << 2u) | ((bits & 0xCCCCCCCCu) >> 2u);
+    bits = ((bits & 0x0F0F0F0Fu) << 4u) | ((bits & 0xF0F0F0F0u) >> 4u);
+    bits = ((bits & 0x00FF00FFu) << 8u) | ((bits & 0xFF00FF00u) >> 8u);
+    return float(bits) * 2.3283064365386963e-10; // / 0x100000000
+}
+
+vec2 hammersley(uint i, uint N)
+{
+    return vec2(float(i) / float(N), radicalInverse_VdC(i));
+}
+
+// ── GGX importance sampling ───────────────────────────────────────────────────
+// Biases our random samples toward the specular lobe direction
+// so we don't waste samples in directions that contribute nothing
+vec3 importanceSampleGGX(vec2 Xi, vec3 N, float roughness)
+{
+    float a = roughness * roughness;
+
+    float phi      = 2.0 * PI * Xi.x;
+    float cosTheta = sqrt((1.0 - Xi.y) / (1.0 + (a*a - 1.0) * Xi.y));
+    float sinTheta = sqrt(1.0 - cosTheta * cosTheta);
+
+    // Spherical to cartesian (in tangent space)
+    vec3 H = vec3(cos(phi) * sinTheta, sin(phi) * sinTheta, cosTheta);
+
+    // Tangent space → world space
+    vec3 up    = abs(N.z) < 0.999 ? vec3(0.0, 0.0, 1.0) : vec3(1.0, 0.0, 0.0);
+    vec3 tangent   = normalize(cross(up, N));
+    vec3 bitangent = cross(N, tangent);
+
+    return normalize(tangent * H.x + bitangent * H.y + N * H.z);
+}
+
+vec3 getCubeDirection(ivec3 coord, ivec2 faceSize)
+{
+    vec2 uv = (vec2(coord.xy) + 0.5) / vec2(faceSize);
+    uv = uv * 2.0 - 1.0;
+    switch (coord.z)
+    {
+        case 0: return normalize(vec3( 1.0,  -uv.y, -uv.x));
+        case 1: return normalize(vec3(-1.0,  -uv.y,  uv.x));
+        case 2: return normalize(vec3( uv.x,  1.0,   uv.y));
+        case 3: return normalize(vec3( uv.x, -1.0,  -uv.y));
+        case 4: return normalize(vec3( uv.x, -uv.y,  1.0));
+        case 5: return normalize(vec3(-uv.x, -uv.y, -1.0));
+    }
+    return vec3(0.0);
+}
+
+void main()
+{
+    ivec3 coord    = ivec3(gl_GlobalInvocationID);
+    ivec2 faceSize = imageSize(prefilterMap);
+
+    if (coord.x >= faceSize.x || coord.y >= faceSize.y) return;
+
+    vec3 N = getCubeDirection(coord, faceSize);
+    // For the prefilter map we assume V = R = N
+    // (a simplification that looks fine for non-grazing angles)
+    vec3 R = N;
+    vec3 V = R;
+
+    vec3  prefilteredColor = vec3(0.0);
+    float totalWeight      = 0.0;
+
+    for (uint i = 0u; i < pc.numSamples; i++)
+    {
+        vec2 Xi = hammersley(i, pc.numSamples);
+        vec3 H  = importanceSampleGGX(Xi, N, pc.roughness);
+        vec3 L  = normalize(2.0 * dot(V, H) * H - V);
+
+        float NdotL = max(dot(N, L), 0.0);
+        if (NdotL > 0.0)
+        {
+            prefilteredColor += texture(envMap, L).rgb * NdotL;
+            totalWeight      += NdotL;
+        }
+    }
+
+    prefilteredColor = prefilteredColor / totalWeight;
+    imageStore(prefilterMap, coord, vec4(prefilteredColor, 1.0));
+}

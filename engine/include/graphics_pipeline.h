@@ -35,4 +35,4 @@ void disable_depthtest(PipelineBuilder& pb);
 void enable_depthtest(PipelineBuilder& pb, VkCompareOp compareOp);
 void enable_blending_additive(PipelineBuilder& pb);
 void enable_blending_alphablend(PipelineBuilder& pb);
-
+void set_multisampling(VkSampleCountFlagBits samples, PipelineBuilder& pb);

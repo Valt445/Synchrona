@@ -94,13 +94,23 @@ struct MeshPushConstants {
     
     uint32_t  shadowMapIndex;    // offset 140 — bindless slot of the shadow map
     float     shadowBias;        // offset 144 — per-material bias tweak
-      
+    uint32_t iblIrradianceIndex;
+    uint32_t iblPrefilterIndex;
+    uint32_t iblBrdfLutIndex;
 };                            // = 140 bytes
 
 
 struct ShadowPushConstants {
     glm::mat4 lightViewProj;  // offset  0 (64 bytes)
     glm::mat4 modelMatrix;    // offset 64 (64 bytes)
+};
+
+struct SkyPushConstants {
+    glm::vec3 sunDirection;
+    float     time;
+    glm::vec2 resolution;
+    float     cloudCoverage;
+    float     cloudSpeed;
 };
 
 // ============================================================

@@ -183,15 +183,10 @@ void init_swapchain(Engine* e, uint32_t width, uint32_t height) {
     };
     rview_info.components = mapping;
     VK_CHECK(vkCreateImageView(e->device, &rview_info, nullptr, &e->drawImage.imageView));
-    VkExtent3D depthExtent = { e->swapchainExtent.width, e->swapchainExtent.height, 1 };
 
-    e->depthImage = create_image(e, depthExtent, VK_FORMAT_D32_SFLOAT,
-        VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, false);
-
+    // depth image is owned by init_depth_image — NOT created here
     e->mainDeletionQueue.push_function([=]() {
-
         destroy_draw_image(e);
-        destroy_image(e->depthImage, e);
         for (size_t i = 0; i < e->imageAvailableSemaphores.size(); i++) {
             vkDestroySemaphore(e->device, e->imageAvailableSemaphores[i], nullptr);
             vkDestroySemaphore(e->device, e->renderFinishedSemaphores[i], nullptr);
@@ -253,35 +248,8 @@ void resize_swapchain(Engine* e) {
     create_draw_image(e, newWidth, newHeight);
     std::printf("  ✓ New draw image created\n");
 
-	init_depth_image(e, e->swapchainExtent.width, e->swapchainExtent.height);
-
-    // ==================== 🔴 CRITICAL: RECREATE DEPTH IMAGE 🔴 ====================
-    std::printf("🎯 Creating NEW DEPTH IMAGE...\n");
-
-    if (e->swapchainExtent.width > 0 && e->swapchainExtent.height > 0) {
-        VkExtent3D depthExtent = { e->swapchainExtent.width, e->swapchainExtent.height, 1 };
-
-        std::printf("   → Dimensions: %ux%u\n", depthExtent.width, depthExtent.height);
-        std::printf("   → Format: VK_FORMAT_D32_SFLOAT\n");
-        std::printf("   → Usage: VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT\n");
-
-        e->depthImage = create_image(e, depthExtent, VK_FORMAT_D32_SFLOAT,
-            VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, false);
-
-        if (e->depthImage.image != VK_NULL_HANDLE) {
-            std::printf("   ✅ Depth image created successfully!\n");
-            std::printf("   ✅ Handle: %p\n", (void*)e->depthImage.image);
-        }
-        else {
-            std::printf("   ❌ FATAL: Depth image creation FAILED! Got NULL handle!\n");
-            std::printf("   ❌ This will cause crashes during rendering!\n");
-        }
-    }
-    else {
-        std::printf("   ❌ FATAL: Invalid swapchain dimensions: %ux%u\n",
-            e->swapchainExtent.width, e->swapchainExtent.height);
-        e->depthImage = {};
-    }
+    init_depth_image(e, e->swapchainExtent.width, e->swapchainExtent.height);
+    std::printf("  ✓ New depth image created\n");
 
     // Final verification
     std::printf("\n");
