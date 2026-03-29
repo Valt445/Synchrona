@@ -12,6 +12,7 @@
 #include <glm/packing.hpp>
 #include "texture_loader.h"
 #include "skybox.h"
+#include <filesystem>
 
 Engine* engine = nullptr;
 
@@ -19,16 +20,20 @@ void init(Engine* e, uint32_t x, uint32_t y)
 {
     *e = Engine{};
     ::engine = e;
-    e->sceneBasePath = "assets/gLTF";
     e->shadowMapBindlessIndex = 5;
-    
+
     init_vulkan(e);
-    init_swapchain(e, x, y);
+    init_swapchain(e, x, y);    // sets e->swapchainExtent to true pixel size
     init_descriptors(e);
     init_samplers(e);
     init_shadow_map(e, 2048, 2048);
-    create_draw_image(e, x, y);
-    init_depth_image(e, x, y);
+
+    // FIX: use swapchainExtent (true framebuffer pixels) not x/y (window logical points).
+    // On Mac Retina x/y are half the actual framebuffer size — using them here was the
+    // root cause of the 2560x1440 draw image vs 3600x2086 swapchain mismatch.
+    create_draw_image(e, e->swapchainExtent.width, e->swapchainExtent.height);
+    init_depth_image(e, e->swapchainExtent.width, e->swapchainExtent.height);
+
     init_commands(e);
     init_camera_buffers(e);
     init_sync_structures(e);
@@ -96,7 +101,6 @@ void init_depth_image(Engine* e, uint32_t width, uint32_t height)
 {
     destroy_depth_image(e);
     VkExtent3D depthExtent = { width, height, 1 };
-    // create_msaa_image handles image + view creation with 4x MSAA sample count
     e->depthImage = create_msaa_image(e, depthExtent,
         VK_FORMAT_D32_SFLOAT,
         VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
@@ -106,17 +110,13 @@ void init_depth_image(Engine* e, uint32_t width, uint32_t height)
 
 void init_shadow_map(Engine* e, uint32_t width, uint32_t height)
 {
-
-
-    e->shadowMapImage.imageFormat = VK_FORMAT_D32_SFLOAT; // hardcode, don't use find_depth_format
-    // D32 guaranteed to support SAMPLED_BIT
+    e->shadowMapImage.imageFormat = VK_FORMAT_D32_SFLOAT;
     VkExtent3D shadowExtent = { width, height, 1 };
-    e->shadowMapImage.imageExtent = shadowExtent;          // FIX 3: set extent
+    e->shadowMapImage.imageExtent = shadowExtent;
 
     VkImageCreateInfo smimg_info = image_create_info(
         e->shadowMapImage.imageFormat,
-        VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT |
-        VK_IMAGE_USAGE_SAMPLED_BIT,
+        VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
         shadowExtent);
 
     VmaAllocationCreateInfo smimg_allocinfo{};
@@ -133,30 +133,28 @@ void init_shadow_map(Engine* e, uint32_t width, uint32_t height)
     VK_CHECK(vkCreateImageView(e->device, &smview_info, nullptr,
         &e->shadowMapImage.imageView));
 
-    // FIX 1: create the PCF sampler BEFORE using it
     VkSamplerCreateInfo samplerCI{ .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO };
     samplerCI.magFilter = VK_FILTER_LINEAR;
     samplerCI.minFilter = VK_FILTER_LINEAR;
     samplerCI.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
     samplerCI.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
     samplerCI.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
-    samplerCI.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE; // outside map = lit
-    samplerCI.compareEnable = VK_FALSE;                            // PCF comparison
+    samplerCI.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+    samplerCI.compareEnable = VK_FALSE;
     samplerCI.compareOp = VK_COMPARE_OP_NEVER;
     samplerCI.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
     VK_CHECK(vkCreateSampler(e->device, &samplerCI, nullptr, &e->shadowMapSampler));
 
-    // FIX 2: dstBinding=0 (texture array), dstArrayElement=shadowMapBindlessIndex (slot 5)
     VkDescriptorImageInfo imgInfo{};
     imgInfo.imageLayout = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL;
     imgInfo.imageView = e->shadowMapImage.imageView;
-    imgInfo.sampler = e->shadowMapSampler;   // now valid
+    imgInfo.sampler = e->shadowMapSampler;
 
     VkWriteDescriptorSet write{};
     write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     write.dstSet = e->bindlessSet;
-    write.dstBinding = 0;                          // texture array
-    write.dstArrayElement = e->shadowMapBindlessIndex;  // slot 5
+    write.dstBinding = 0;
+    write.dstArrayElement = e->shadowMapBindlessIndex;
     write.descriptorCount = 1;
     write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     write.pImageInfo = &imgInfo;
@@ -174,6 +172,18 @@ void init_shadow_map(Engine* e, uint32_t width, uint32_t height)
 
 void destroy_draw_image(Engine* e)
 {
+    // Destroy MSAA image
+    if (e->msaaImage.imageView != VK_NULL_HANDLE) {
+        vkDestroyImageView(e->device, e->msaaImage.imageView, nullptr);
+        e->msaaImage.imageView = VK_NULL_HANDLE;
+    }
+    if (e->msaaImage.image != VK_NULL_HANDLE) {
+        vmaDestroyImage(e->allocator, e->msaaImage.image, e->msaaImage.allocation);
+        e->msaaImage.image = VK_NULL_HANDLE;
+        e->msaaImage.allocation = VK_NULL_HANDLE;
+    }
+
+    // Destroy resolve/draw image
     if (e->drawImage.imageView != VK_NULL_HANDLE) {
         vkDestroyImageView(e->device, e->drawImage.imageView, nullptr);
         e->drawImage.imageView = VK_NULL_HANDLE;
@@ -222,6 +232,7 @@ void create_draw_image(Engine* e, uint32_t width, uint32_t height)
     e->drawImage.imageExtent = drawImageExtent;
     e->drawExtent = { width, height };
 
+    // ── Resolve target (drawImage) — geometry blits/resolves into this ────────
     VkImageUsageFlags drawImageUsages =
         VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
         VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
@@ -239,63 +250,46 @@ void create_draw_image(Engine* e, uint32_t width, uint32_t height)
         e->drawImage.imageFormat, e->drawImage.image, VK_IMAGE_ASPECT_COLOR_BIT);
     VK_CHECK(vkCreateImageView(e->device, &rview_info, nullptr, &e->drawImage.imageView));
 
-    VkDescriptorImageInfo samplerInfo{};
-    samplerInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-    samplerInfo.imageView = e->drawImage.imageView;
-    samplerInfo.sampler = e->defaultSamplerLinear;
-
+    // Update bindless slot 1 (storage) with new draw image view
     VkDescriptorImageInfo storageInfo{};
     storageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
     storageInfo.imageView = e->drawImage.imageView;
 
-    VkWriteDescriptorSet writes[2]{};
-    writes[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    writes[0].dstSet = e->bindlessSet;
-    writes[0].dstBinding = 0;
-    writes[0].dstArrayElement = 0;
-    writes[0].descriptorCount = 1;
-    writes[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    writes[0].pImageInfo = &samplerInfo;
+    VkWriteDescriptorSet storageWrite{};
+    storageWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    storageWrite.dstSet = e->bindlessSet;
+    storageWrite.dstBinding = 1;
+    storageWrite.descriptorCount = 1;
+    storageWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+    storageWrite.pImageInfo = &storageInfo;
+    vkUpdateDescriptorSets(e->device, 1, &storageWrite, 0, nullptr);
 
-    writes[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    writes[1].dstSet = e->bindlessSet;
-    writes[1].dstBinding = 1;
-    writes[1].descriptorCount = 1;
-    writes[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-    writes[1].pImageInfo = &storageInfo;
+    // ── MSAA render target — 4x, geometry renders here, resolves to drawImage ─
+    VkImageCreateInfo msaa_info{};
+    msaa_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+    msaa_info.imageType = VK_IMAGE_TYPE_2D;
+    msaa_info.format = VK_FORMAT_R16G16B16A16_SFLOAT;
+    msaa_info.extent = drawImageExtent;
+    msaa_info.mipLevels = 1;
+    msaa_info.arrayLayers = 1;
+    msaa_info.samples = e->msaaSamples;
+    msaa_info.tiling = VK_IMAGE_TILING_OPTIMAL;
+    msaa_info.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT;
+    msaa_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
-    vkUpdateDescriptorSets(e->device, 2, writes, 0, nullptr);
+    VmaAllocationCreateInfo msaa_alloc{};
+    msaa_alloc.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+    msaa_alloc.requiredFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 
-    // msaaImage: COLOR_ATTACHMENT only — MSAA images CANNOT be storage images
-    // Geometry renders into this 4x MSAA target, resolves into drawImage
-    {
-        VkImageCreateInfo msaa_info{};
-        msaa_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-        msaa_info.imageType = VK_IMAGE_TYPE_2D;
-        msaa_info.format = VK_FORMAT_R16G16B16A16_SFLOAT;
-        msaa_info.extent = drawImageExtent;
-        msaa_info.mipLevels = 1;
-        msaa_info.arrayLayers = 1;
-        msaa_info.samples = e->msaaSamples;
-        msaa_info.tiling = VK_IMAGE_TILING_OPTIMAL;
-        msaa_info.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
-            | VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT;
-        msaa_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    VK_CHECK(vmaCreateImage(e->allocator, &msaa_info, &msaa_alloc,
+        &e->msaaImage.image, &e->msaaImage.allocation, nullptr));
 
-        VmaAllocationCreateInfo msaa_alloc{};
-        msaa_alloc.usage = VMA_MEMORY_USAGE_GPU_ONLY;
-        msaa_alloc.requiredFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+    VkImageViewCreateInfo msaa_view = imageview_create_info(
+        VK_FORMAT_R16G16B16A16_SFLOAT, e->msaaImage.image, VK_IMAGE_ASPECT_COLOR_BIT);
+    VK_CHECK(vkCreateImageView(e->device, &msaa_view, nullptr, &e->msaaImage.imageView));
 
-        VK_CHECK(vmaCreateImage(e->allocator, &msaa_info, &msaa_alloc,
-            &e->msaaImage.image, &e->msaaImage.allocation, nullptr));
-
-        VkImageViewCreateInfo msaa_view = imageview_create_info(
-            VK_FORMAT_R16G16B16A16_SFLOAT, e->msaaImage.image, VK_IMAGE_ASPECT_COLOR_BIT);
-        VK_CHECK(vkCreateImageView(e->device, &msaa_view, nullptr, &e->msaaImage.imageView));
-
-        e->msaaImage.imageFormat = VK_FORMAT_R16G16B16A16_SFLOAT;
-        e->msaaImage.imageExtent = drawImageExtent;
-    }
+    e->msaaImage.imageFormat = VK_FORMAT_R16G16B16A16_SFLOAT;
+    e->msaaImage.imageExtent = drawImageExtent;
 
     LOG("Draw image created — msaaImage(4x) -> resolve -> drawImage");
 }
@@ -317,14 +311,32 @@ void init_default_data(Engine* e)
     upload_texture_to_bindless(e, e->blackImage, e->defaultSamplerLinear, 3);
     e->nextBindlessTextureIndex = e->shadowMapBindlessIndex + 1;
 
-    auto testMeshes = loadgltfMeshes(e, "assets/gLTF/DamagedHelmet.gltf");
+    // Walk up from CWD until we find the assets folder (works from build/ or project root)
+    std::filesystem::path glbRelative = "assets/dm.glb";
+    std::filesystem::path glbPath = glbRelative;
+    {
+        std::filesystem::path search = std::filesystem::current_path();
+        for (int i = 0; i < 5; ++i) {
+            auto candidate = search / glbRelative;
+            if (std::filesystem::exists(candidate)) {
+                glbPath = candidate;
+                break;
+            }
+            if (!search.has_parent_path()) break;
+            search = search.parent_path();
+        }
+    }
+    std::printf("[loader] GLB path: %s\n", std::filesystem::absolute(glbPath).string().c_str());
+
+    auto testMeshes = loadgltfMeshes(e, glbPath);
     if (testMeshes.has_value()) {
         e->testMeshes = std::move(testMeshes.value());
         LOG("Loaded " << e->testMeshes.size() << " meshes");
-    }
-    else {
+    } else {
         LOG_ERROR("No meshes loaded from GLTF file");
     }
+
+
 
     std::array<uint32_t, 256> gradientPixels;
     for (int i = 0; i < 256; i++) {
@@ -384,9 +396,9 @@ void engine_cleanup(Engine* e)
         e->debug_messenger = VK_NULL_HANDLE;
     }
 
-    if (e->surface)   vkDestroySurfaceKHR(e->instance, e->surface, nullptr);
-    if (e->instance)  vkDestroyInstance(e->instance, nullptr);
-    if (e->window)    glfwDestroyWindow(e->window);
+    if (e->surface)  vkDestroySurfaceKHR(e->instance, e->surface, nullptr);
+    if (e->instance) vkDestroyInstance(e->instance, nullptr);
+    if (e->window)   glfwDestroyWindow(e->window);
 
     glfwTerminate();
     LOG("Engine cleanup complete");

@@ -1,15 +1,5 @@
 ﻿// ============================================================
-// loader.cpp - Production GLTF/GLB loader
-// FIXES:
-//   1. e->sceneBasePath set from filePath in loadgltfMeshes()
-//   2. immediate_submit(e, lambda) — correct parameter order
-//   3. create_image(..., false) — no mipmaps; upload_image_data
-//      only fills mip 0, so never request a mip chain here
-//   4. VkImageSubresourceRange.levelCount = VK_REMAINING_MIP_LEVELS
-//      in barriers so all mip levels are properly transitioned
-//   5. Staging buffer lifetime: destroyed AFTER immediate_submit
-//      returns (immediate_submit must be synchronous/fenced)
-// ============================================================
+
 #define CGLTF_IMPLEMENTATION
 #include "loader.h"
 #include "engine.h"

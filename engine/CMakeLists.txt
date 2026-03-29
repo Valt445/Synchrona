@@ -27,14 +27,6 @@ add_compile_definitions(_CRT_SECURE_NO_WARNINGS NOMINMAX WIN32_LEAN_AND_MEAN)
 
 find_package(Vulkan REQUIRED)
 
-<<<<<<< HEAD
-# -----------------------------------------------------------------------------
-# DEPENDENCIES - WITH DEBUG OUTPUT
-=======
-# ----------------------------------------------------------------------------- 
-# DEPENDENCIES
->>>>>>> origin/main
-# -----------------------------------------------------------------------------
 
 message(STATUS "=== CHECKING DEPENDENCIES ===")
 
@@ -47,10 +39,7 @@ else()
     message(FATAL_ERROR "✗ GLFW not found at: ${GLFW_PATH}")
 endif()
 
-<<<<<<< HEAD
-# GLM - Check with debug output
-=======
->>>>>>> origin/main
+
 set(GLM_PATH ${CMAKE_CURRENT_SOURCE_DIR}/external/glm/glm/glm.hpp)
 if(EXISTS ${GLM_PATH})
     set(GLM_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/external/glm)
@@ -101,8 +90,7 @@ else()
     set(FASTGLTF_INCLUDE_DIR "")
 endif()
 
-<<<<<<< HEAD
-message(STATUS "=== ALL DEPENDENCIES CHECKED ===")
+
 
 # -----------------------------------------------------------------------------
 # ENGINE LIBRARY
@@ -134,15 +122,15 @@ set(ENGINE_SOURCES
     src/immediate_submit.cpp
     src/imgui_integration.cpp
 
+
     ${IMGUI_SOURCES}
     ${HEADER_FILES}  # ADD HEADERS HERE
 )
 
-add_library(Engine STATIC ${ENGINE_SOURCES})
+
 
 # Prefer explicit STB include dir; adjust to where your stb_image.h actually lives.
-=======
->>>>>>> origin/main
+
 set(STB_POSSIBLE_DIRS
     "${CMAKE_CURRENT_SOURCE_DIR}/external/stb"
     "${CMAKE_CURRENT_SOURCE_DIR}/external/stb_image"
@@ -164,7 +152,7 @@ endif()
 
 message(STATUS "=== ALL DEPENDENCIES CHECKED ===")
 
-# ----------------------------------------------------------------------------- 
+# -----------------------------------------------------------------------------
 # IMGUI — isolated static library so it never recompiles with Engine changes
 # -----------------------------------------------------------------------------
 
@@ -308,7 +296,7 @@ function(compile_slang_shader)
     set(SLANG_SPV_OUTPUTS ${SLANG_SPV_OUTPUTS} "${SPV_OUT}" CACHE INTERNAL "")
 endfunction()
 
-# ----------------------------------------------------------------------------- 
+# -----------------------------------------------------------------------------
 # ENGINE LIBRARY
 # -----------------------------------------------------------------------------
 
@@ -383,19 +371,15 @@ set_source_files_properties(
 
 target_include_directories(Engine PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${IMGUI_DIR}                        # kept so Engine headers that include imgui still resolve
+    ${IMGUI_DIR}
     ${GLM_INCLUDE_DIR}
     ${CGLTF_INCLUDE_DIR}
     $<IF:$<BOOL:${STB_INCLUDE_DIR}>,${STB_INCLUDE_DIR},>
-<<<<<<< HEAD
-)
-
-target_include_directories(Engine PUBLIC
-=======
->>>>>>> origin/main
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
+
+
 
 if(FASTGLTF_INCLUDE_DIR)
     target_include_directories(Engine PUBLIC ${FASTGLTF_INCLUDE_DIR})
@@ -433,22 +417,17 @@ if(WIN32)
 endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-<<<<<<< HEAD
     target_compile_definitions(Engine PUBLIC
         VULKAN_DEBUG=1
         _DEBUG
     )
 
-=======
-    target_compile_definitions(Engine PUBLIC VULKAN_DEBUG=1 _DEBUG)
->>>>>>> origin/main
     if(MSVC)
         target_compile_options(Engine PRIVATE /Zi /Od /W4)
         target_link_options(Engine PRIVATE /DEBUG)
     endif()
 endif()
 
-<<<<<<< HEAD
 # Copy assets and shaders
 # --- FIXED ASSET DEPLOYMENT ---
 # We use CMAKE_BINARY_DIR to ensure it goes directly into your 'build' folder
@@ -465,70 +444,3 @@ add_custom_command(TARGET Engine POST_BUILD
 )
 
 message(STATUS "🎉 Engine configured successfully!")
-=======
-# ----------------------------------------------------------------------------- 
-# REGISTER SLANG SHADERS
-# -----------------------------------------------------------------------------
-
-set(SHADER_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/shaders")
-
-compile_slang_shader(
-    SOURCE      "${SHADER_SRC_DIR}/colored_triangle_mesh_slang.slang"
-    OUTPUT_NAME "colored_triangle_mesh_slang"
-    STAGE       vertex
-    ENTRY       vertexMain
-)
-
-compile_slang_shader(
-    SOURCE      "${SHADER_SRC_DIR}/shadow.slang"
-    OUTPUT_NAME "shadow_slang"
-    STAGE       vertex
-    ENTRY       vertexMain
-)
-
-compile_slang_shader(
-    SOURCE      "${SHADER_SRC_DIR}/tex_images.slang"
-    OUTPUT_NAME "tex_images_slang"
-    STAGE       fragment
-    ENTRY       fragmentMain
-)
-
-# ONE target for ALL slang shaders = ONE project in Visual Studio
-add_custom_target(SlangShaders
-    DEPENDS ${SLANG_SPV_OUTPUTS}
-    COMMENT "Building all Slang shaders"
-)
-set_target_properties(SlangShaders PROPERTIES FOLDER "Shaders")
-add_dependencies(Engine SlangShaders)
-
-# ----------------------------------------------------------------------------- 
-# POST-BUILD: copy assets and shaders to Game binary dir
-# FIX: guarded behind if(TARGET Game) so this file can be configured
-# standalone without the Game target being defined yet.
-# -----------------------------------------------------------------------------
-
-if(TARGET Game)
-    add_custom_command(TARGET Engine POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:Game>/assets"
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-                "${CMAKE_CURRENT_SOURCE_DIR}/assets/"
-                "$<TARGET_FILE_DIR:Game>/assets/"
-
-        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:Game>/shaders"
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-                "${CMAKE_SOURCE_DIR}/engine/shaders"
-                "$<TARGET_FILE_DIR:Game>/shaders"
-
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-                "${CMAKE_BINARY_DIR}/shaders"
-                "$<TARGET_FILE_DIR:Game>/shaders"
-
-        COMMENT "Copying assets and shaders to Game binary directory"
-    )
-else()
-    message(STATUS "⚠ 'Game' target not defined yet — post-build asset copy skipped.")
-    message(STATUS "  Add add_dependencies(Game Engine) and the copy step in Game's CMakeLists.")
-endif()
-
-message(STATUS "🎉 Engine configured successfully!")
->>>>>>> origin/main

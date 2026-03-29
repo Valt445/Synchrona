@@ -144,7 +144,7 @@ void draw_geometry(Engine* e, VkCommandBuffer cmd)
     e->lastDrawCalls = drawCalls;
     e->lastTriangles = triangles;
 
-    
+
     vkCmdEndRendering(cmd);
 }
 
@@ -177,7 +177,7 @@ void draw_skybox(Engine* e, VkCommandBuffer cmd)
     push.resolution = glm::vec2(e->drawExtent.width, e->drawExtent.height);
     push.cloudCoverage = e->cloudCoverage;
     push.cloudSpeed = e->cloudSpeed;
-    
+
 
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, e->skyboxPipeline);
     vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -185,8 +185,8 @@ void draw_skybox(Engine* e, VkCommandBuffer cmd)
     vkCmdPushConstants(cmd, e->skyboxPipelineLayout,
         VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
         0, sizeof(SkyPushConstants), &push);
-    vkCmdDraw(cmd, 3, 1, 0, 0); 
-    
+    vkCmdDraw(cmd, 3, 1, 0, 0);
+
 }
 
 
@@ -254,7 +254,8 @@ void engine_draw_frame(Engine* e)
     draw_shadow_pass(e, cmd);
 
     transition_image(cmd, e->drawImage.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-   
+    transition_image(cmd, e->msaaImage.image,
+        VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
     VkImageMemoryBarrier2 depthBarrier{ .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2 };
     depthBarrier.image = e->depthImage.image;

@@ -131,7 +131,7 @@ static VkPipeline make_compute_pipeline(Engine* e, const char* shaderPath,
 static void write_ibl_set(Engine* e, VkDescriptorSet set,
     VkImageView samplerView,   // binding 0 — can be VK_NULL_HANDLE for brdf lut
     VkImageView storageView,   // binding 1
-    VkImageLayout samplerLayout = VK_IMAGE_LAYOUT_GENERAL,  
+    VkImageLayout samplerLayout = VK_IMAGE_LAYOUT_GENERAL,
     VkImageLayout storageLayout = VK_IMAGE_LAYOUT_GENERAL)
 {
     uint32_t writeCount = 0;
@@ -191,7 +191,7 @@ static void upload_cubemap_to_bindless(Engine* e, AllocatedImage img,
 void init_ibl(Engine* e)
 {
     // ── 1. Load HDR ───────────────────────────────────────────────────────────
-    e->hdrImage = load_hdri(e, "assets/suburban_soccer_park_8k.hdr");
+    e->hdrImage = load_hdri(e, "assets/newman.hdr");
     e->envCubemap = create_cubemap_image(e, 512, VK_FORMAT_R32G32B32A32_SFLOAT);
     e->irradianceMap = create_cubemap_image(e, 32, VK_FORMAT_R32G32B32A32_SFLOAT);
     e->prefilterMap = create_cubemap_image(e, 128, VK_FORMAT_R32G32B32A32_SFLOAT, 5);
