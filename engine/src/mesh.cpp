@@ -14,7 +14,7 @@ GPUMeshBuffers uploadMesh(Engine* e, std::span<uint32_t> indices, std::span<Vert
 
     {
         AllocatedBuffer staging = create_buffer(e->allocator, vertexBufferSize,
-            VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_ONLY);
+            VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_ONLY, e);
         if (staging.buffer == VK_NULL_HANDLE) {
             LOG_ERROR("uploadMesh: failed to create vertex staging buffer");
             return newSurface;
@@ -28,8 +28,9 @@ GPUMeshBuffers uploadMesh(Engine* e, std::span<uint32_t> indices, std::span<Vert
         newSurface.vertexBuffer = create_buffer(e->allocator, vertexBufferSize,
             VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
             VK_BUFFER_USAGE_TRANSFER_DST_BIT |
-            VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
-            VMA_MEMORY_USAGE_GPU_ONLY);
+            VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | 
+            VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR,
+            VMA_MEMORY_USAGE_GPU_ONLY, e);
         if (newSurface.vertexBuffer.buffer == VK_NULL_HANDLE) {
             LOG_ERROR("uploadMesh: failed to create vertex buffer");
             vmaDestroyBuffer(e->allocator, staging.buffer, staging.allocation);
@@ -54,7 +55,7 @@ GPUMeshBuffers uploadMesh(Engine* e, std::span<uint32_t> indices, std::span<Vert
     size_t indexBufferSize = indices.size() * sizeof(uint32_t);
     if (indexBufferSize > 0) {
         AllocatedBuffer staging = create_buffer(e->allocator, indexBufferSize,
-            VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_ONLY);
+            VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VMA_MEMORY_USAGE_CPU_ONLY, e);
         if (staging.buffer == VK_NULL_HANDLE) {
             LOG_ERROR("uploadMesh: failed to create index staging buffer");
             return newSurface;
@@ -66,13 +67,19 @@ GPUMeshBuffers uploadMesh(Engine* e, std::span<uint32_t> indices, std::span<Vert
         vmaUnmapMemory(e->allocator, staging.allocation);
 
         newSurface.indexBuffer = create_buffer(e->allocator, indexBufferSize,
-            VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-            VMA_MEMORY_USAGE_GPU_ONLY);
+            VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
+            VMA_MEMORY_USAGE_GPU_ONLY, e);
         if (newSurface.indexBuffer.buffer == VK_NULL_HANDLE) {
             LOG_ERROR("uploadMesh: failed to create index buffer");
             vmaDestroyBuffer(e->allocator, staging.buffer, staging.allocation);
             return newSurface;
         }
+
+        VkBufferDeviceAddressInfo indexAddrInfo{
+    .sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO,
+    .buffer = newSurface.indexBuffer.buffer
+        };
+        newSurface.indexBufferAddress = vkGetBufferDeviceAddress(e->device, &indexAddrInfo);
 
         immediate_submit([&](VkCommandBuffer cmd) {
             VkBufferCopy copy{ .size = indexBufferSize };

@@ -5,7 +5,7 @@ AllocatedBuffer create_buffer(
     VmaAllocator       allocator,
     size_t             allocSize,
     VkBufferUsageFlags usage,
-    VmaMemoryUsage     memoryUsage)
+    VmaMemoryUsage     memoryUsage, Engine* e)
 {
     AllocatedBuffer newBuffer{};
 
@@ -27,6 +27,11 @@ AllocatedBuffer create_buffer(
             << " size=" << allocSize << " usage=" << usage);
         newBuffer.buffer = VK_NULL_HANDLE;
         newBuffer.allocation = VK_NULL_HANDLE;
+        VkBufferDeviceAddressInfo addrInfo{
+            .sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO,
+            .buffer = newBuffer.buffer
+        };
+        newBuffer.address = vkGetBufferDeviceAddress(e->device, &addrInfo);
     }
 
     return newBuffer;
@@ -108,7 +113,7 @@ AllocatedImage create_image(void* data, Engine* e, VkExtent3D size, VkFormat for
     AllocatedBuffer uploadbuffer = create_buffer(
         e->allocator, data_size,
         VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-        VMA_MEMORY_USAGE_CPU_TO_GPU);
+        VMA_MEMORY_USAGE_CPU_TO_GPU, e);
 
     void* mapped = nullptr;
     VK_CHECK(vmaMapMemory(e->allocator, uploadbuffer.allocation, &mapped));

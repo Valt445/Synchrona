@@ -100,21 +100,27 @@ void resize_swapchain(Engine* e) {
 
     vkDeviceWaitIdle(e->device);
 
-    // Capture old extent before destroying (used as hint for build_swapchain)
+    // 1. Rebuild the Swapchain to fit the new Window size
+    // We still need this to match the window so we can display the image
     uint32_t oldW = e->swapchainExtent.width;
     uint32_t oldH = e->swapchainExtent.height;
-
     destroy_swapchain(e);
-    destroy_draw_image(e);
-    if (e->depthImage.image != VK_NULL_HANDLE) {
-        destroy_image(e->depthImage, e);
-        e->depthImage = {};
-    }
-
-    // build_swapchain queries surface caps and sets e->swapchainExtent to true pixel size
     build_swapchain(e, oldW, oldH);
 
-    // Use the updated swapchainExtent — correct on Mac Retina and Windows alike
-    create_draw_image(e, e->swapchainExtent.width, e->swapchainExtent.height);
-    init_depth_image(e, e->swapchainExtent.width, e->swapchainExtent.height);
+    // 2. DON'T resize these to the swapchain extent if you want 4K!
+    // If you destroy and recreate them based on e->swapchainExtent (2560),
+    // but your draw loop still uses 3840, you will crash.
+
+    // Check if we actually need to recreate 4K buffers. 
+    // Usually, you only do this if you actually want to change internal resolution.
+    if (e->drawExtent.width != 3840 || e->drawExtent.height != 2160) {
+        destroy_draw_image(e);
+        destroy_depth_image(e);
+
+        e->drawExtent.width = 3840;
+        e->drawExtent.height = 2160;
+
+        create_draw_image(e, e->drawExtent.width, e->drawExtent.height);
+        init_depth_image(e, e->drawExtent.width, e->drawExtent.height);
+    }
 }

@@ -326,6 +326,7 @@ set(ENGINE_SOURCES
     src/imgui_integration.cpp
     src/ibl.cpp
     src/skybox.cpp
+    src/raytrace.cpp
     # ImGui is now a separate static lib (imgui_lib) — not compiled here
     ${HEADER_FILES}
 )

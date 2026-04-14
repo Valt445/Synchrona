@@ -217,6 +217,8 @@ void enable_blending_additive(PipelineBuilder& pb)
     pb.colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
 }
 
+
+
 void enable_blending_alphablend(PipelineBuilder& pb)
 {
     pb.colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;

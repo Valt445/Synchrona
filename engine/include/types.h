@@ -31,21 +31,13 @@
 #include <array>
 #include <stb_image.h>
 
-// ============================================================
-// Logging — use LOG for debug info, LOG_ERROR for fatal errors.
-// In release builds (NDEBUG defined) LOG compiles to nothing.
-// LOG_ERROR always prints regardless of build type.
-// ============================================================
 #ifdef NDEBUG
-#define LOG(...)      // stripped in release
+#define LOG(...)     
 #else
 #define LOG(...) std::cout << __VA_ARGS__ << "\n"
 #endif
 #define LOG_ERROR(...) std::cerr << "ERROR: " << __VA_ARGS__ << "\n"
 
-// ============================================================
-// AllocatedBuffer
-// ============================================================
 struct AllocatedBuffer {
     VkBuffer          buffer = VK_NULL_HANDLE;
     VmaAllocation     allocation = VK_NULL_HANDLE;
@@ -53,16 +45,13 @@ struct AllocatedBuffer {
     VkDeviceAddress   address = 0;
 };
 
-// ============================================================
-// Vertex
-// Field order must match vertex attribute locations in pipelines.cpp:
-//   location 0 → position  (vec3, 12 bytes)
-//   location 1 → uv        (vec2,  8 bytes)  ← NOTE: uv before normal
-//   location 2 → normal    (vec3, 12 bytes)
-//   location 3 → color     (vec4, 16 bytes)
-//   location 4 → tangent   (vec4, 16 bytes)
-// Total stride: 64 bytes
-// ============================================================
+struct BLAS {
+    VkAccelerationStructureKHR handle;
+    AllocatedBuffer buffer;
+    uint64_t deviceAddress; // You'll need this for the TLAS later
+};
+
+
 struct Vertex {
     glm::vec3 position; // 12 bytes — location 0
     glm::vec3 normal;   // 12 bytes — location 2 (stored here, bound by offsetof)
@@ -106,11 +95,11 @@ struct ShadowPushConstants {
 };
 
 struct SkyPushConstants {
-    glm::vec3 sunDirection;
-    float     time;
-    glm::vec2 resolution;
-    float     cloudCoverage;
-    float     cloudSpeed;
+    glm::vec3 sunDirection;  // offset 0  — 12 bytes
+    float     time;          // offset 12 —  4 bytes
+    glm::vec2 resolution;    // offset 16 —  8 bytes
+    float     cloudCoverage; // offset 24 —  4 bytes
+    float     cloudSpeed;    // offset 28 —  4 bytes
 };
 
 // ============================================================
@@ -120,6 +109,7 @@ struct GPUMeshBuffers {
     AllocatedBuffer indexBuffer;
     AllocatedBuffer vertexBuffer;
     VkDeviceAddress vertexBufferAddress = 0;
+    VkDeviceAddress indexBufferAddress = 0;
     uint32_t        indexCount = 0;
 };
 

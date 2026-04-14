@@ -13,7 +13,7 @@ void init_skybox_pipelines(Engine* e)
     }
 
     VkShaderModule skyboxFragShader;
-    if (!e->util.load_shader_module("shaders/skybox.frag.spv", e->device, &skyboxFragShader)) {
+    if (!e->util.load_shader_module("shaders/skybox_cloud.frag.spv", e->device, &skyboxFragShader)) {
         LOG_ERROR("Failed to load fragment shader");
         std::exit(1);
     }

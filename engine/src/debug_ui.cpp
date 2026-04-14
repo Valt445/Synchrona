@@ -338,6 +338,15 @@ void debug_ui_render_background_ctrl(Engine* e)
         ImGui::SliderFloat4("data4", &data.data4.x, 0.0f, 1.0f);
     }
 
+    ImGui::Separator();
+    if (ImGui::CollapsingHeader("Lighting")) {
+        ImGui::SliderFloat("Sky Exposure", &e->skyExposure, 0.1f, 10.0f);
+        ImGui::SliderFloat("Sun Intensity", &e->sunIntensity, 0.0f, 10.0f);
+        ImGui::SliderFloat3("Sun Direction", &e->sunDirection.x, -1.0f, 1.0f);
+        ImGui::ColorEdit3("Sun Color", &e->sunColor.x);
+        ImGui::SliderFloat("Shadow Bias", &e->shadowBias, 0.0f, 0.01f);
+    }
+
     ImGui::End();
 }
 

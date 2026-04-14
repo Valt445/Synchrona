@@ -191,8 +191,12 @@ static void upload_cubemap_to_bindless(Engine* e, AllocatedImage img,
 void init_ibl(Engine* e)
 {
     // ── 1. Load HDR ───────────────────────────────────────────────────────────
-    e->hdrImage = load_hdri(e, "assets/newman.hdr");
-    e->envCubemap = create_cubemap_image(e, 512, VK_FORMAT_R32G32B32A32_SFLOAT);
+    e->hdrImage = load_hdri(e, "assets/brown.hdr");
+
+    // HIGH-QUALITY CHANGE: bump env cubemap to 2048 (or 4096 if you want ultra)
+    constexpr uint32_t ENV_CUBEMAP_SIZE = 2048u;   // ← change to 4096 for even higher quality
+
+    e->envCubemap = create_cubemap_image(e, ENV_CUBEMAP_SIZE, VK_FORMAT_R32G32B32A32_SFLOAT);
     e->irradianceMap = create_cubemap_image(e, 32, VK_FORMAT_R32G32B32A32_SFLOAT);
     e->prefilterMap = create_cubemap_image(e, 128, VK_FORMAT_R32G32B32A32_SFLOAT, 5);
     e->brdfLUT = create_image(e, { 512, 512, 1 }, VK_FORMAT_R16G16_SFLOAT,
@@ -312,8 +316,9 @@ void init_ibl(Engine* e)
             vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, e->equirectPipeline);
             vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE,
                 e->equirectLayout, 0, 1, &e->equirectSet, 0, nullptr);
-            vkCmdDispatch(cmd, 512 / 16, 512 / 16, 6);
-
+            
+            const uint32_t dispatchGroups = ENV_CUBEMAP_SIZE / 16u;
+            vkCmdDispatch(cmd, dispatchGroups, dispatchGroups, 6);
             // Barrier: wait for env cubemap write before reading it
             VkImageMemoryBarrier2 barrier{ .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2 };
             barrier.image = e->envCubemap.image;
@@ -361,7 +366,7 @@ void init_ibl(Engine* e)
 
                 mipSize /= 2;
             }
-
+            
             // ── BRDF LUT ──────────────────────────────────────────────────────────
             vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, e->brdfLutPipeline);
             vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE,
@@ -382,13 +387,15 @@ void init_ibl(Engine* e)
 
     e->iblIrradianceIndex = 0;  // slot 0 in cubemap array
     e->iblPrefilterIndex = 1;  // slot 1 in cubemap array
-    // BRDF LUT stays in regular texture array binding 0
+    e->iblEnvCubemapIndex = 2;  // ← ADD THIS LINE
     e->iblBrdfLutIndex = 12; // stays in sampler2D array
 
     // ── 8. Register in bindless slots ─────────────────────────────────────────
     upload_cubemap_to_bindless(e, e->irradianceMap, e->defaultSamplerLinear, 0);
     upload_cubemap_to_bindless(e, e->prefilterMap, e->defaultSamplerLinear, 1);
     upload_texture_to_bindless(e, e->brdfLUT, e->defaultSamplerLinear, e->iblBrdfLutIndex);
+    upload_cubemap_to_bindless(e, e->envCubemap, e->defaultSamplerLinear, 2); // slot 2 = env
+
 
     // ── 9. Cleanup pipelines — never needed again after startup ───────────────
     e->mainDeletionQueue.push_function([=]() {

@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <types.h>
 
+#include <vulkan/vulkan_raii.hpp>
 #include <vulkan/vulkan_core.h>
 #include <vk_mem_alloc.h>
 
@@ -26,6 +27,7 @@
 #include "helper.h"
 #include "graphics_pipeline.h"
 #include "ibl.h"
+#include "raytrace.h"
 
 // ─── Vulkan error check ───────────────────────────────────────────────────────
 #define VK_CHECK(x)                                                         \
@@ -108,7 +110,7 @@ struct Engine {
     std::vector<VkImage>       swapchainImages;
     std::vector<VkImageView>   swapchainImageViews;
     VkFormat                   swapchainImageFormat = VK_FORMAT_B8G8R8A8_UNORM;
-    VkExtent2D                 swapchainExtent{};
+    VkExtent2D                 swapchainExtent{ 3840,  2160 };
     uint32_t                   graphicsQueueFamily = 0;
 
     DeletionQueue mainDeletionQueue;
@@ -119,7 +121,7 @@ struct Engine {
     uint32_t nextBindlessTextureIndex = 13;
 
     AllocatedImage drawImage{};
-    VkExtent2D     drawExtent{};
+    VkExtent2D     drawExtent{3840,  2160};
 
     std::vector<VkSemaphore> imageAvailableSemaphores;
     std::vector<VkSemaphore> renderFinishedSemaphores;
@@ -188,8 +190,6 @@ struct Engine {
     VkDescriptorPool      bindlessPool = VK_NULL_HANDLE;
     VkDescriptorSetLayout bindlessLayout = VK_NULL_HANDLE;
     VkDescriptorSet       bindlessSet = VK_NULL_HANDLE;
-    glm::vec3 sunDirection = glm::normalize(glm::vec3(0.3f, 0.6f, 0.4f));
-    float     sunIntensity = 3.0f;
 
     uint32_t nextTextureIndex = 0;
     VkDescriptorSet meshTextureSet = VK_NULL_HANDLE;
@@ -247,15 +247,43 @@ struct Engine {
     float            skyTime = 0.0f;
     float            cloudCoverage = 0.6f;
     float            cloudSpeed = 1.0f;
+    uint32_t iblEnvCubemapIndex = 2;
 
     AllocatedImage msaaImage{};
-    VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_4_BIT;
+    VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_8_BIT;
 
     // ── Per-frame draw stats — written by draw_geometry, read by debug UI
     uint32_t lastDrawCalls = 0;
     uint32_t lastTriangles = 0;
 
     uint32_t mipLevels = 1;
+
+    // renderer tweakables
+    float skyExposure = 3.0f;
+    float sunIntensity = 2.5f;
+    glm::vec3 sunDirection = glm::vec3(0.8f, 1.0f, 0.3f);
+    glm::vec3 sunColor = glm::vec3(1.0f, 0.92f, 0.75f);
+    float shadowBias = 0.003f;
+
+    // acceleration strucutres
+	std::vector<BLAS> blasHandles;
+    VkCommandBuffer acceleration_structure_buffer;
+	std::vector<vk::raii::Buffer> blasBuffers;
+    VkAccelerationStructureKHR tlasHandle{ VK_NULL_HANDLE };
+    AllocatedBuffer tlasStorage;
+    AllocatedBuffer tlasInstanceBuffer;
+	std::vector<vk::raii::DeviceMemory> blasMemories;
+
+    //inline functions
+
+
+    PFN_vkCmdBuildAccelerationStructuresKHR pfn_vkCmdBuildAccelerationStructuresKHR{ nullptr };
+    PFN_vkDestroyAccelerationStructureKHR pfn_vkDestroyAccelerationStructureKHR{ nullptr };
+    PFN_vkGetAccelerationStructureBuildSizesKHR pfn_vkGetBuildSizes{ nullptr };
+    PFN_vkCreateAccelerationStructureKHR pfn_vkCreateAS{ nullptr };
+    PFN_vkGetAccelerationStructureDeviceAddressKHR pfn_vkGetASAddress{ nullptr };
+
+
 };
 
 extern Engine* engine;
@@ -304,7 +332,7 @@ void engine_cleanup(Engine* e);
 
 // Buffers
 AllocatedBuffer create_buffer(VmaAllocator allocator, size_t allocSize,
-    VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage);
+    VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage, Engine* e);
 void destroy_buffer(const AllocatedBuffer& buffer, Engine* e);
 // destroy_buffer(VmaAllocator) is defined in vulkan_core.cpp
 GPUMeshBuffers uploadMesh(Engine* e, std::span<uint32_t> indices, std::span<Vertex> vertices);
@@ -338,7 +366,6 @@ void init_shadow_pipeline(Engine* e);
 void draw_shadow_pass(Engine* e, VkCommandBuffer cmd);
 void draw_skybox(Engine* e, VkCommandBuffer cmd);
 
+
 // Misc
 VkFormat find_depth_format(VkPhysicalDevice physicalDevice);
-void init_triangle_pipeline(Engine* e);
-void CreateShaderModule(const char* filePath, Engine* e, VkShaderModule shaderName);

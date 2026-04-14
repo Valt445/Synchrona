@@ -30,6 +30,8 @@ struct MeshAsset {
     std::vector<GeoSurface> surfaces;
     GPUMeshBuffers          meshBuffers;
     glm::mat4               worldTransform = glm::mat4(1.0f);
+    uint64_t				blasAddress{ 0 };
+	VkAccelerationStructureKHR blasHandle{ VK_NULL_HANDLE };
 };
 
 struct Engine;

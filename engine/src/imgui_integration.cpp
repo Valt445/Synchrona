@@ -37,9 +37,9 @@ void init_imgui(Engine* e)
     pool_info.pPoolSizes = pool_sizes;
 
     VK_CHECK(vkCreateDescriptorPool(e->device, &pool_info, nullptr, &e->imguiDescriptorPool));
-
+                
     ImGui::CreateContext();
-    ImGui_ImplGlfw_InitForVulkan(e->window, true);
+    ImGui_ImplGlfw_InitForVulkan(e->window, false);
 
     VkPipelineRenderingCreateInfo pipelineRenderingInfo{};
     pipelineRenderingInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;

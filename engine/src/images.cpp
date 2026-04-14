@@ -121,5 +121,4 @@ void copy_image_to_image(VkCommandBuffer cmd, VkImage source, VkImage destinatio
     vkCmdBlitImage2(cmd, &blitInfo);
 
     // NEW: Log full blit (remove after)
-    std::printf("Blit full zero-init: %dx%d -> %dx%d\n", srcSize.width, srcSize.height, dstSize.width, dstSize.height);  // FIXED: Log zero-init
 }

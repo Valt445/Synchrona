@@ -179,7 +179,7 @@ void init_mesh_pipelines(Engine* e)
     set_shaders(meshVertShader, meshFragShader, pb);
     set_input_topology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, pb);
     set_polygon_mode(VK_POLYGON_MODE_FILL, pb);
-    set_cull_mode(VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE, pb);
+    set_cull_mode(VK_CULL_MODE_NONE, VK_FRONT_FACE_COUNTER_CLOCKWISE, pb);
 	set_multisampling(e->msaaSamples, pb);
     enable_blending_alphablend(pb);
     enable_depthtest(pb, VK_COMPARE_OP_LESS_OR_EQUAL);

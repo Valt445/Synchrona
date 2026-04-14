@@ -21,18 +21,16 @@ void init(Engine* e, uint32_t x, uint32_t y)
     *e = Engine{};
     ::engine = e;
     e->shadowMapBindlessIndex = 5;
-
+    uint32_t targetW = 3840;
+    uint32_t targetH = 2160;
     init_vulkan(e);
-    init_swapchain(e, x, y);    // sets e->swapchainExtent to true pixel size
+    init_swapchain(e, targetW, targetH);
     init_descriptors(e);
     init_samplers(e);
-    init_shadow_map(e, 2048, 2048);
+    init_shadow_map(e, 4096, 4096);
 
-    // FIX: use swapchainExtent (true framebuffer pixels) not x/y (window logical points).
-    // On Mac Retina x/y are half the actual framebuffer size — using them here was the
-    // root cause of the 2560x1440 draw image vs 3600x2086 swapchain mismatch.
-    create_draw_image(e, e->swapchainExtent.width, e->swapchainExtent.height);
-    init_depth_image(e, e->swapchainExtent.width, e->swapchainExtent.height);
+    create_draw_image(e, targetW, targetH);
+    init_depth_image(e, targetW, targetH);
 
     init_commands(e);
     init_camera_buffers(e);
@@ -42,11 +40,14 @@ void init(Engine* e, uint32_t x, uint32_t y)
     init_mesh_pipelines(e);
     init_shadow_pipeline(e);
     init_default_data(e);
+	init_acceleration_structure(e, e->testMeshes);
     init_ibl(e);
     init_imgui(e);
     init_debug_ui(e);
     setupCameraCallbacks(e->window);
+    glfwSetWindowUserPointer(e->window, e);
     e->mainCamera.focusOn(glm::vec3(0.0f, 0.5f, 0.0f), 5.0f);
+
 }
 
 VkFormat find_depth_format(VkPhysicalDevice physicalDevice)
@@ -86,7 +87,7 @@ void init_camera_buffers(Engine* e)
         FrameData& frame = e->frames[i];
         frame.cameraBuffer = create_buffer(e->allocator, sizeof(CameraData),
             VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-            VMA_MEMORY_USAGE_CPU_TO_GPU);
+            VMA_MEMORY_USAGE_CPU_TO_GPU, e);
         VK_CHECK(vmaMapMemory(e->allocator, frame.cameraBuffer.allocation,
             &frame.cameraBuffer.info.pMappedData));
         e->mainDeletionQueue.push_function([=]() {
@@ -210,7 +211,7 @@ void init_samplers(Engine* e)
     samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
     samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
     samplerInfo.anisotropyEnable = VK_TRUE;
-    samplerInfo.maxAnisotropy = 16.0f;
+    samplerInfo.maxAnisotropy = 1.0f;
     samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
     samplerInfo.maxLod = VK_LOD_CLAMP_NONE;
     VK_CHECK(vkCreateSampler(e->device, &samplerInfo, nullptr, &e->defaultSamplerLinear));
@@ -312,7 +313,7 @@ void init_default_data(Engine* e)
     e->nextBindlessTextureIndex = e->shadowMapBindlessIndex + 1;
 
     // Walk up from CWD until we find the assets folder (works from build/ or project root)
-    std::filesystem::path glbRelative = "assets/dm.glb";
+    std::filesystem::path glbRelative = "assets/main_sponza/NewSponza_Main_glTF_003.gltf";
     std::filesystem::path glbPath = glbRelative;
     {
         std::filesystem::path search = std::filesystem::current_path();
@@ -323,7 +324,7 @@ void init_default_data(Engine* e)
                 break;
             }
             if (!search.has_parent_path()) break;
-            search = search.parent_path();
+            search = search.parent_path();  
         }
     }
     std::printf("[loader] GLB path: %s\n", std::filesystem::absolute(glbPath).string().c_str());
@@ -335,6 +336,33 @@ void init_default_data(Engine* e)
     } else {
         LOG_ERROR("No meshes loaded from GLTF file");
     }
+
+    
+    std::filesystem::path glbRelative_two = "assets/pkg_a_curtains/NewSponza_Curtains_gLTF.gltf";
+    std::filesystem::path glbPath_two = glbRelative_two;
+    {
+        std::filesystem::path search = std::filesystem::current_path();
+        for (int i = 0; i < 5; ++i) {
+            auto candidate = search / glbRelative_two;
+            if (std::filesystem::exists(candidate)) {
+                glbPath_two = candidate;
+                break;
+            }
+            if (!search.has_parent_path()) break;
+            search = search.parent_path();
+        }
+    }
+    std::printf("[loader] GLB_2 path: %s\n", std::filesystem::absolute(glbPath_two).string().c_str());
+
+    auto testMeshes_two = loadgltfMeshes(e, glbPath_two);
+    if (testMeshes_two.has_value()) {
+        for (auto& mesh : testMeshes_two.value())
+            e->testMeshes.push_back(std::move(mesh));
+    }
+    else {
+        LOG_ERROR("No meshes loaded from GLTF file");
+    }
+    
 
 
 
@@ -385,6 +413,9 @@ void engine_cleanup(Engine* e)
         vkDestroyImageView(e->device, view, nullptr);
 
     destroy_depth_image(e);
+
+ 
+    e->blasHandles.clear();
 
     if (e->swapchain) vkDestroySwapchainKHR(e->device, e->swapchain, nullptr);
     if (e->device)    vkDestroyDevice(e->device, nullptr);

@@ -10,13 +10,10 @@ int main()
     Engine engineInstance;
     engine = &engineInstance;
      
+    glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_FALSE);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-    // then create window at 2560x1440
-    // init() handles everything:
-    //   - Vulkan + swapchain + pipelines
-    //   - setupCameraCallbacks()   ← registers all GLFW input callbacks
-    //   - mainCamera.focusOn()     ← positions camera on the model
-    init(engine, 2560, 1440);
+    
+    init(engine, 3840, 2160);
     glfwSwapInterval(0);
     while (!glfwWindowShouldClose(engine->window))
     {
@@ -25,10 +22,6 @@ int main()
         // Skip rendering while the window is minimised
         if (glfwGetWindowAttrib(engine->window, GLFW_ICONIFIED) != 0)
             continue;
-
-        // engine_draw_frame() handles everything per-frame:
-        //   - mainCamera.update()  ← delta time + FPS movement + smooth velocity
-        //   - draw_background / draw_geometry / draw_imgui
         engine_draw_frame(engine);
     }
 

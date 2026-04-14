@@ -189,7 +189,6 @@ void init_descriptors(Engine* e)
 
     e->mainDeletionQueue.push_function([=]() {
         vkDestroyDescriptorSetLayout(e->device, e->bindlessLayout, nullptr);
-        vkFreeDescriptorSets(e->device, e->globalDescriptorAllocator.pool, 1, &e->bindlessSet);
         });
 
     LOG("Bindless descriptor system ready (bindings 0, 1, 2, 3)");

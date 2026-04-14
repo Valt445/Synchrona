@@ -122,11 +122,11 @@ void draw_geometry(Engine* e, VkCommandBuffer cmd)
             push.roughnessFactor = surface.roughnessFactor;
             push.normalStrength = 1.0f;
             push.colorFactor = surface.colorFactor;
-            push.sunDirection = normalize(glm::vec3(0.8f, 1.0f, 0.3f));
-            push.sunIntensity = 2.5f;
-            push.sunColor = glm::vec3(1.0f, 0.92f, 0.75f);
+            push.sunDirection = glm::normalize(e->sunDirection);
+            push.sunIntensity = e->sunIntensity;
+            push.sunColor = e->sunColor;
             push.shadowMapIndex = e->shadowMapBindlessIndex;  // = 5
-            push.shadowBias = 0.003f;
+            push.shadowBias = e->shadowBias;
             push.iblIrradianceIndex = e->iblIrradianceIndex;
             push.iblPrefilterIndex = e->iblPrefilterIndex;
             push.iblBrdfLutIndex = e->iblBrdfLutIndex;
@@ -164,30 +164,29 @@ void draw_background(VkCommandBuffer cmd, Engine* e)
 
 void draw_skybox(Engine* e, VkCommandBuffer cmd)
 {
-    VkViewport viewport{ 0, 0,
-        (float)e->drawExtent.width, (float)e->drawExtent.height, 0.0f, 1.0f };
-    vkCmdSetViewport(cmd, 0, 1, &viewport);
-
-    VkRect2D scissor{ {0, 0}, {e->drawExtent.width, e->drawExtent.height} };
-    vkCmdSetScissor(cmd, 0, 1, &scissor);
+    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, e->skyboxPipeline);
+    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS,
+        e->skyboxPipelineLayout, 0, 1, &e->bindlessSet, 0, nullptr);
 
     SkyPushConstants push{};
-    push.sunDirection = normalize(glm::vec3(0.8f, 0.6f, 0.3f)); // match your sun
-    push.time = e->skyTime;
+    push.sunDirection = e->sunDirection;
+    push.time = e->deltaTime;        // whatever your elapsed time float is
     push.resolution = glm::vec2(e->drawExtent.width, e->drawExtent.height);
     push.cloudCoverage = e->cloudCoverage;
     push.cloudSpeed = e->cloudSpeed;
 
-
-    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, e->skyboxPipeline);
-    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS,
-        e->skyboxPipelineLayout, 0, 1, &e->bindlessSet, 0, nullptr);
     vkCmdPushConstants(cmd, e->skyboxPipelineLayout,
-        VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+        VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_VERTEX_BIT,        
         0, sizeof(SkyPushConstants), &push);
-    vkCmdDraw(cmd, 3, 1, 0, 0);
 
+    VkViewport viewport{ 0, 0,
+        (float)e->drawExtent.width, (float)e->drawExtent.height, 0.0f, 1.0f };
+    vkCmdSetViewport(cmd, 0, 1, &viewport);
+    VkRect2D scissor{ {0,0}, {e->drawExtent.width, e->drawExtent.height} };
+    vkCmdSetScissor(cmd, 0, 1, &scissor);
+    vkCmdDraw(cmd, 3, 1, 0, 0);
 }
+
 
 
 void draw_imgui(VkCommandBuffer cmd, VkImageView targetImageView, Engine* e)
@@ -210,8 +209,9 @@ void draw_imgui(VkCommandBuffer cmd, VkImageView targetImageView, Engine* e)
 
 void engine_draw_frame(Engine* e)
 {
-    e->drawExtent.width  = e->swapchainExtent.width;
-    e->drawExtent.height = e->swapchainExtent.height;
+    e->drawExtent.width = 3840;
+    e->drawExtent.height = 2160;
+  
 
     static auto lastTime = std::chrono::high_resolution_clock::now();
     auto  now = std::chrono::high_resolution_clock::now();
@@ -316,6 +316,10 @@ void engine_draw_frame(Engine* e)
         e->resize_requested = true;
 
     e->frameNumber++;
+    printf("drawExtent: %ux%u | MSAA: %d | Shadow: 4096\n",
+        e->drawExtent.width,
+        e->drawExtent.height,
+        (int)e->msaaSamples);
 }
 
 VkRenderingAttachmentInfo attachment_info(VkImageView view, VkClearValue* clear, VkImageLayout layout)
