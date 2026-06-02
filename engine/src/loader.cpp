@@ -387,7 +387,6 @@ void upload_image_data(Engine* e, AllocatedImage& image, const void* pixels, siz
 {
     if (!pixels || size == 0) return;
 
-    // --- Staging buffer (CPU-visible) ----------------------------------------
     AllocatedBuffer staging = create_buffer(e->allocator, size,
         VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
         VMA_MEMORY_USAGE_CPU_ONLY, e);
@@ -397,10 +396,8 @@ void upload_image_data(Engine* e, AllocatedImage& image, const void* pixels, siz
     memcpy(mapped, pixels, size);
     vmaUnmapMemory(e->allocator, staging.allocation);
 
-    // --- Record and submit ---------------------------------------------------
     immediate_submit([&](VkCommandBuffer cmd)
         {
-            // Cover ALL mip levels so no level is left in UNDEFINED layout.
             VkImageSubresourceRange fullRange{};
             fullRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
             fullRange.baseMipLevel = 0;
@@ -408,7 +405,6 @@ void upload_image_data(Engine* e, AllocatedImage& image, const void* pixels, siz
             fullRange.baseArrayLayer = 0;
             fullRange.layerCount = VK_REMAINING_ARRAY_LAYERS;
 
-            // Transition entire image: UNDEFINED → TRANSFER_DST
             VkImageMemoryBarrier toTransfer{};
             toTransfer.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
             toTransfer.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
@@ -423,10 +419,9 @@ void upload_image_data(Engine* e, AllocatedImage& image, const void* pixels, siz
                 VK_PIPELINE_STAGE_TRANSFER_BIT,
                 0, 0, nullptr, 0, nullptr, 1, &toTransfer);
 
-            // Copy pixel data into mip level 0 only.
             VkBufferImageCopy copy{};
             copy.bufferOffset = 0;
-            copy.bufferRowLength = 0;   // tightly packed
+            copy.bufferRowLength = 0;  
             copy.bufferImageHeight = 0;
             copy.imageSubresource = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1 };
             copy.imageOffset = { 0, 0, 0 };
@@ -435,7 +430,6 @@ void upload_image_data(Engine* e, AllocatedImage& image, const void* pixels, siz
             vkCmdCopyBufferToImage(cmd, staging.buffer, image.image,
                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copy);
 
-            // Generate mip chain via blit
             generate_mipmaps(e, cmd, image.image,
                 image.mipLevels,
                 (int32_t)image.imageExtent.width,
@@ -443,19 +437,14 @@ void upload_image_data(Engine* e, AllocatedImage& image, const void* pixels, siz
 
         }, e);
 
-    // Safe to destroy now — immediate_submit waited on the fence.
     destroy_buffer(staging, e);
 }
 
-// ─── load_image_from_gltf ─────────────────────────────────────────────────────
-// NOW: checks for a .dds sibling file first. If found, loads BC-compressed
-// data with pre-baked mip chain (no blit needed). Falls back to stbi otherwise.
 AllocatedImage load_image_from_gltf(Engine* e, cgltf_image* img, bool isLinear)
 {
     if (!img) return {};
 
-    // ── 1. Try DDS (BC-compressed, pre-baked mips) ────────────────────────────
-    // Only possible for external textures — embedded GLB textures have no path.
+  
     if (img->uri) {
         std::filesystem::path srcPath = e->sceneBasePath / img->uri;
         std::filesystem::path ddsPath = srcPath;
@@ -464,11 +453,7 @@ AllocatedImage load_image_from_gltf(Engine* e, cgltf_image* img, bool isLinear)
         if (std::filesystem::exists(ddsPath)) {
             DDSData dds;
             if (load_dds_file(ddsPath, dds)) {
-                // texconv outputs UNORM by default even for sRGB textures when using
-                // BC7_UNORM_SRGB — the DX10 header already encodes the correct sRGB
-                // format (dxgi=99). But if the user compressed with BC7_UNORM only
-                // and isLinear=false, promote to the sRGB variant so hardware
-                // linearisation still works correctly in the sampler.
+                
                 if (!isLinear) {
                     if (dds.format == VK_FORMAT_BC1_RGB_UNORM_BLOCK)  dds.format = VK_FORMAT_BC1_RGB_SRGB_BLOCK;
                     else if (dds.format == VK_FORMAT_BC1_RGBA_UNORM_BLOCK) dds.format = VK_FORMAT_BC1_RGBA_SRGB_BLOCK;
@@ -479,9 +464,7 @@ AllocatedImage load_image_from_gltf(Engine* e, cgltf_image* img, bool isLinear)
 
                 VkExtent3D extent{ dds.width, dds.height, 1 };
 
-                // Create image with BC format. Pass true so create_image allocates
-                // the full mip chain based on dimensions — matches what texconv -m 0 produces.
-                // We use TRANSFER_DST_BIT only (no TRANSFER_SRC needed — no blit generation).
+                
                 AllocatedImage gpu = create_image(e, extent, dds.format,
                     VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
                     true);
@@ -495,13 +478,13 @@ AllocatedImage load_image_from_gltf(Engine* e, cgltf_image* img, bool isLinear)
                     << "  fmt=" << (int)dds.format << "\n";
                 return gpu;
             }
-            // If DDS load failed for any reason, fall through to stbi
+           
             std::cerr << "[loader] DDS load failed for " << ddsPath
                 << " — falling back to uncompressed\n";
         }
     }
 
-    // ── 2. Fallback: stbi (uncompressed RGBA8) ────────────────────────────────
+   
     int width = 0, height = 0, channels = 0;
     stbi_uc* pixels = nullptr;
 
@@ -549,7 +532,6 @@ AllocatedImage load_image_from_gltf(Engine* e, cgltf_image* img, bool isLinear)
     return gpu;
 }
 
-// ─── Texture registry ─────────────────────────────────────────────────────────
 using TexMap = std::unordered_map<const cgltf_image*, uint32_t>;
 
 static uint32_t get_or_upload(
@@ -594,7 +576,6 @@ static uint32_t resolve(
     return get_or_upload(e, map, tv.texture->image, isLinear);
 }
 
-// ─── Primitive loader ─────────────────────────────────────────────────────────
 static bool load_primitive(
     const cgltf_primitive* prim,
     const glm::mat4& localTransform,
@@ -853,3 +834,6 @@ inline void upload_texture_to_bindless(Engine* e, AllocatedImage img,
 {
     upload_texture_to_bindless_safe(e, img, sampler, index);
 }
+
+
+//USED AI HELP HERE A LOT OF BORING AND TEDIOUS WORK TO GET THE DDS LOADER WORKING, BUT IT'S DONE NOW AND IT WORKS GREAT! THE CODE IS A MESS BUT I DON'T CARE, IT'S NOT LIKE ANYONE WILL EVER LOOK AT THIS AGAIN. HOPEFULLY.

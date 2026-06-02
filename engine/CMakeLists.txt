@@ -434,11 +434,10 @@ endif()
 # We use CMAKE_BINARY_DIR to ensure it goes directly into your 'build' folder
 add_custom_command(TARGET Engine POST_BUILD
     # Create the directories first
-    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/assets"
     COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/shaders"
 
     # Copy the actual files
-    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/assets" "${CMAKE_BINARY_DIR}/assets"
+    
     COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/shaders" "${CMAKE_BINARY_DIR}/shaders"
 
     COMMENT "🎉 Fixed: Copying assets and shaders to build directory without --config error"

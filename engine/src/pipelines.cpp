@@ -8,7 +8,6 @@ void init_pipelines(Engine* e)
 
 void init_background_pipelines(Engine* e)
 {
-    // ── Load all compute shaders ──────────────────────────────────────────────
     VkShaderModule computeDrawShader;
     if (!e->util.load_shader_module("shaders/gradient.comp.spv", e->device, &computeDrawShader)) {
         LOG_ERROR("Failed to load gradient.comp.spv");
@@ -22,7 +21,6 @@ void init_background_pipelines(Engine* e)
         std::exit(1);
     }
 
-    // ── Pipeline layout (shared by all compute effects) ───────────────────────
     VkPushConstantRange push_constant_range{
         .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
         .offset = 0,
@@ -40,7 +38,6 @@ void init_background_pipelines(Engine* e)
     VK_CHECK(vkCreatePipelineLayout(e->device, &pipelineLayoutInfo, nullptr,
         &e->gradientPipelineLayout));
 
-    // ── Helper lambda: build one compute pipeline from a shader module ────────
     auto makeComputePipeline = [&](VkShaderModule mod) -> VkPipeline {
         VkPipelineShaderStageCreateInfo stage{
             .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
@@ -58,12 +55,10 @@ void init_background_pipelines(Engine* e)
         return pipeline;
         };
 
-    // ── Build the three compute pipelines ─────────────────────────────────────
     e->gradientPipeline = makeComputePipeline(computeDrawShader);
   
     VkPipeline skyAtmoPipeline = makeComputePipeline(skyAtmoShader);
 
-    // ── Effect 0: gradient ────────────────────────────────────────────────────
     ComputeEffect gradient;
     gradient.pipeline = e->gradientPipeline;
     gradient.layout = e->gradientPipelineLayout;
@@ -72,38 +67,30 @@ void init_background_pipelines(Engine* e)
     gradient.effectData.data1 = glm::vec4(1, 0, 0, 1);
     gradient.effectData.data2 = glm::vec4(0, 0, 1, 1);
 
-    // ── Effect 1: simple sky ──────────────────────────────────────────────────
-    
 
-    // ── Effect 2: atmospheric sky ─────────────────────────────────────────────
-    // data1.xyz = sunDirection (normalised world space, Y = up)
-    // data1.w   = sunIntensity (3.0 = bright noon sun)
-    // data2.x   = turbidity   (2.0 = crystal clear  →  10.0 = hazy/smoggy)
-    // data2.y   = exposure    (overall brightness multiplier)
-    // data2.z   = horizonBlend (0.0 = no haze  →  1.0 = thick horizon haze)
     ComputeEffect skyAtmo;
     skyAtmo.pipeline = skyAtmoPipeline;
     skyAtmo.layout = e->gradientPipelineLayout;
     skyAtmo.name = "sky_atmo";
     skyAtmo.effectData = {};
     skyAtmo.effectData.data1 = glm::vec4(
-        glm::normalize(glm::vec3(0.3f, 0.6f, 0.4f)),  // sun direction
-        3.0f                                            // sun intensity
+        glm::normalize(glm::vec3(0.3f, 0.6f, 0.4f)), 
+        3.0f                                            
     );
     skyAtmo.effectData.data2 = glm::vec4(
-        3.5f,   // turbidity
-        1.2f,   // exposure
-        0.8f,   // horizonBlend
-        0.0f    // reserved
+        3.5f,   
+        1.2f,   
+        0.8f,   
+        0.0f    
     );
 
-    e->backgroundEffects.push_back(gradient);   // index 0        // index 1
-    e->backgroundEffects.push_back(skyAtmo);     // index 2
+    e->backgroundEffects.push_back(gradient);   
+    e->backgroundEffects.push_back(skyAtmo);    
 
     // Use the atmospheric sky by default
     e->currentBackgroundEffect = e->currentBackgroundEffect = (uint32_t)e->backgroundEffects.size() - 1;
 
-    // ── Deletion ──────────────────────────────────────────────────────────────
+   
     e->mainDeletionQueue.push_function([=]() {
         for (auto& effect : e->backgroundEffects)
             if (effect.pipeline != VK_NULL_HANDLE)
@@ -149,12 +136,7 @@ void init_mesh_pipelines(Engine* e)
 
     VK_CHECK(vkCreatePipelineLayout(e->device, &layoutInfo, nullptr, &e->meshPipelineLayout));
 
-    // Vertex attribute locations — MUST match the vertex shader exactly:
-    //   location 0 → position (vec3)
-    //   location 1 → uv       (vec2)  ← uv before normal
-    //   location 2 → normal   (vec3)
-    //   location 3 → color    (vec4)
-    //   location 4 → tangent  (vec4)
+  
     VkVertexInputBindingDescription binding{};
     binding.binding = 0;
     binding.stride = sizeof(Vertex);
@@ -214,28 +196,27 @@ void init_shadow_pipeline(Engine* e)
         std::exit(1);
     }
 
-    // Push constants — just lightViewProj + modelMatrix
     VkPushConstantRange pushRange{};
     pushRange.offset = 0;
-    pushRange.size = sizeof(ShadowPushConstants);  // 128 bytes
-    pushRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;   // vertex only, no frag shader
+    pushRange.size = sizeof(ShadowPushConstants);  
+    pushRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;   
 
     VkPipelineLayoutCreateInfo layoutInfo{};
     layoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-    layoutInfo.setLayoutCount = 0;       // no descriptors needed
+    layoutInfo.setLayoutCount = 0;       
     layoutInfo.pushConstantRangeCount = 1;
     layoutInfo.pPushConstantRanges = &pushRange;
 
     VK_CHECK(vkCreatePipelineLayout(e->device, &layoutInfo, nullptr,
         &e->shadowPipelineLayout));
 
-    // Same vertex layout as mesh pipeline
+    
     VkVertexInputBindingDescription binding{};
     binding.binding = 0;
     binding.stride = sizeof(Vertex);
     binding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
-    // Only need position — location 0
+    
     VkVertexInputAttributeDescription posAttr{};
     posAttr.location = 0;
     posAttr.binding = 0;
@@ -246,22 +227,23 @@ void init_shadow_pipeline(Engine* e)
     vertexInput.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
     vertexInput.vertexBindingDescriptionCount = 1;
     vertexInput.pVertexBindingDescriptions = &binding;
-    vertexInput.vertexAttributeDescriptionCount = 1;     // position only
+    vertexInput.vertexAttributeDescriptionCount = 1;     
     vertexInput.pVertexAttributeDescriptions = &posAttr;
 
+	
+
+
     PipelineBuilder pb;
-    set_shaders(shadowVertShader, VK_NULL_HANDLE, pb);   // NO fragment shader
+    set_shaders(shadowVertShader, VK_NULL_HANDLE, pb);   
     set_input_topology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, pb);
     set_polygon_mode(VK_POLYGON_MODE_FILL, pb);
 
-    // FRONT face culling — fixes peter panning (shadow gap at base of objects)
     set_cull_mode(VK_CULL_MODE_FRONT_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE, pb);
 
     set_multisampling_none(pb);
     enable_depthtest(pb, VK_COMPARE_OP_LESS_OR_EQUAL);
 
-    // No color attachment — depth only
-    // set_color_attachment_format NOT called
+    
     set_depth_format(e->shadowMapImage.imageFormat, pb);
 
     pb.vertexInputInfo = vertexInput;

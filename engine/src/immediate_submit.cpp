@@ -1,16 +1,7 @@
 #include "engine.h"
 #include <functional>
 
-// Note: For complete code, see REFACTORING_DETAILED.md with line numbers
-// This file contains: immediate_submit
 
-// Copy from engine_original.cpp:
-// - immediate_submit() - lines 1193-1215 (23 lines)
-
-// This function handles:
-// - Immediate GPU command execution
-// - Used for uploads and initialization
-// - Synchronization for single-shot operations
 void immediate_submit(std::function<void(VkCommandBuffer cmd)>&& function, Engine* e)
 {
 

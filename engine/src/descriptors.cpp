@@ -155,11 +155,36 @@ void DescriptorWriter::update_set(VkDevice device, VkDescriptorSet set)
     vkUpdateDescriptorSets(device, static_cast<uint32_t>(writes.size()), writes.data(), 0, nullptr);
 }
 
+void DescriptorWriter::write_tlas(int binding, VkAccelerationStructureKHR tlas)
+{
+    
+    tlasHandles.push_back(tlas);
+
+    VkWriteDescriptorSetAccelerationStructureKHR& info = tlasInfos.emplace_back(
+        VkWriteDescriptorSetAccelerationStructureKHR{
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_KHR,
+            .accelerationStructureCount = 1,
+            .pAccelerationStructures = &tlasHandles.back()   
+        });
+
+    
+    VkWriteDescriptorSet write{};
+    write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    write.dstBinding = binding;
+    write.dstSet = VK_NULL_HANDLE;
+    write.descriptorCount = 1;
+    write.descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR;
+    write.pNext = &info;
+    writes.push_back(write);
+}
+
 void DescriptorWriter::clear()
 {
     imageInfos.clear();
     bufferInfos.clear();
     writes.clear();
+    tlasInfos.clear();
+    tlasHandles.clear();   
 }
 
 void init_descriptors(Engine* e)
@@ -170,6 +195,7 @@ void init_descriptors(Engine* e)
         { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 4096.0f },
         { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,          16.0f   },
         { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,         16.0f   },
+        { VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR, 16.0f }
     };
     e->globalDescriptorAllocator.init_pool(e->device, 10, sizes);
 
@@ -177,7 +203,8 @@ void init_descriptors(Engine* e)
     builder.add_bindless_array(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 4096);
     builder.add_binding(1, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1);
     builder.add_binding(2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1);
-    builder.add_bindless_array(3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 8);    // ← ADD: samplerCube
+    builder.add_bindless_array(3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 8);
+    builder.add_bindless_array(4, VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR, 16);
 
     e->bindlessLayout = builder.build(
         e->device,
@@ -191,5 +218,5 @@ void init_descriptors(Engine* e)
         vkDestroyDescriptorSetLayout(e->device, e->bindlessLayout, nullptr);
         });
 
-    LOG("Bindless descriptor system ready (bindings 0, 1, 2, 3)");
+    LOG("Bindless descriptor system ready (bindings 0-4)");
 }

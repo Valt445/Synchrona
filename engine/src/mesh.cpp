@@ -51,7 +51,6 @@ GPUMeshBuffers uploadMesh(Engine* e, std::span<uint32_t> indices, std::span<Vert
         newSurface.vertexBufferAddress = vkGetBufferDeviceAddress(e->device, &addrInfo);
     }
 
-    // ── Index buffer ──────────────────────────────────────────────────────
     size_t indexBufferSize = indices.size() * sizeof(uint32_t);
     if (indexBufferSize > 0) {
         AllocatedBuffer staging = create_buffer(e->allocator, indexBufferSize,

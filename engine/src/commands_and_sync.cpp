@@ -1,9 +1,7 @@
 ﻿#include "engine.h"
 #include <cstdio>
 
-// ─── init_commands ────────────────────────────────────────────────────────────
-// Creates command pools/buffers per frame + immediate submit resources.
-// Camera buffers are created separately in init_camera_buffers (engine.cpp).
+
 void init_commands(Engine* e) {
     VkCommandPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -23,7 +21,7 @@ void init_commands(Engine* e) {
             &e->frames[i].mainCommandBuffer));
     }
 
-    // Immediate submit pool + buffer
+
     VK_CHECK(vkCreateCommandPool(e->device, &poolInfo, nullptr, &e->immCommandPool));
 
     VkCommandBufferAllocateInfo immAlloc{};
@@ -35,13 +33,11 @@ void init_commands(Engine* e) {
 
     e->mainDeletionQueue.push_function([=]() {
         vkDestroyCommandPool(e->device, e->immCommandPool, nullptr);
-        // Per-frame pools are destroyed in engine_cleanup
         });
 
     std::printf("✅ Commands initialized\n");
 }
 
-// ─── Sync structures ──────────────────────────────────────────────────────────
 VkFenceCreateInfo fence_create_info(VkFenceCreateFlags flags) {
     VkFenceCreateInfo info{};
     info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
@@ -74,7 +70,6 @@ void init_sync_structures(Engine* e) {
     std::printf("✅ Sync structures initialized\n");
 }
 
-// ─── Submit helpers ───────────────────────────────────────────────────────────
 VkCommandBufferBeginInfo command_buffer_info(VkCommandBufferUsageFlags flags) {
     VkCommandBufferBeginInfo info{};
     info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -115,10 +110,7 @@ VkSubmitInfo2 submit_info(VkCommandBufferSubmitInfo* cmd,
     return info;
 }
 
-// ─── get_current_frame ────────────────────────────────────────────────────────
-// Single definition — always takes Engine* to avoid global dependency.
-// Rendering.cpp also defines a local one that calls this — only ONE should exist.
-// The declaration in engine.h ensures the Engine* version is used everywhere.
+
 FrameData& get_current_frame(Engine* e) {
     return e->frames[e->frameNumber % FRAME_OVERLAP];
 }

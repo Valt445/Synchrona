@@ -32,7 +32,6 @@ PipelineBuilder::PipelineBuilder()
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 }
 
-// You can now delete your `clear` function.
 
 VkPipeline build_pipeline(VkDevice device, PipelineBuilder& pb)
 {
@@ -42,25 +41,21 @@ VkPipeline build_pipeline(VkDevice device, PipelineBuilder& pb)
     viewportState.viewportCount = 1;
     viewportState.scissorCount = 1;
 
-    // Color blending
     VkPipelineColorBlendStateCreateInfo colorBlending{};
     colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
     colorBlending.logicOpEnable = VK_FALSE;
     colorBlending.attachmentCount = 1;
     colorBlending.pAttachments = &pb.colorBlendAttachment;
 
-    // Vertex input
     VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 
-    // Dynamic states
     VkDynamicState states[] = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
     VkPipelineDynamicStateCreateInfo dynamicInfo{};
     dynamicInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
     dynamicInfo.pDynamicStates = states;
     dynamicInfo.dynamicStateCount = 2;
 
-    // Final pipeline info
     VkGraphicsPipelineCreateInfo pipelineInfo{};
     pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
     pipelineInfo.pNext = &pb.renderInfo;
@@ -75,13 +70,12 @@ VkPipeline build_pipeline(VkDevice device, PipelineBuilder& pb)
     pipelineInfo.pDynamicState = &dynamicInfo;
     pipelineInfo.layout = pb.pipelineLayout;
     pipelineInfo.pVertexInputState = &pb.vertexInputInfo;
-    // Debug logs
+
     if (pb.pipelineLayout == VK_NULL_HANDLE) {
         std::cerr << "❌ Pipeline layout is NULL!" << std::endl;
     }
     std::cout << "Creating pipeline with " << pb.shaderStages.size() << " shader stages" << std::endl;
 
-    // In build_pipeline, right before vkCreateGraphicsPipelines:
     std::cout << "pipelineLayout: " << pb.pipelineLayout << std::endl;
     std::cout << "renderInfo sType: " << pb.renderInfo.sType << std::endl;
     std::cout << "colorAttachmentCount: " << pb.renderInfo.colorAttachmentCount << std::endl;

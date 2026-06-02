@@ -57,10 +57,13 @@ struct DescriptorWriter
     std::deque<VkDescriptorImageInfo> imageInfos;
     std::deque<VkDescriptorBufferInfo> bufferInfos;
     std::vector<VkWriteDescriptorSet> writes;
+    std::vector<VkWriteDescriptorSetAccelerationStructureKHR> tlasInfos;
+    std::deque<VkAccelerationStructureKHR> tlasHandles;
 
     void write_image(int binding, VkImageView image, VkSampler sampler, VkImageLayout layout, VkDescriptorType type);
     void write_buffer(int binding, VkBuffer buffer, size_t size, size_t offset, VkDescriptorType type);
     void update_set_at_index(VkDevice device, VkDescriptorSet set, uint32_t arrayIndex);
     void clear();
     void update_set(VkDevice device, VkDescriptorSet set);
+	void write_tlas(int binding, VkAccelerationStructureKHR tlas);
 };

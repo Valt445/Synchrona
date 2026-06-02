@@ -54,10 +54,8 @@ VkImageCreateInfo image_create_info(VkFormat format, VkImageUsageFlags usageFlag
     info.mipLevels = 1;
     info.arrayLayers = 1;
 
-    //for MSAA. we will not be using it by default, so default it to 1 sample per pixel.
     info.samples = VK_SAMPLE_COUNT_1_BIT;
 
-    //optimal tiling, which means the image is stored on the best gpu format
     info.tiling = VK_IMAGE_TILING_OPTIMAL;
     info.usage = usageFlags;
 
@@ -66,7 +64,6 @@ VkImageCreateInfo image_create_info(VkFormat format, VkImageUsageFlags usageFlag
 
 VkImageViewCreateInfo imageview_create_info(VkFormat format, VkImage image, VkImageAspectFlags aspectFlags)
 {
-    // build a image-view for the depth image to use for rendering
     VkImageViewCreateInfo info = {};
     info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
     info.pNext = nullptr;
@@ -83,13 +80,12 @@ VkImageViewCreateInfo imageview_create_info(VkFormat format, VkImage image, VkIm
     return info;
 }
 void copy_image_to_image(VkCommandBuffer cmd, VkImage source, VkImage destination, VkExtent3D srcSize, VkExtent2D dstSize) {
-        // Subresources—unchanged
 
-    VkImageBlit2 blitRegion = {};  // FIXED: Full zero-init (no garbage Offsets[0])
+    VkImageBlit2 blitRegion = {};  
     blitRegion.sType = VK_STRUCTURE_TYPE_IMAGE_BLIT_2;
 
-    blitRegion.srcOffsets[0] = {0, 0, 0};  // FIXED: Explicit top-left src
-    blitRegion.dstOffsets[0] = {0, 0, 0};  // FIXED: Explicit top-left dst
+    blitRegion.srcOffsets[0] = {0, 0, 0}; 
+    blitRegion.dstOffsets[0] = {0, 0, 0}; 
 
     blitRegion.srcOffsets[1].x = srcSize.width;
     blitRegion.srcOffsets[1].y = srcSize.height;
@@ -120,5 +116,4 @@ void copy_image_to_image(VkCommandBuffer cmd, VkImage source, VkImage destinatio
 
     vkCmdBlitImage2(cmd, &blitInfo);
 
-    // NEW: Log full blit (remove after)
 }

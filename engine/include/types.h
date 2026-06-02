@@ -82,7 +82,8 @@ struct MeshPushConstants {
     float     sunIntensity; 
     
     uint32_t  shadowMapIndex;    // offset 140 — bindless slot of the shadow map
-    float     shadowBias;        // offset 144 — per-material bias tweak
+    float     shadowBias;
+    uint32_t  shadowQuality;// offset 144 — per-material bias tweak
     uint32_t iblIrradianceIndex;
     uint32_t iblPrefilterIndex;
     uint32_t iblBrdfLutIndex;

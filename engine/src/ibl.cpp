@@ -2,7 +2,6 @@
 #include "engine.h"
 #include <stb_image.h>
 
-// ─── Load HDR from disk and upload to GPU ─────────────────────────────────────
 AllocatedImage load_hdri(Engine* e, const char* filepath)
 {
     int width, height, channels;
@@ -28,7 +27,6 @@ AllocatedImage load_hdri(Engine* e, const char* filepath)
     return image;
 }
 
-// ─── Create a cubemap image with 6 array layers ───────────────────────────────
 AllocatedImage create_cubemap_image(Engine* e, uint32_t size, VkFormat format,
     uint32_t mipLevels)
 {
@@ -72,7 +70,6 @@ AllocatedImage create_cubemap_image(Engine* e, uint32_t size, VkFormat format,
     return newImage;
 }
 
-// ─── Helper: create a 2-binding descriptor set layout (sampler + storage) ─────
 static VkDescriptorSetLayout make_ibl_layout(Engine* e, bool hasSamplerInput)
 {
     uint32_t bindingCount = hasSamplerInput ? 2 : 1;
@@ -100,7 +97,6 @@ static VkDescriptorSetLayout make_ibl_layout(Engine* e, bool hasSamplerInput)
     return layout;
 }
 
-// ─── Helper: create a compute pipeline ───────────────────────────────────────
 static VkPipeline make_compute_pipeline(Engine* e, const char* shaderPath,
     VkPipelineLayout layout)
 {
@@ -127,7 +123,6 @@ static VkPipeline make_compute_pipeline(Engine* e, const char* shaderPath,
     return pipeline;
 }
 
-// ─── Helper: write a 2-binding descriptor set ────────────────────────────────
 static void write_ibl_set(Engine* e, VkDescriptorSet set,
     VkImageView samplerView,   // binding 0 — can be VK_NULL_HANDLE for brdf lut
     VkImageView storageView,   // binding 1
@@ -187,13 +182,11 @@ static void upload_cubemap_to_bindless(Engine* e, AllocatedImage img,
     vkUpdateDescriptorSets(e->device, 1, &write, 0, nullptr);
 }
 
-// ─── Main IBL init ────────────────────────────────────────────────────────────
 void init_ibl(Engine* e)
 {
-    // ── 1. Load HDR ───────────────────────────────────────────────────────────
-    e->hdrImage = load_hdri(e, "assets/brown.hdr");
 
-    // HIGH-QUALITY CHANGE: bump env cubemap to 2048 (or 4096 if you want ultra)
+    e->hdrImage = load_hdri(e, "assets/bell");
+
     constexpr uint32_t ENV_CUBEMAP_SIZE = 2048u;   // ← change to 4096 for even higher quality
 
     e->envCubemap = create_cubemap_image(e, ENV_CUBEMAP_SIZE, VK_FORMAT_R32G32B32A32_SFLOAT);
@@ -202,13 +195,11 @@ void init_ibl(Engine* e)
     e->brdfLUT = create_image(e, { 512, 512, 1 }, VK_FORMAT_R16G16_SFLOAT,
         VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, false);
 
-    // ── 2. Descriptor set layouts ─────────────────────────────────────────────
-    e->equirectSetLayout = make_ibl_layout(e, true);  // sampler + storage
-    e->irradianceSetLayout = make_ibl_layout(e, true);  // sampler + storage
-    e->prefilterSetLayout = make_ibl_layout(e, true);  // sampler + storage
-    e->brdfLutSetLayout = make_ibl_layout(e, false); // storage only
+    e->equirectSetLayout = make_ibl_layout(e, true); 
+    e->irradianceSetLayout = make_ibl_layout(e, true);  
+    e->prefilterSetLayout = make_ibl_layout(e, true);  
+    e->brdfLutSetLayout = make_ibl_layout(e, false); 
 
-    // ── 3. Pipeline layouts ───────────────────────────────────────────────────
     auto makePipelineLayout = [&](VkDescriptorSetLayout setLayout,
         bool hasPushConstant) -> VkPipelineLayout
         {
@@ -236,7 +227,6 @@ void init_ibl(Engine* e)
     e->prefilterLayout = makePipelineLayout(e->prefilterSetLayout, true); // has push constant
     e->brdfLutLayout = makePipelineLayout(e->brdfLutSetLayout, false);
 
-    // ── 4. Compute pipelines ──────────────────────────────────────────────────
     e->equirectPipeline = make_compute_pipeline(e,
         "shaders/equirect_to_cubemap.comp.spv", e->equirectLayout);
     e->irradiancePipeline = make_compute_pipeline(e,
@@ -246,22 +236,18 @@ void init_ibl(Engine* e)
     e->brdfLutPipeline = make_compute_pipeline(e,
         "shaders/brdf_lut.comp.spv", e->brdfLutLayout);
 
-    // ── 5. Allocate descriptor sets ───────────────────────────────────────────
     e->equirectSet = e->globalDescriptorAllocator.allocate(e->device, e->equirectSetLayout);
     e->irradianceSet = e->globalDescriptorAllocator.allocate(e->device, e->irradianceSetLayout);
     e->brdfLutSet = e->globalDescriptorAllocator.allocate(e->device, e->brdfLutSetLayout);
 
-    // Prefilter needs one descriptor set per mip level
-    // Each set points at a different mip-level image view of prefilterMap
     for (int mip = 0; mip < 5; mip++) {
-        // Create a view for just this mip level
         VkImageViewCreateInfo mipView{};
         mipView.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
         mipView.image = e->prefilterMap.image;
         mipView.viewType = VK_IMAGE_VIEW_TYPE_CUBE;
         mipView.format = VK_FORMAT_R32G32B32A32_SFLOAT;
         mipView.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        mipView.subresourceRange.baseMipLevel = mip;  // ← specific mip
+        mipView.subresourceRange.baseMipLevel = mip;  
         mipView.subresourceRange.levelCount = 1;
         mipView.subresourceRange.baseArrayLayer = 0;
         mipView.subresourceRange.layerCount = 6;
@@ -271,21 +257,18 @@ void init_ibl(Engine* e)
             e->device, e->prefilterSetLayout);
     }
 
-    // ── 6. Write descriptor sets ──────────────────────────────────────────────
-    // equirect: HDR image → env cubemap
+
     write_ibl_set(e, e->equirectSet,
         e->hdrImage.imageView,
         e->envCubemap.imageView,
-        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,  // ← HDR layout
+        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 
         VK_IMAGE_LAYOUT_GENERAL);
 
-    // irradiance: envCubemap will be GENERAL during compute
     write_ibl_set(e, e->irradianceSet,
         e->envCubemap.imageView,
         e->irradianceMap.imageView,
-        VK_IMAGE_LAYOUT_GENERAL,  // ← envCubemap layout
+        VK_IMAGE_LAYOUT_GENERAL,  
         VK_IMAGE_LAYOUT_GENERAL);
-    // prefilter: env cubemap → prefilter mip views
     for (int mip = 0; mip < 5; mip++) {
         write_ibl_set(e, e->prefilterSets[mip],
             e->envCubemap.imageView,
@@ -294,15 +277,12 @@ void init_ibl(Engine* e)
             VK_IMAGE_LAYOUT_GENERAL);
     }
 
-    // brdf lut: no input, just output
     write_ibl_set(e, e->brdfLutSet,
         VK_NULL_HANDLE,
         e->brdfLUT.imageView);
 
-    // ── 7. Run all compute passes once ───────────────────────────────────────
     immediate_submit([&](VkCommandBuffer cmd)
         {
-            // Transition all outputs to GENERAL for compute writes
             transition_image(cmd, e->envCubemap.image,
                 VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
             transition_image(cmd, e->irradianceMap.image,
@@ -312,14 +292,12 @@ void init_ibl(Engine* e)
             transition_image(cmd, e->brdfLUT.image,
                 VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
 
-            // ── equirect → env cubemap ────────────────────────────────────────────
             vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, e->equirectPipeline);
             vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE,
                 e->equirectLayout, 0, 1, &e->equirectSet, 0, nullptr);
             
             const uint32_t dispatchGroups = ENV_CUBEMAP_SIZE / 16u;
             vkCmdDispatch(cmd, dispatchGroups, dispatchGroups, 6);
-            // Barrier: wait for env cubemap write before reading it
             VkImageMemoryBarrier2 barrier{ .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2 };
             barrier.image = e->envCubemap.image;
             barrier.srcStageMask = VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT;
@@ -335,17 +313,14 @@ void init_ibl(Engine* e)
             dep.pImageMemoryBarriers = &barrier;
             vkCmdPipelineBarrier2(cmd, &dep);
 
-            // ── irradiance convolution ────────────────────────────────────────────
             vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, e->irradiancePipeline);
             vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE,
                 e->irradianceLayout, 0, 1, &e->irradianceSet, 0, nullptr);
             vkCmdDispatch(cmd, 32 / 16, 32 / 16, 6);
 
-            // Barrier: wait for irradiance write
             barrier.image = e->irradianceMap.image;
             vkCmdPipelineBarrier2(cmd, &dep);
 
-            // ── prefilter — one dispatch per mip ──────────────────────────────────
             vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, e->prefilterPipeline);
 
             float    roughnessLevels[] = { 0.0f, 0.25f, 0.5f, 0.75f, 1.0f };
@@ -367,13 +342,11 @@ void init_ibl(Engine* e)
                 mipSize /= 2;
             }
             
-            // ── BRDF LUT ──────────────────────────────────────────────────────────
             vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, e->brdfLutPipeline);
             vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE,
                 e->brdfLutLayout, 0, 1, &e->brdfLutSet, 0, nullptr);
             vkCmdDispatch(cmd, 512 / 16, 512 / 16, 1);
 
-            // Transition everything to SHADER_READ_ONLY for the PBR shader
             transition_image(cmd, e->envCubemap.image,
                 VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
             transition_image(cmd, e->irradianceMap.image,
@@ -385,19 +358,17 @@ void init_ibl(Engine* e)
 
         }, e);
 
-    e->iblIrradianceIndex = 0;  // slot 0 in cubemap array
-    e->iblPrefilterIndex = 1;  // slot 1 in cubemap array
-    e->iblEnvCubemapIndex = 2;  // ← ADD THIS LINE
-    e->iblBrdfLutIndex = 12; // stays in sampler2D array
+    e->iblIrradianceIndex = 0;  
+    e->iblPrefilterIndex = 1;
+    e->iblEnvCubemapIndex = 2;  
+    e->iblBrdfLutIndex = 12; 
 
-    // ── 8. Register in bindless slots ─────────────────────────────────────────
     upload_cubemap_to_bindless(e, e->irradianceMap, e->defaultSamplerLinear, 0);
     upload_cubemap_to_bindless(e, e->prefilterMap, e->defaultSamplerLinear, 1);
     upload_texture_to_bindless(e, e->brdfLUT, e->defaultSamplerLinear, e->iblBrdfLutIndex);
     upload_cubemap_to_bindless(e, e->envCubemap, e->defaultSamplerLinear, 2); // slot 2 = env
 
 
-    // ── 9. Cleanup pipelines — never needed again after startup ───────────────
     e->mainDeletionQueue.push_function([=]() {
         vkDestroyPipeline(e->device, e->equirectPipeline, nullptr);
         vkDestroyPipeline(e->device, e->irradiancePipeline, nullptr);

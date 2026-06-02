@@ -1,5 +1,5 @@
 ﻿#include "debug_ui.h"
-#include "engine.h"   // full engine definition for live stats access
+#include "engine.h"   
 
 #include <algorithm>
 #include <cstdio>
@@ -9,7 +9,6 @@
 DebugUIState g_debugUI;
 static Engine* s_engine = nullptr;
 
-// ─── Init / Shutdown ─────────────────────────────────────────────────────────
 void debug_ui_init(Engine* e)
 {
     s_engine = e;
@@ -27,7 +26,6 @@ void debug_ui_init(Engine* e)
 
     ImGui::StyleColorsDark();
 
-    // Make the dark theme slightly nicer
     ImVec4* colors = ImGui::GetStyle().Colors;
     colors[ImGuiCol_WindowBg] = ImVec4(0.10f, 0.10f, 0.12f, 0.92f);
     colors[ImGuiCol_Header] = ImVec4(0.26f, 0.59f, 0.98f, 0.35f);
@@ -40,7 +38,6 @@ void debug_ui_shutdown()
     g_debugUI.logMessages.clear();
 }
 
-// ─── Update ──────────────────────────────────────────────────────────────────
 void debug_ui_update(float deltaTime)
 {
     float msec = deltaTime * 1000.0f;
@@ -62,7 +59,6 @@ void debug_ui_update(float deltaTime)
     g_debugUI.fpsHistory.push_back(fps);
 }
 
-// ─── Logging ──────────────────────────────────────────────────────────────────
 void debug_ui_log(const char* fmt, ...)
 {
     char buf[1024];
@@ -82,7 +78,6 @@ void debug_ui_log(const std::string& msg)
         g_debugUI.logMessages.erase(g_debugUI.logMessages.begin());
 }
 
-// ─── Main render ─────────────────────────────────────────────────────────────
 void debug_ui_render(Engine* e)
 {
     if (ImGui::BeginMainMenuBar()) {
@@ -107,7 +102,6 @@ void debug_ui_render(Engine* e)
             ImGui::EndMenu();
         }
 
-        // Live FPS in menu bar
         float fps = (g_debugUI.avgFrameTime > 0.01f)
             ? 1000.0f / g_debugUI.avgFrameTime : 0.0f;
         ImVec4 col = fps >= 55 ? ImVec4(0.2f, 1.0f, 0.2f, 1.0f)
@@ -117,7 +111,6 @@ void debug_ui_render(Engine* e)
         ImGui::Text("  %.0f FPS  (%.2f ms)", fps, g_debugUI.avgFrameTime);
         ImGui::PopStyleColor();
 
-        // Draw calls always visible in menu bar
         if (e) {
             ImGui::Separator();
             ImGui::TextDisabled("  Draws: %u  Tris: %s",
@@ -145,7 +138,6 @@ void debug_ui_render(Engine* e)
     if (g_debugUI.show_imgui_demo)      debug_ui_render_imgui_demo();
 }
 
-// ─── Performance panel ───────────────────────────────────────────────────────
 void debug_ui_render_performance_window()
 {
     ImGui::Begin("Performance", &g_debugUI.show_performance,
@@ -165,7 +157,6 @@ void debug_ui_render_performance_window()
     ImGui::End();
 }
 
-// ─── Scene debug panel ───────────────────────────────────────────────────────
 void debug_ui_render_scene_debug_window(Engine* e)
 {
     ImGui::Begin("Scene", &g_debugUI.show_scene_debug);
@@ -176,7 +167,6 @@ void debug_ui_render_scene_debug_window(Engine* e)
     ImGui::Text("Bindless textures:  %u", e->nextBindlessTextureIndex);
     ImGui::Separator();
 
-    // Per-mesh details
     if (ImGui::CollapsingHeader("Mesh List", ImGuiTreeNodeFlags_DefaultOpen)) {
         for (size_t i = 0; i < e->testMeshes.size(); ++i) {
             auto& m = e->testMeshes[i];
@@ -185,7 +175,6 @@ void debug_ui_render_scene_debug_window(Engine* e)
             bool open = ImGui::TreeNode("##mesh", "[%zu] %s  (%zu surfaces)",
                 i, m->name.c_str(), m->surfaces.size());
             if (open) {
-                // World transform — show translation component
                 glm::vec3 pos = glm::vec3(m->worldTransform[3]);
                 ImGui::Text("World pos: (%.2f, %.2f, %.2f)", pos.x, pos.y, pos.z);
 
@@ -193,7 +182,6 @@ void debug_ui_render_scene_debug_window(Engine* e)
                 for (auto& s : m->surfaces) totalTris += s.count / 3;
                 ImGui::Text("Triangles: %u", totalTris);
 
-                // Surface table
                 if (ImGui::BeginTable("##surfs", 6,
                     ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg |
                     ImGuiTableFlags_ScrollY, ImVec2(0, 100))) {
@@ -223,7 +211,6 @@ void debug_ui_render_scene_debug_window(Engine* e)
         }
     }
 
-    // Camera info
     ImGui::Separator();
     if (ImGui::CollapsingHeader("Camera")) {
         glm::vec3 p = e->mainCamera.position;
@@ -235,7 +222,6 @@ void debug_ui_render_scene_debug_window(Engine* e)
     ImGui::End();
 }
 
-// ─── Renderer stats panel ────────────────────────────────────────────────────
 void debug_ui_render_renderer_stats_window(Engine* e)
 {
     ImGui::Begin("Renderer Stats", &g_debugUI.show_renderer_stats);
@@ -244,7 +230,6 @@ void debug_ui_render_renderer_stats_window(Engine* e)
 
     ImGui::Text("Draw calls:       %u", e->lastDrawCalls);
 
-    // Format triangles nicely
     uint32_t t = e->lastTriangles;
     if (t >= 1000000)
         ImGui::Text("Triangles:        %.2fM", t / 1000000.0f);
@@ -267,7 +252,6 @@ void debug_ui_render_renderer_stats_window(Engine* e)
     ImGui::End();
 }
 
-// ─── Memory stats panel ──────────────────────────────────────────────────────
 void debug_ui_render_memory_stats_window(Engine* e)
 {
     ImGui::Begin("Memory Stats", &g_debugUI.show_memory_stats);
@@ -281,7 +265,6 @@ void debug_ui_render_memory_stats_window(Engine* e)
     ImGui::Text("Buffer VRAM:    %.1f MB", mb(e->memoryStats.bufferMemoryBytes));
     ImGui::Separator();
 
-    // VMA live stats
     if (e->allocator) {
         VmaTotalStatistics stats{};
         vmaCalculateStatistics(e->allocator, &stats);
@@ -295,7 +278,6 @@ void debug_ui_render_memory_stats_window(Engine* e)
     ImGui::End();
 }
 
-// ─── Background / compute shader switcher ────────────────────────────────────
 void debug_ui_render_background_ctrl(Engine* e)
 {
     ImGui::SetNextWindowSize(ImVec2(320, 0), ImGuiCond_FirstUseEver);
@@ -308,7 +290,6 @@ void debug_ui_render_background_ctrl(Engine* e)
         ImGui::End(); return;
     }
 
-    // Effect selector
     ImGui::Text("Effect:");
     for (int i = 0; i < (int)e->backgroundEffects.size(); ++i) {
         bool selected = (e->currentBackgroundEffect == i);
@@ -318,7 +299,6 @@ void debug_ui_render_background_ctrl(Engine* e)
 
     ImGui::Separator();
 
-    // Live parameter sliders for the current effect
     ScenePushConstants& data = e->backgroundEffects[e->currentBackgroundEffect].effectData;
     const char* effectName = e->backgroundEffects[e->currentBackgroundEffect].name;
 
@@ -331,7 +311,6 @@ void debug_ui_render_background_ctrl(Engine* e)
         ImGui::SliderFloat("Density", &data.data1.w, 0.0f, 1.0f);
     }
     else {
-        // Generic sliders for unknown effects
         ImGui::SliderFloat4("data1", &data.data1.x, 0.0f, 1.0f);
         ImGui::SliderFloat4("data2", &data.data2.x, 0.0f, 1.0f);
         ImGui::SliderFloat4("data3", &data.data3.x, 0.0f, 1.0f);
@@ -346,11 +325,24 @@ void debug_ui_render_background_ctrl(Engine* e)
         ImGui::ColorEdit3("Sun Color", &e->sunColor.x);
         ImGui::SliderFloat("Shadow Bias", &e->shadowBias, 0.0f, 0.01f);
     }
+    const char* qualityLevels[] = {
+            "Off",
+            "Low (Simple PCF)",
+            "Medium (Poisson PCF)",
+            "High (Hybrid RT)",
+            "Ultra (Pure Ray Trace)"
+    };
+
+    ImGui::Combo("Shadow Quality", &e->shadowQuality, qualityLevels, IM_ARRAYSIZE(qualityLevels));
+
+   
+    if (e->shadowQuality >= 3) {
+        ImGui::TextColored(ImVec4(0.3f, 0.8f, 1.0f, 1.0f), "RT Shadows Active");
+    }
 
     ImGui::End();
 }
 
-// ─── Log console ─────────────────────────────────────────────────────────────
 void debug_ui_render_log_console_window()
 {
     ImGui::Begin("Log Console", &g_debugUI.show_log_console);
@@ -372,7 +364,6 @@ void debug_ui_render_log_console_window()
     ImGui::End();
 }
 
-// ─── Input debug ─────────────────────────────────────────────────────────────
 void debug_ui_render_input_debug_window()
 {
     ImGui::Begin("Input Debug", &g_debugUI.show_input_debug);
@@ -387,7 +378,6 @@ void debug_ui_render_input_debug_window()
     ImGui::End();
 }
 
-// ─── Style editor ────────────────────────────────────────────────────────────
 void debug_ui_render_style_editor()
 {
     ImGui::Begin("Style Editor", &g_debugUI.show_style_editor);
@@ -395,7 +385,6 @@ void debug_ui_render_style_editor()
     ImGui::End();
 }
 
-// ─── ImGui demo ──────────────────────────────────────────────────────────────
 void debug_ui_render_imgui_demo()
 {
     ImGui::ShowDemoWindow(&g_debugUI.show_imgui_demo);

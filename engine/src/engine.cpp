@@ -27,7 +27,7 @@ void init(Engine* e, uint32_t x, uint32_t y)
     init_swapchain(e, targetW, targetH);
     init_descriptors(e);
     init_samplers(e);
-    init_shadow_map(e, 4096, 4096);
+    init_shadow_map(e, 2048, 2048);
 
     create_draw_image(e, targetW, targetH);
     init_depth_image(e, targetW, targetH);
@@ -41,6 +41,9 @@ void init(Engine* e, uint32_t x, uint32_t y)
     init_shadow_pipeline(e);
     init_default_data(e);
 	init_acceleration_structure(e, e->testMeshes);
+	DescriptorWriter writer;
+	writer.write_tlas(4, e->tlasHandle);
+	writer.update_set(e->device, e->bindlessSet);
     init_ibl(e);
     init_imgui(e);
     init_debug_ui(e);
@@ -169,6 +172,28 @@ void init_shadow_map(Engine* e, uint32_t width, uint32_t height)
 
     LOG("Shadow map created " << width << "x" << height
         << " at bindless slot " << e->shadowMapBindlessIndex);
+
+    //ray-traced shadowsd
+    e->shadowMaskImage = create_image(e, VkExtent3D{ width, height, 1 },
+        VK_FORMAT_R16_SFLOAT,
+        VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+        false);
+
+    VkImageViewCreateInfo viewCI{
+        .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+        .image = e->shadowMaskImage.image,
+        .viewType = VK_IMAGE_VIEW_TYPE_2D,
+        .format = VK_FORMAT_R16_SFLOAT,
+        .subresourceRange = {
+            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+            .baseMipLevel = 0,
+            .levelCount = 1,
+            .baseArrayLayer = 0,
+            .layerCount = 1
+        }
+    };
+
+
 }
 
 void destroy_draw_image(Engine* e)
@@ -233,7 +258,7 @@ void create_draw_image(Engine* e, uint32_t width, uint32_t height)
     e->drawImage.imageExtent = drawImageExtent;
     e->drawExtent = { width, height };
 
-    // ── Resolve target (drawImage) — geometry blits/resolves into this ────────
+
     VkImageUsageFlags drawImageUsages =
         VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
         VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
@@ -251,7 +276,6 @@ void create_draw_image(Engine* e, uint32_t width, uint32_t height)
         e->drawImage.imageFormat, e->drawImage.image, VK_IMAGE_ASPECT_COLOR_BIT);
     VK_CHECK(vkCreateImageView(e->device, &rview_info, nullptr, &e->drawImage.imageView));
 
-    // Update bindless slot 1 (storage) with new draw image view
     VkDescriptorImageInfo storageInfo{};
     storageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
     storageInfo.imageView = e->drawImage.imageView;
@@ -265,7 +289,6 @@ void create_draw_image(Engine* e, uint32_t width, uint32_t height)
     storageWrite.pImageInfo = &storageInfo;
     vkUpdateDescriptorSets(e->device, 1, &storageWrite, 0, nullptr);
 
-    // ── MSAA render target — 4x, geometry renders here, resolves to drawImage ─
     VkImageCreateInfo msaa_info{};
     msaa_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     msaa_info.imageType = VK_IMAGE_TYPE_2D;
@@ -312,8 +335,7 @@ void init_default_data(Engine* e)
     upload_texture_to_bindless(e, e->blackImage, e->defaultSamplerLinear, 3);
     e->nextBindlessTextureIndex = e->shadowMapBindlessIndex + 1;
 
-    // Walk up from CWD until we find the assets folder (works from build/ or project root)
-    std::filesystem::path glbRelative = "assets/main_sponza/NewSponza_Main_glTF_003.gltf";
+    std::filesystem::path glbRelative = "assets/gLTF/DamagedHelmet.gltf";
     std::filesystem::path glbPath = glbRelative;
     {
         std::filesystem::path search = std::filesystem::current_path();
@@ -337,7 +359,7 @@ void init_default_data(Engine* e)
         LOG_ERROR("No meshes loaded from GLTF file");
     }
 
-    
+    /*
     std::filesystem::path glbRelative_two = "assets/pkg_a_curtains/NewSponza_Curtains_gLTF.gltf";
     std::filesystem::path glbPath_two = glbRelative_two;
     {
@@ -362,7 +384,7 @@ void init_default_data(Engine* e)
     else {
         LOG_ERROR("No meshes loaded from GLTF file");
     }
-    
+    */
 
 
 

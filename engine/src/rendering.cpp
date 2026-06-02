@@ -3,14 +3,13 @@
 #include "imgui.h"
 #include <glm/ext/matrix_transform.hpp>
 #include <chrono>
-#include <glm/ext/matrix_clip_space.hpp>   // ← ADD THIS for glm::orthoZO
+#include <glm/ext/matrix_clip_space.hpp>
 
 void update_uniform_buffers(Engine* e)
 {
     FrameData& frame = get_current_frame(e);
     float aspect = (float)e->drawExtent.width / (float)e->drawExtent.height;
 
-    // ── Camera ────────────────────────────────────────────────────────────────
     CameraData cam{};
     cam.view = e->mainCamera.getViewMatrix();
     cam.projection = e->mainCamera.getProjectionMatrix(aspect);
@@ -18,30 +17,25 @@ void update_uniform_buffers(Engine* e)
     cam.viewProjection = cam.projection * cam.view;
     cam.worldPosition = glm::vec4(e->mainCamera.position, 1.0f);
 
-    // ── Light matrix — MUST match push.sunDirection exactly ──────────────────
-    // Store on engine so draw_geometry and draw_shadow_pass both use same value
     glm::vec3 sunDir = glm::normalize(glm::vec3(0.3f, 1.0f, 0.4f));
 
     glm::mat4 lightView = glm::lookAt(
-        sunDir * 80.0f,          // sun position — far enough to cover whole scene
-        glm::vec3(0.0f),         // looking at scene centre
+        sunDir * 80.0f,
+        glm::vec3(0.0f),
         glm::vec3(0.0f, 1.0f, 0.0f)
     );
-    glm::mat4 lightProj = glm::orthoZO(   // ← change THIS word only
+    glm::mat4 lightProj = glm::orthoZO(
         -40.0f, 40.0f,
         -40.0f, 40.0f,
         1.0f, 300.0f
     );
-    lightProj[1][1] *= -1.0f;    // Vulkan Y-flip — same as camera projection
+    lightProj[1][1] *= -1.0f;
 
     e->lightViewProj = lightProj * lightView;
-
-    // store on engine for shadow pass
-    cam.lightViewProj = e->lightViewProj;        // upload to UBO for PBR shader
+    cam.lightViewProj = e->lightViewProj;
 
     memcpy(frame.cameraBuffer.info.pMappedData, &cam, sizeof(CameraData));
 
-    // ── Descriptor write (unchanged) ─────────────────────────────────────────
     VkDescriptorBufferInfo bufInfo{};
     bufInfo.buffer = frame.cameraBuffer.buffer;
     bufInfo.offset = 0;
@@ -61,12 +55,10 @@ void update_uniform_buffers(Engine* e)
 
 void draw_geometry(Engine* e, VkCommandBuffer cmd)
 {
-    // Render geometry into 4x MSAA image, resolve into drawImage
-    // Background (compute) already wrote into drawImage; geometry resolves on top
     VkRenderingAttachmentInfo colorAttachment{ .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO };
     colorAttachment.imageView = e->msaaImage.imageView;
     colorAttachment.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-    colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;  // clear msaaImage each frame
+    colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
     colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
     colorAttachment.clearValue = { {0.0f, 0.0f, 0.0f, 0.0f} };
     colorAttachment.resolveMode = VK_RESOLVE_MODE_AVERAGE_BIT;
@@ -108,8 +100,6 @@ void draw_geometry(Engine* e, VkCommandBuffer cmd)
         vkCmdBindVertexBuffers(cmd, 0, 1, &asset->meshBuffers.vertexBuffer.buffer, &offset);
         vkCmdBindIndexBuffer(cmd, asset->meshBuffers.indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
 
-
-
         for (auto& surface : asset->surfaces) {
             MeshPushConstants push{};
             push.modelMatrix = asset->worldTransform;
@@ -125,8 +115,9 @@ void draw_geometry(Engine* e, VkCommandBuffer cmd)
             push.sunDirection = glm::normalize(e->sunDirection);
             push.sunIntensity = e->sunIntensity;
             push.sunColor = e->sunColor;
-            push.shadowMapIndex = e->shadowMapBindlessIndex;  // = 5
+            push.shadowMapIndex = e->shadowMapBindlessIndex; 
             push.shadowBias = e->shadowBias;
+            push.shadowQuality = static_cast<uint32_t>(e->shadowQuality);
             push.iblIrradianceIndex = e->iblIrradianceIndex;
             push.iblPrefilterIndex = e->iblPrefilterIndex;
             push.iblBrdfLutIndex = e->iblBrdfLutIndex;
@@ -143,7 +134,6 @@ void draw_geometry(Engine* e, VkCommandBuffer cmd)
 
     e->lastDrawCalls = drawCalls;
     e->lastTriangles = triangles;
-
 
     vkCmdEndRendering(cmd);
 }
@@ -170,13 +160,13 @@ void draw_skybox(Engine* e, VkCommandBuffer cmd)
 
     SkyPushConstants push{};
     push.sunDirection = e->sunDirection;
-    push.time = e->deltaTime;        // whatever your elapsed time float is
+    push.time = e->deltaTime;
     push.resolution = glm::vec2(e->drawExtent.width, e->drawExtent.height);
     push.cloudCoverage = e->cloudCoverage;
     push.cloudSpeed = e->cloudSpeed;
 
     vkCmdPushConstants(cmd, e->skyboxPipelineLayout,
-        VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_VERTEX_BIT,        
+        VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_VERTEX_BIT,
         0, sizeof(SkyPushConstants), &push);
 
     VkViewport viewport{ 0, 0,
@@ -186,8 +176,6 @@ void draw_skybox(Engine* e, VkCommandBuffer cmd)
     vkCmdSetScissor(cmd, 0, 1, &scissor);
     vkCmdDraw(cmd, 3, 1, 0, 0);
 }
-
-
 
 void draw_imgui(VkCommandBuffer cmd, VkImageView targetImageView, Engine* e)
 {
@@ -211,10 +199,9 @@ void engine_draw_frame(Engine* e)
 {
     e->drawExtent.width = 3840;
     e->drawExtent.height = 2160;
-  
 
     static auto lastTime = std::chrono::high_resolution_clock::now();
-    auto  now = std::chrono::high_resolution_clock::now();
+    auto now = std::chrono::high_resolution_clock::now();
     e->deltaTime = std::chrono::duration<float>(now - lastTime).count();
     lastTime = now;
     e->skyTime += e->deltaTime;
@@ -316,10 +303,6 @@ void engine_draw_frame(Engine* e)
         e->resize_requested = true;
 
     e->frameNumber++;
-    printf("drawExtent: %ux%u | MSAA: %d | Shadow: 4096\n",
-        e->drawExtent.width,
-        e->drawExtent.height,
-        (int)e->msaaSamples);
 }
 
 VkRenderingAttachmentInfo attachment_info(VkImageView view, VkClearValue* clear, VkImageLayout layout)
@@ -336,7 +319,7 @@ VkRenderingAttachmentInfo attachment_info(VkImageView view, VkClearValue* clear,
 
 void draw_shadow_pass(Engine* e, VkCommandBuffer cmd)
 {
-    // ── Transition shadow map to depth write ──────────────────────────────────
+   
     VkImageMemoryBarrier2 toWrite{ .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2 };
     toWrite.image = e->shadowMapImage.image;
     toWrite.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
@@ -352,7 +335,10 @@ void draw_shadow_pass(Engine* e, VkCommandBuffer cmd)
     dep.pImageMemoryBarriers = &toWrite;
     vkCmdPipelineBarrier2(cmd, &dep);
 
-    // ── Begin depth-only rendering ────────────────────────────────────────────
+
+    const uint32_t SM_W = static_cast<uint32_t>(e->shadowMapImage.imageExtent.width);
+    const uint32_t SM_H = static_cast<uint32_t>(e->shadowMapImage.imageExtent.height);
+
     VkRenderingAttachmentInfo depthAttachment{};
     depthAttachment.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
     depthAttachment.imageView = e->shadowMapImage.imageView;
@@ -363,23 +349,20 @@ void draw_shadow_pass(Engine* e, VkCommandBuffer cmd)
 
     VkRenderingInfo renderInfo{};
     renderInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
-    renderInfo.renderArea = { {0,0}, {2048, 2048} };
+    renderInfo.renderArea = { {0,0}, {SM_W, SM_H} };   
     renderInfo.layerCount = 1;
-    renderInfo.colorAttachmentCount = 0;              // no colour
+    renderInfo.colorAttachmentCount = 0;
     renderInfo.pColorAttachments = nullptr;
     renderInfo.pDepthAttachment = &depthAttachment;
 
     vkCmdBeginRendering(cmd, &renderInfo);
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, e->shadowPipeline);
 
-    // Shadow map viewport — fixed 2048x2048
-    VkViewport viewport{ 0, 0, 2048, 2048, 0.0f, 1.0f };
+    VkViewport viewport{ 0, 0, (float)SM_W, (float)SM_H, 0.0f, 1.0f };  
     vkCmdSetViewport(cmd, 0, 1, &viewport);
-    VkRect2D scissor{ {0,0}, {2048, 2048} };
+    VkRect2D scissor{ {0,0}, {SM_W, SM_H} };                            
     vkCmdSetScissor(cmd, 0, 1, &scissor);
 
-    // ── Draw all meshes from sun's POV ────────────────────────────────────────
-    // NO descriptor set bind — shadowPipelineLayout has no sets
     for (auto& asset : e->testMeshes) {
         VkDeviceSize offset = 0;
         vkCmdBindVertexBuffers(cmd, 0, 1,
@@ -402,7 +385,6 @@ void draw_shadow_pass(Engine* e, VkCommandBuffer cmd)
 
     vkCmdEndRendering(cmd);
 
-    // ── Transition to shader read for PBR pass ────────────────────────────────
     VkImageMemoryBarrier2 toRead{ .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2 };
     toRead.image = e->shadowMapImage.image;
     toRead.oldLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;

@@ -274,7 +274,6 @@ struct Engine {
     AllocatedBuffer tlasInstanceBuffer;
 	std::vector<vk::raii::DeviceMemory> blasMemories;
 
-    //inline functions
 
 
     PFN_vkCmdBuildAccelerationStructuresKHR pfn_vkCmdBuildAccelerationStructuresKHR{ nullptr };
@@ -282,13 +281,17 @@ struct Engine {
     PFN_vkGetAccelerationStructureBuildSizesKHR pfn_vkGetBuildSizes{ nullptr };
     PFN_vkCreateAccelerationStructureKHR pfn_vkCreateAS{ nullptr };
     PFN_vkGetAccelerationStructureDeviceAddressKHR pfn_vkGetASAddress{ nullptr };
+    PFN_vkDestroyAccelerationStructureKHR pfn_vkDestroyAS = nullptr;
 
+    //Ray traced shadows
+    AllocatedImage shadowMaskImage;
+	VkImageView shadowMaskImageView;
+    int shadowQuality = 3 ;
 
 };
 
 extern Engine* engine;
 
-// ─── Function declarations ────────────────────────────────────────────────────
 
 // Init
 void init(Engine* e, uint32_t width, uint32_t height);

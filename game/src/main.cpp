@@ -2,8 +2,7 @@
 #include "debug_ui.h"
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_vulkan.h"
-#include <imgui.h>
-
+#include <raytrace.h>
 
 int main()
 {
@@ -18,7 +17,8 @@ int main()
     while (!glfwWindowShouldClose(engine->window))
     {
         glfwPollEvents();
-
+		rebuild_tlas(engine);
+        
         // Skip rendering while the window is minimised
         if (glfwGetWindowAttrib(engine->window, GLFW_ICONIFIED) != 0)
             continue;

@@ -84,7 +84,7 @@ AllocatedImage create_image(Engine* e, VkExtent3D size, VkFormat format,
     if (mipmapped)
         img_info.mipLevels = static_cast<uint32_t>(
             std::floor(std::log2(std::max(size.width, size.height)))) + 1;
-        newImage.mipLevels = img_info.mipLevels;  // ← ADD THIS, was missing
+        newImage.mipLevels = img_info.mipLevels;  
 
     VmaAllocationCreateInfo alloc_info{};
     alloc_info.usage = VMA_MEMORY_USAGE_GPU_ONLY;

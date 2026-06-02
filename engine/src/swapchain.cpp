@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <cstdio>
 
-// ─── Destroy ─────────────────────────────────────────────────────────────────
 void destroy_swapchain(Engine* e) {
     if (e->swapchain == VK_NULL_HANDLE) return;
 
@@ -24,14 +23,12 @@ void destroy_swapchain(Engine* e) {
     vkDestroySwapchainKHR(e->device, e->swapchain, nullptr);
     e->swapchain = VK_NULL_HANDLE;
 }
-
-// ─── Internal builder (shared by init and resize) ────────────────────────────
 static void build_swapchain(Engine* e, uint32_t width, uint32_t height) {
     VkSurfaceCapabilitiesKHR caps;
     VK_CHECK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(e->physicalDevice, e->surface, &caps));
 
     if (caps.currentExtent.width == 0 || caps.currentExtent.height == 0)
-        return; // minimized — caller should defer
+        return; 
 
     width  = std::clamp(width,  caps.minImageExtent.width,  caps.maxImageExtent.width);
     height = std::clamp(height, caps.minImageExtent.height, caps.maxImageExtent.height);
@@ -55,7 +52,7 @@ static void build_swapchain(Engine* e, uint32_t width, uint32_t height) {
     e->swapchainImages      = vkbSwapchain->get_images().value();
     e->swapchainImageViews  = vkbSwapchain->get_image_views().value();
     e->swapchainImageFormat = vkbSwapchain->image_format;
-    e->swapchainExtent      = vkbSwapchain->extent; // authoritative pixel size on ALL platforms
+    e->swapchainExtent      = vkbSwapchain->extent; 
 
     VkSemaphoreCreateInfo semInfo{ .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO };
     e->imageAvailableSemaphores.resize(e->swapchainImages.size());
@@ -79,12 +76,7 @@ static void build_swapchain(Engine* e, uint32_t width, uint32_t height) {
         e->swapchainExtent.width, e->swapchainExtent.height, e->swapchainImages.size());
 }
 
-// ─── Init (first time) ───────────────────────────────────────────────────────
-// FIX: init_swapchain ONLY builds the swapchain and updates e->swapchainExtent.
-//      create_draw_image and init_depth_image are called separately in engine.cpp
-//      using e->swapchainExtent — which is the correct pixel size on all platforms.
-//      Previously this function also created the draw image inline, which was then
-//      immediately destroyed and recreated by engine.cpp with wrong (window) dimensions.
+
 void init_swapchain(Engine* e, uint32_t width, uint32_t height) {
     build_swapchain(e, width, height);
 
@@ -93,26 +85,20 @@ void init_swapchain(Engine* e, uint32_t width, uint32_t height) {
     });
 }
 
-// ─── Resize ──────────────────────────────────────────────────────────────────
+
 void resize_swapchain(Engine* e) {
     if (!e->resize_requested) return;
     e->resize_requested = false;
 
     vkDeviceWaitIdle(e->device);
 
-    // 1. Rebuild the Swapchain to fit the new Window size
-    // We still need this to match the window so we can display the image
+
     uint32_t oldW = e->swapchainExtent.width;
     uint32_t oldH = e->swapchainExtent.height;
     destroy_swapchain(e);
     build_swapchain(e, oldW, oldH);
 
-    // 2. DON'T resize these to the swapchain extent if you want 4K!
-    // If you destroy and recreate them based on e->swapchainExtent (2560),
-    // but your draw loop still uses 3840, you will crash.
-
-    // Check if we actually need to recreate 4K buffers. 
-    // Usually, you only do this if you actually want to change internal resolution.
+    
     if (e->drawExtent.width != 3840 || e->drawExtent.height != 2160) {
         destroy_draw_image(e);
         destroy_depth_image(e);

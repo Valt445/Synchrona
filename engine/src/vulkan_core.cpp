@@ -3,7 +3,6 @@
 #include <cstdio>
 #include <cstdlib>
 
-// vulkan_beta.h is needed for the Portability Subset extension name
 #include <vulkan/vulkan_beta.h> 
 
 template<typename T>
@@ -16,7 +15,6 @@ T get_or_abort(vkb::Result<T> result, const char* step) {
 }
 
 void init_vulkan(Engine* e) {
-    // ── 1. Instance ───────────────────────────────────────────────────────────
     vkb::InstanceBuilder builder;
     builder.set_app_name("Synchrona")
         .request_validation_layers(true)
@@ -34,7 +32,6 @@ void init_vulkan(Engine* e) {
     e->instance = vkb_inst.instance;
     e->debug_messenger = vkb_inst.debug_messenger;
 
-    // ── 2. Window & Surface ───────────────────────────────────────────────────
     if (!glfwInit() || !glfwVulkanSupported()) {
         std::printf("GLFW Vulkan init failed\n");
         std::exit(1);
@@ -47,8 +44,6 @@ void init_vulkan(Engine* e) {
         std::exit(1);
     }
 
-    // ── 3. Physical Device Selection ──────────────────────────────────────────
-    // Request basic anisotropy and 64-bit ints for RT logic
     VkPhysicalDeviceFeatures coreFeatures{};
     coreFeatures.samplerAnisotropy = VK_TRUE;
     coreFeatures.shaderInt64 = VK_TRUE;
@@ -57,7 +52,6 @@ void init_vulkan(Engine* e) {
     selector.set_minimum_version(1, 3)
         .set_required_features(coreFeatures)
         .add_required_extension(VK_KHR_SWAPCHAIN_EXTENSION_NAME)
-        // Ray Tracing Extensions
         .add_required_extension(VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME)
         .add_required_extension(VK_KHR_RAY_QUERY_EXTENSION_NAME)
         .add_required_extension(VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME);
@@ -70,29 +64,28 @@ void init_vulkan(Engine* e) {
     vkb::PhysicalDevice physicalDevice = get_or_abort(phys_ret, "Physical device selection");
     e->physicalDevice = physicalDevice.physical_device;
 
-    // ── 4. Logical Device & Feature Chaining ──────────────────────────────────
 
-    // 4a. Ray Query
+    //  Ray Query
     VkPhysicalDeviceRayQueryFeaturesKHR rayQueryFeatures{};
     rayQueryFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_QUERY_FEATURES_KHR;
     rayQueryFeatures.rayQuery = VK_TRUE;
 
-    // 4b. Acceleration Structure
+    //  Acceleration Structure
     VkPhysicalDeviceAccelerationStructureFeaturesKHR asFeatures{};
     asFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR;
     asFeatures.accelerationStructure = VK_TRUE;
     asFeatures.pNext = &rayQueryFeatures;
+    asFeatures.descriptorBindingAccelerationStructureUpdateAfterBind = VK_TRUE;
 
-    // 4c. Vulkan 1.2 Features (Consolidated Bindless + Scalar Layout)
+   
     VkPhysicalDeviceVulkan12Features features12{};
     features12.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
     features12.bufferDeviceAddress = VK_TRUE;
-    features12.scalarBlockLayout = VK_TRUE; // Fixed: Moved from standalone struct
+    features12.scalarBlockLayout = VK_TRUE;
     features12.runtimeDescriptorArray = VK_TRUE;
     features12.descriptorIndexing = VK_TRUE;
     features12.bufferDeviceAddressCaptureReplay = VK_TRUE;
 
-    // Fixed: Enabling all Bindless bits required for Sponza's texture arrays
     features12.descriptorBindingPartiallyBound = VK_TRUE;
     features12.descriptorBindingSampledImageUpdateAfterBind = VK_TRUE;
     features12.descriptorBindingStorageImageUpdateAfterBind = VK_TRUE;
@@ -100,7 +93,7 @@ void init_vulkan(Engine* e) {
     features12.shaderSampledImageArrayNonUniformIndexing = VK_TRUE;
     features12.pNext = &asFeatures;
 
-    // 4d. Vulkan 1.3 Features
+    //  Vulkan 1.3 Features
     VkPhysicalDeviceVulkan13Features features13{};
     features13.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES;
     features13.dynamicRendering = VK_TRUE;
@@ -108,7 +101,6 @@ void init_vulkan(Engine* e) {
     features13.shaderDemoteToHelperInvocation = VK_TRUE;
     features13.pNext = &features12;
 
-    // Build the device with the head of the chain (features13)
     vkb::DeviceBuilder deviceBuilder{ physicalDevice };
     auto dev_ret = deviceBuilder.add_pNext(&features13).build();
     vkb::Device vkbDevice = get_or_abort(dev_ret, "Logical device creation");
@@ -117,7 +109,6 @@ void init_vulkan(Engine* e) {
     e->graphicsQueue = get_or_abort(vkbDevice.get_queue(vkb::QueueType::graphics), "Graphics queue");
     e->graphicsQueueFamily = get_or_abort(vkbDevice.get_queue_index(vkb::QueueType::graphics), "Graphics queue index");
 
-    // ── 5. VMA Allocator ──────────────────────────────────────────────────────
     VmaAllocatorCreateInfo allocatorInfo{};
     allocatorInfo.physicalDevice = e->physicalDevice;
     allocatorInfo.device = e->device;

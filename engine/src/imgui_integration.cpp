@@ -3,16 +3,7 @@
 #include <GLFW/glfw3.h>
 #include <cstdint>
 
-// Note: For complete code, see REFACTORING_DETAILED.md with line numbers
-// This file contains: init_imgui
 
-// Copy from engine_original.cpp:
-// - init_imgui() - lines 190-246 (57 lines)
-
-// This function handles:
-// - ImGui context creation
-// - Vulkan backend initialization
-// - Descriptor pool setup for ImGui
 void init_imgui(Engine* e)
 {
     VkDescriptorPoolSize pool_sizes[] = {
