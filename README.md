@@ -1,111 +1,96 @@
-# ⚡ Vulkan Game Engine
+![Uploading a.png…]()
+![Uploading b.png…]()
 
-A handcrafted game engine built from scratch in C++ and Vulkan. No Unity. No Unreal. No shortcuts. Just raw GPU metal and the ambition to build something that can compete with both.
 
----
-
-## The Vision
-
-This engine exists because modern game engines are black boxes. You press buttons, something happens, you don't know why. This is the opposite of that — every system written by hand, every bug hunted down to the instruction level, full ownership of everything from the GPU command buffer to the game loop.
-
-The goal is an engine that matches Unity in graphical capability, surpasses it in rendering quality, and gets out of your way when you're making a game. Minimal UI code burden on the developer. Pure C++. No scripting layer tax. No bloat.
-
-The graphics target is path traced, physically correct light — where what you see on screen is what light actually does in the real world. RTX hardware acceleration. The kind of visuals that make you stop and look.
-
-The gameplay target is simplicity. A clean ECS, physics, audio, input — everything you need to ship a real game and nothing you don't.
+# Synchrona Graphics Engine
+A high-performance C++ rendering engine utilizing the Vulkan API, designed for low-overhead graphics processing and efficient resource management.
 
 ---
 
-## Current State
+### Project Architecture
+The project is architected as a modular system split into two distinct components:
 
-The rendering foundation is solid and running. It currently chews through scenes like Sponza and San Miguel at 60fps locked on mid-range hardware — 7+ million triangles, full PBR materials, shadows, atmospheric sky, all running on a raw Vulkan renderer with no engine scaffolding yet.
-
-- **Vulkan 1.3** — dynamic rendering, synchronization2, timeline semaphores
-- **Bindless descriptor system** — single global descriptor set, all textures in one array
-- **PBR shading** — Cook-Torrance BRDF, GGX distribution, Schlick fresnel, Smith geometry
-- **PCF shadow mapping** — 2048×2048 depth map, 3×3 kernel soft shadows
-- **Normal mapping** — TBN matrix, Gram-Schmidt re-orthogonalization, per-material strength
-- **glTF 2.0 loader** — full scene graph traversal, PBR material binding, tangent generation
-- **ACES tone mapping** — filmic curve with configurable exposure
-- **Atmospheric sky** — compute shader with turbidity, sun direction and intensity controls
-- **Alpha cutout** — foliage and masked materials
-- **VMA memory management** — GPU-only resources, persistent mapped upload buffers
-- **Dear ImGui debug UI** — live pipeline switching, performance counters
+*   **The Engine**: This component contains the core rendering logic and system abstractions. It compiles into a library file (`.lib` or `.a`) to be linked by the client application.
+*   **The Game**: This component serves as the executable frontend. It contains the `main` entry point, application-specific logic, and all scene assets including models, textures, and shaders.
 
 ---
 
-## Rendering Roadmap
-
-### Image Based Lighting — next
-HDR environment capture, diffuse irradiance convolution, GGX prefiltered specular map, BRDF LUT. The single biggest visual quality jump available right now. Proper sky reflections on metal, coloured bounce light, the full split-sum approximation.
-
-### Mipmap generation
-Full mip chain via `vkCmdBlitImage` at load time. Eliminates aliasing and shimmer at distance.
-
-### Screen Space Ambient Occlusion
-Hemisphere depth sampling, contact shadows, makes scenes feel grounded. Huge perceived quality jump at low cost.
-
-### Cascaded Shadow Maps
-3-4 depth cascades covering different distance ranges. Sharp shadows up close, smooth coverage at distance.
-
-### Temporal Anti-Aliasing
-Sub-pixel projection jitter, history accumulation, velocity buffer reprojection. Best quality-to-cost AA available.
-
-### Bloom
-HDR downsample, bright pixel threshold, gaussian blur, composite. A large part of why modern games look the way they do.
-
-### GPU-driven rendering
-`vkCmdDrawIndexedIndirect` with a GPU-side compute culling pass. Removes the CPU submission bottleneck entirely and opens the door to massive scene complexity.
-
-### Ray Traced Ambient Occlusion
-Vulkan ray tracing extensions, short AO rays from the GBuffer, real geometric occlusion. The RTX 3060 has dedicated RT cores — might as well use them.
-
-### Full Path Tracing
-The endgame for the renderer. Hardware RTX acceleration, unbiased light transport, caustics, interreflections, the works. The kind of image quality that is currently only possible offline — made realtime.
+### Core Technical Features
+*   **Physically Based Rendering (PBR)**
+*   **Image Based Lighting (IBL)**
+*   **Multisample Anti-Aliasing (MSAA)**
+*   **Dynamic Rendering**
+*   **Bindless Descriptors**
+*   **Compute Shader Integration**
+*   **Skybox Rendering**
+*   **Acceleration Structures**
+*   **HDRI Skybox Support (8k)**
+*   **GLTF and GLB Asset Loading**
+*   **ImGui Diagnostic Interface**
 
 ---
 
-## Engine Roadmap
+### Performance Benchmarks
 
-### Entity Component System
-Clean data-oriented ECS. Fast iteration, cache-friendly component storage, no inheritance hell. The backbone everything else plugs into.
+**Test Environment A (Discrete GPU)**
+*   **GPU**: NVIDIA GeForce RTX 3060
+*   **Resolution**: 3840 x 2160 (4K)
+*   **Anti-Aliasing**: 2x MSAA
+*   **Lighting**: 8k HDRI
 
-### Physics
-Rigid body simulation, collision detection, raycasts. Enough to make real games. Probably integrating a proven library rather than writing a physics engine from scratch — that's a different project entirely.
-
-### Audio
-3D positional audio, streaming, effects. The part everyone forgets until the game feels completely empty without it.
-
-### Input system
-Keyboard, mouse, gamepad. Event driven and polling both. Simple.
-
-### Minimal developer UI
-The engine provides a thin layer for in-game UI — enough to build menus, HUDs, debug overlays. Pure C++, no markup language, no retained mode nightmare. You write code, UI appears.
-
-### Scene management
-Scene graph, serialization, asset hot-reloading. Load a scene, change a file, see it update without restarting.
-
-### Developer tooling
-An editor — eventually. Not soon. The renderer has to be worth editing things in first.
+**Results (RTX 3060)**
+*   **Intel Sponza (with curtains)**: 40 FPS
+*   **Damaged Helmet**: 100 FPS
 
 ---
 
-## Built With
+**Test Environment B (Apple Silicon)**
+*   **SoC**: Apple M4
+*   **OS**: macOS
+*   **Resolution**: 2560 x 1440 (1440p)
+*   **Lighting**: 8k HDRI
 
-- C++23
-- Vulkan 1.3
-- VMA (Vulkan Memory Allocator)
-- vk-bootstrap
-- cgltf
-- glm
-- stb_image
-- Dear ImGui
-- GLFW
+**Results (M4)**
+*   **Damaged Helmet**: 40 FPS
 
 ---
 
-*Built to understand how everything works. Built to eventually beat the engines that don't let you.*
+### Comparative Performance Analysis
+Synchrona is optimized for high-throughput graphics with minimal system tax compared to commercial general-purpose engines.
+
+*   **CPU Utilization**: Synchrona maintains a consistent 4% CPU overhead during high-load 4K rendering. 
+*   **Commercial Baseline (Unity)**: Standard Unity implementations (URP/HDRP) typically exhibit significantly higher CPU overhead—often ranging from 15% to 25%—due to additional abstraction layers and managed code overhead in similar 5.7M triangle scenes.
+*   **Optimization Strategy**: By utilizing bindless descriptors and custom memory management, Synchrona reduces draw call overhead and bypasses traditional engine abstraction layers to maximize GPU saturation.
 
 ---
 
-THIS README WAS WRITTEN BY AI. THE HUMAN WAS BUSY ACTUALLY BUILDING THE ENGINE.
+### Compilation and Deployment
+The engine utilizes CMake for cross-platform build automation.
+
+**Manual Build from Source**
+*   Clone the repository to the local environment.
+*   Initialize CMake from the root directory.
+*   Compile the Engine library first, then link it with the Game executable.
+
+**Automated Build Scripts**
+*   **Windows**: Execute `build.bat` to initiate the compilation process.
+*   **Linux/macOS**: Execute `build.sh` to initiate the compilation process.
+
+---
+
+### Cross-Platform Support
+The codebase maintains separate builds and configurations to ensure functional parity across multiple operating systems:
+*   **Windows**
+*   **Linux**
+*   **macOS**
+
+---
+
+### Current Development Objectives
+*   **Bare-Metal Porting**: Transitioning the rendering pipeline to a custom ARM64 kernel to eliminate operating system overhead.
+*   **Hardware Acceleration**: Implementation of Vulkan Ray Queries for real-time intersection testing.
+*   **Gaussian Splatting**: Integration of volumetric point cloud rendering for high-fidelity environmental reconstruction.
+
+---
+
+**Lead Developer**: Manan Bhardwaj
