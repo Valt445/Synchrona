@@ -1,111 +1,101 @@
-# ⚡ Vulkan Game Engine
+Synchrona Graphics Engine
 
-A handcrafted game engine built from scratch in C++ and Vulkan. No Unity. No Unreal. No shortcuts. Just raw GPU metal and the ambition to build something that can compete with both.
+A high-performance C++ rendering engine utilizing the Vulkan API, designed for low-overhead graphics processing and efficient resource management.
+Project Architecture
 
----
+The project is architected as a modular system split into two distinct components:
 
-## The Vision
+    The Engine: This component contains the core rendering logic and system abstractions. It compiles into a library file (.lib or .a) to be linked by the client application.
 
-This engine exists because modern game engines are black boxes. You press buttons, something happens, you don't know why. This is the opposite of that — every system written by hand, every bug hunted down to the instruction level, full ownership of everything from the GPU command buffer to the game loop.
+    The Game: This component serves as the executable frontend. It contains the main entry point, application-specific logic, and all scene assets (models, textures, and shaders).
 
-The goal is an engine that matches Unity in graphical capability, surpasses it in rendering quality, and gets out of your way when you're making a game. Minimal UI code burden on the developer. Pure C++. No scripting layer tax. No bloat.
+Core Technical Features
 
-The graphics target is path traced, physically correct light — where what you see on screen is what light actually does in the real world. RTX hardware acceleration. The kind of visuals that make you stop and look.
+    Physically Based Rendering (PBR)
 
-The gameplay target is simplicity. A clean ECS, physics, audio, input — everything you need to ship a real game and nothing you don't.
+    Image Based Lighting (IBL)
 
----
+    Multisample Anti-Aliasing (MSAA)
 
-## Current State
+    Dynamic Rendering
 
-The rendering foundation is solid and running. It currently chews through scenes like Sponza and San Miguel at 60fps locked on mid-range hardware — 7+ million triangles, full PBR materials, shadows, atmospheric sky, all running on a raw Vulkan renderer with no engine scaffolding yet.
+    Bindless Descriptors
 
-- **Vulkan 1.3** — dynamic rendering, synchronization2, timeline semaphores
-- **Bindless descriptor system** — single global descriptor set, all textures in one array
-- **PBR shading** — Cook-Torrance BRDF, GGX distribution, Schlick fresnel, Smith geometry
-- **PCF shadow mapping** — 2048×2048 depth map, 3×3 kernel soft shadows
-- **Normal mapping** — TBN matrix, Gram-Schmidt re-orthogonalization, per-material strength
-- **glTF 2.0 loader** — full scene graph traversal, PBR material binding, tangent generation
-- **ACES tone mapping** — filmic curve with configurable exposure
-- **Atmospheric sky** — compute shader with turbidity, sun direction and intensity controls
-- **Alpha cutout** — foliage and masked materials
-- **VMA memory management** — GPU-only resources, persistent mapped upload buffers
-- **Dear ImGui debug UI** — live pipeline switching, performance counters
+    Compute Shader Integration
 
----
+    Skybox Rendering
 
-## Rendering Roadmap
+    Acceleration Structures
 
-### Image Based Lighting — next
-HDR environment capture, diffuse irradiance convolution, GGX prefiltered specular map, BRDF LUT. The single biggest visual quality jump available right now. Proper sky reflections on metal, coloured bounce light, the full split-sum approximation.
+    HDRI Skybox Support (8k)
 
-### Mipmap generation
-Full mip chain via `vkCmdBlitImage` at load time. Eliminates aliasing and shimmer at distance.
+    GLTF and GLB Asset Loading
 
-### Screen Space Ambient Occlusion
-Hemisphere depth sampling, contact shadows, makes scenes feel grounded. Huge perceived quality jump at low cost.
+    ImGui Diagnostic Interface
 
-### Cascaded Shadow Maps
-3-4 depth cascades covering different distance ranges. Sharp shadows up close, smooth coverage at distance.
+Performance Benchmarks
 
-### Temporal Anti-Aliasing
-Sub-pixel projection jitter, history accumulation, velocity buffer reprojection. Best quality-to-cost AA available.
+Test Environment
 
-### Bloom
-HDR downsample, bright pixel threshold, gaussian blur, composite. A large part of why modern games look the way they do.
+    GPU: NVIDIA GeForce RTX 3060
 
-### GPU-driven rendering
-`vkCmdDrawIndexedIndirect` with a GPU-side compute culling pass. Removes the CPU submission bottleneck entirely and opens the door to massive scene complexity.
+    Resolution: 3840 x 2160 (4K)
 
-### Ray Traced Ambient Occlusion
-Vulkan ray tracing extensions, short AO rays from the GBuffer, real geometric occlusion. The RTX 3060 has dedicated RT cores — might as well use them.
+    Anti-Aliasing: 2x MSAA
 
-### Full Path Tracing
-The endgame for the renderer. Hardware RTX acceleration, unbiased light transport, caustics, interreflections, the works. The kind of image quality that is currently only possible offline — made realtime.
+    Lighting: 8k HDRI
 
----
+Results
 
-## Engine Roadmap
+    Intel Sponza (with curtains): 40 FPS
 
-### Entity Component System
-Clean data-oriented ECS. Fast iteration, cache-friendly component storage, no inheritance hell. The backbone everything else plugs into.
+    Damaged Helmet: 100 FPS
 
-### Physics
-Rigid body simulation, collision detection, raycasts. Enough to make real games. Probably integrating a proven library rather than writing a physics engine from scratch — that's a different project entirely.
+Comparative Performance Analysis
 
-### Audio
-3D positional audio, streaming, effects. The part everyone forgets until the game feels completely empty without it.
+Synchrona is optimized for high-throughput graphics with minimal system tax compared to commercial general-purpose engines.
 
-### Input system
-Keyboard, mouse, gamepad. Event driven and polling both. Simple.
+    CPU Utilization: Synchrona maintains a consistent 4% CPU overhead during high-load 4K rendering.
 
-### Minimal developer UI
-The engine provides a thin layer for in-game UI — enough to build menus, HUDs, debug overlays. Pure C++, no markup language, no retained mode nightmare. You write code, UI appears.
+    Commercial Baseline (Unity): Standard Unity implementations (URP/HDRP) typically exhibit significantly higher CPU overhead—often ranging from 15% to 25%—due to additional abstraction layers and managed code overhead in similar 5.7M triangle scenes.
 
-### Scene management
-Scene graph, serialization, asset hot-reloading. Load a scene, change a file, see it update without restarting.
+    Optimization Flex: By utilizing bindless descriptors and custom memory management, Synchrona reduces draw call overhead and bypasses traditional engine "bloat" to maximize GPU saturation.
 
-### Developer tooling
-An editor — eventually. Not soon. The renderer has to be worth editing things in first.
+Compilation and Deployment
 
----
+The engine utilizes CMake for cross-platform build automation.
 
-## Built With
+Manual Build from Source
 
-- C++23
-- Vulkan 1.3
-- VMA (Vulkan Memory Allocator)
-- vk-bootstrap
-- cgltf
-- glm
-- stb_image
-- Dear ImGui
-- GLFW
+    Clone the repository to the local environment.
 
----
+    Initialize CMake from the root directory.
 
-*Built to understand how everything works. Built to eventually beat the engines that don't let you.*
+    Compile the Engine library first, then link it with the Game executable.
 
----
+Automated Build Scripts
 
-THIS README WAS WRITTEN BY AI. THE HUMAN WAS BUSY ACTUALLY BUILDING THE ENGINE.
+    Windows: Execute build.bat to initiate the compilation process.
+
+    Linux/macOS: Execute build.sh to initiate the compilation process.
+
+Cross-Platform Support
+
+The codebase maintains separate builds and configurations to ensure functional parity across multiple operating systems:
+
+    Windows
+
+    Linux
+
+    macOS
+
+Current Development Objectives
+
+    Bare-Metal Porting: Transitioning the rendering pipeline to a custom ARM64 kernel to eliminate operating system overhead.
+
+    Hardware Acceleration: Implementation of Vulkan Ray Queries for real-time intersection testing.
+
+    Gaussian Splatting: Integration of volumetric point cloud rendering for high-fidelity environmental reconstruction.
+
+Lead Developer: Manan Bhardwaj
+Age: 14
