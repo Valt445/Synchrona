@@ -1,8 +1,4 @@
 
-![Uploading b.png…]()
-![Uploading a.png…]()
-
-
 # Synchrona Graphics Engine
 A high-performance C++ rendering engine utilizing the Vulkan API, designed for low-overhead graphics processing and efficient resource management.
 
